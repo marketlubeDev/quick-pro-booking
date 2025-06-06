@@ -9,6 +9,7 @@ interface PrimaryButtonProps {
   variant?: 'primary' | 'accent';
   size?: 'sm' | 'default' | 'lg';
   type?: 'button' | 'submit';
+  disabled?: boolean;
 }
 
 const PrimaryButton = ({ 
@@ -17,7 +18,8 @@ const PrimaryButton = ({
   className = '', 
   variant = 'accent',
   size = 'default',
-  type = 'button'
+  type = 'button',
+  disabled = false
 }: PrimaryButtonProps) => {
   const baseClasses = "ripple-effect font-heading font-semibold transition-all duration-200 hover:scale-105";
   const variantClasses = variant === 'primary' 
@@ -30,6 +32,7 @@ const PrimaryButton = ({
       className={`${baseClasses} ${variantClasses} ${className}`}
       size={size}
       type={type}
+      disabled={disabled}
     >
       {children}
     </Button>

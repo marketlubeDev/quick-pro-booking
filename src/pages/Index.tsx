@@ -8,6 +8,8 @@ import ServiceCard from '@/components/ServiceCard';
 import TestimonialCard from '@/components/TestimonialCard';
 import StepItem from '@/components/StepItem';
 import PrimaryButton from '@/components/PrimaryButton';
+import ProjectCard from '@/components/ProjectCard';
+import ServiceSlider from '@/components/ServiceSlider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -54,6 +56,63 @@ const Index = () => {
       icon: Wrench,
       title: 'Appliance Repair',
       description: 'Fix washers, dryers & more'
+    }
+  ];
+
+  const featuredProjects = [
+    {
+      id: 1,
+      title: 'Modern Kitchen Renovation',
+      image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop',
+      description: 'Complete kitchen makeover with modern fixtures and appliances',
+      category: 'Kitchen Renovation',
+      duration: '2 weeks',
+      location: 'Austin, TX'
+    },
+    {
+      id: 2,
+      title: 'Bathroom Plumbing Overhaul',
+      image: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=600&h=400&fit=crop',
+      description: 'Full bathroom plumbing replacement and fixture installation',
+      category: 'Plumbing',
+      duration: '1 week',
+      location: 'Seattle, WA'
+    },
+    {
+      id: 3,
+      title: 'Electrical System Upgrade',
+      image: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=600&h=400&fit=crop',
+      description: 'Complete home electrical system modernization',
+      category: 'Electrical',
+      duration: '3 days',
+      location: 'Miami, FL'
+    }
+  ];
+
+  const allServices = [
+    {
+      id: 1,
+      title: 'Professional Plumbing',
+      image: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=600&h=400&fit=crop',
+      description: 'Expert plumbing solutions for your home',
+      price: 'From $89',
+      rating: 4.9
+    },
+    {
+      id: 2,
+      title: 'Electrical Services',
+      image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=600&h=400&fit=crop',
+      description: 'Safe and reliable electrical work',
+      price: 'From $120',
+      rating: 4.8
+    },
+    {
+      id: 3,
+      title: 'House Cleaning',
+      image: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600&h=400&fit=crop',
+      description: 'Professional deep cleaning services',
+      price: 'From $75',
+      rating: 4.9
     }
   ];
 
@@ -215,6 +274,50 @@ const Index = () => {
             <Link to="/services">
               <PrimaryButton variant="primary">
                 View All Services
+              </PrimaryButton>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Projects */}
+      <section className="py-16 lg:py-24 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="font-heading mb-4">Featured Projects</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              See our recent work and successful home service projects completed by our professionals.
+            </p>
+          </div>
+
+          <ProjectCard projects={featuredProjects} />
+
+          <div className="text-center mt-12">
+            <Link to="/projects">
+              <PrimaryButton variant="primary">
+                View All Projects
+              </PrimaryButton>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* All Services Slider */}
+      <section className="py-16 lg:py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="font-heading mb-4">Our Services</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Professional home services with transparent pricing and guaranteed quality.
+            </p>
+          </div>
+
+          <ServiceSlider services={allServices} />
+
+          <div className="text-center mt-12">
+            <Link to="/services">
+              <PrimaryButton variant="primary">
+                Explore All Services
               </PrimaryButton>
             </Link>
           </div>
