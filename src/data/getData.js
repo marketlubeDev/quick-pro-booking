@@ -222,22 +222,38 @@ export const seasonalServices = [
   {
     season: "Winter",
     icon: Snowflake,
-    services: ["Heating Repair", "Pipe Insulation", "Gutter De-icing"],
-    color: "from-blue-500 to-indigo-600",
+    services: [
+      "Heating Repair",
+      "Pipe Insulation",
+      "Gutter De-icing",
+      "Snow Removal",
+    ],
+    color: "bg-gradient-to-br from-blue-500 to-indigo-600",
   },
   {
     season: "Spring",
     icon: Leaf,
-    services: ["Deep Cleaning", "AC Tune-up", "Lawn Care Setup"],
-    color: "from-green-500 to-emerald-600",
+    services: [
+      "Deep Cleaning",
+      "AC Tune-up",
+      "Lawn Care Setup",
+      "Gutter Cleaning",
+    ],
+    color: "bg-gradient-to-br from-emerald-500 to-teal-600",
   },
   {
     season: "Summer",
     icon: Sun,
-    services: ["AC Repair", "Pool Maintenance", "Deck Staining"],
-    color: "from-yellow-500 to-orange-600",
+    services: [
+      "AC Repair",
+      "Pool Maintenance",
+      "Deck Staining",
+      "Irrigation Setup",
+    ],
+    color: "bg-gradient-to-br from-yellow-400 to-orange-500",
   },
 ];
+
 export const stats = [
   { icon: Users, number: "50,000+", label: "Happy Customers" },
   { icon: Award, number: "15,000+", label: "Projects Completed" },

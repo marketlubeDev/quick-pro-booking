@@ -13,6 +13,13 @@ import { Input } from "@/components/ui/input";
 import Pop from "@/pages/components/index/Pop";
 import EmergencyServices from "@/pages/components/emergency/EmergencyServices";
 import Stat from "@/pages/components/stat/Stat";
+import TopServices from "@/pages/components/topServices/TopServices";
+import StatTopService from "@/pages/components/StatTopService/StatTopService";
+import OurService from "@/pages/components/ourService/OurService";
+import SeasonalService from "@/pages/components/Seasonal/SeasonalService";
+import WhyChooseUs from "@/pages/components/whyChooseUs/WhyChooseUs";
+import TrustedBy from "@/pages/components/trustedBy/TrustedBy";
+import EnhancedHero from "@/pages/components/Hero/EnhancedHero";
 import {
   topServices,
   featuredProjects,
@@ -62,6 +69,11 @@ import {
   Hammer,
   Truck,
 } from "lucide-react";
+import Hero from "@/pages/components/Hero/Hero";
+// style={{
+//   background:
+//     "linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #e0e7ff 100%)",
+// }}
 
 const Index = () => {
   const [selectedService, setSelectedService] = useState("");
@@ -80,309 +92,29 @@ const Index = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-primary to-primary/80 text-primary-foreground overflow-hidden">
-        {/* Discount Banner */}
-        <Pop />
-
-        <div className="container mx-auto px-4 py-20 lg:py-32">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6 fade-in-up">
-              <h1 className="font-heading">Need a Trusted Local Pro?</h1>
-              <h2 className="text-xl md:text-2xl font-normal opacity-90">
-                Book Quality Home Services — No Hassle, No Logins.
-              </h2>
-
-              {/* Quick Booking Strip */}
-              <Card className="bg-background/95 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Select
-                        value={selectedService}
-                        onValueChange={setSelectedService}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Service" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="plumbing">Plumbing</SelectItem>
-                          <SelectItem value="electrical">Electrical</SelectItem>
-                          <SelectItem value="cleaning">
-                            House Cleaning
-                          </SelectItem>
-                          <SelectItem value="ac-repair">AC Repair</SelectItem>
-                          <SelectItem value="appliance">
-                            Appliance Repair
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <Input
-                        placeholder="ZIP Code"
-                        value={zipCode}
-                        onChange={(e) => setZipCode(e.target.value)}
-                      />
-
-                      <PrimaryButton
-                        onClick={handleQuickBook}
-                        className="w-full"
-                      >
-                        Request Service →
-                      </PrimaryButton>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Trust Badges */}
-              <div className="flex flex-wrap gap-6 text-sm">
-                <div className="flex items-center space-x-2">
-                  <Shield className="w-5 h-5" />
-                  <span>Licensed & Insured</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Background Checked</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Clock className="w-5 h-5" />
-                  <span>Same-Day Service</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
-              <img
-                // src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop"
-                src="/home.png"
-                alt="Happy homeowner with service professional"
-                className="rounded-lg shadow-2xl"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      <EnhancedHero />
 
       {/* Stats Section */}
       <Stat />
       {/* Top Services */}
-      <section className="py-16 lg:py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-heading mb-4">Most Popular Services</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Get help with these common home services. Licensed professionals
-              ready to assist you.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {topServices.map((service, index) => (
-              <ServiceCard
-                key={index}
-                icon={service.icon}
-                title={service.title}
-                description={service.description}
-                onClick={() =>
-                  (window.location.href = `/services/${service.title
-                    .toLowerCase()
-                    .replace(" ", "-")}`)
-                }
-              />
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link to="/services">
-              <PrimaryButton variant="primary">View All Services</PrimaryButton>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <StatTopService />
 
       {/* Featured Projects */}
-      <section className="py-16 lg:py-24 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-heading mb-4">Featured Projects</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              See our recent work and successful home service projects completed
-              by our professionals.
-            </p>
-          </div>
-
-          <ProjectCard projects={featuredProjects} />
-
-          <div className="text-center mt-12">
-            <Link to="/projects">
-              <PrimaryButton variant="primary">View All Projects</PrimaryButton>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <TopServices />
 
       {/* All Services Slider */}
-      <section className="py-16 lg:py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-heading mb-4">Our Services</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Professional home services with transparent pricing and guaranteed
-              quality.
-            </p>
-          </div>
-
-          <ServiceSlider services={allServices} />
-
-          <div className="text-center mt-12">
-            <Link to="/services">
-              <PrimaryButton variant="primary">
-                Explore All Services
-              </PrimaryButton>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <OurService />
 
       {/* Seasonal Services */}
-      <section className="py-16 lg:py-24 bg-gradient-to-br from-muted/30 to-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-heading mb-4">Seasonal Home Services</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Prepare your home for every season with our specialized services.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {seasonalServices.map((season, index) => (
-              <Card
-                key={index}
-                className="overflow-hidden hover-lift transition-all duration-200"
-              >
-                <div
-                  className={`bg-gradient-to-r ${season.color} p-6 text-white`}
-                >
-                  <div className="flex items-center space-x-3 mb-4">
-                    <season.icon className="w-8 h-8" />
-                    <h3 className="font-heading font-semibold text-2xl">
-                      {season.season}
-                    </h3>
-                  </div>
-                </div>
-                <CardContent className="p-6">
-                  <ul className="space-y-2">
-                    {season.services.map((service, idx) => (
-                      <li key={idx} className="flex items-center space-x-2">
-                        <CheckCircle className="w-4 h-4 text-primary" />
-                        <span>{service}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <PrimaryButton className="w-full mt-4" variant="primary">
-                    Book {season.season} Service
-                  </PrimaryButton>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
+      <SeasonalService />
       {/* Why Choose Us */}
-      <section className="py-16 lg:py-24 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-heading mb-4">Why Choose SkillHands.us?</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              We're committed to providing the best home service experience with
-              trusted professionals.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {whyChooseUs.map((item, index) => (
-              <Card
-                key={index}
-                className="text-center p-6 hover-lift transition-all duration-200"
-              >
-                <CardContent className="p-0">
-                  <div className="flex justify-center mb-4">
-                    <div className="bg-primary p-3 rounded-full">
-                      <item.icon className="w-6 h-6 text-primary-foreground" />
-                    </div>
-                  </div>
-                  <h3 className="font-heading font-semibold text-lg mb-3">
-                    {item.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    {item.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      <WhyChooseUs />
 
       {/* Certifications & Trust */}
-      <section className="py-16 lg:py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-heading mb-4">Trusted by Thousands</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              We're proud of our reputation and certifications from leading
-              industry organizations.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {certifications.map((cert, index) => (
-              <Card
-                key={index}
-                className="text-center p-6 hover-lift transition-all duration-200"
-              >
-                <CardContent className="p-0">
-                  <div className="flex justify-center mb-3">
-                    <div className="bg-primary p-3 rounded-full">
-                      <Award className="w-6 h-6 text-primary-foreground" />
-                    </div>
-                  </div>
-                  <h3 className="font-heading font-semibold text-sm mb-2">
-                    {cert.name}
-                  </h3>
-                  <Badge variant="secondary">{cert.rating}</Badge>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TrustedBy />
 
       {/* How It Works */}
-      <section className="py-16 lg:py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-heading mb-4">How It Works</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Getting help for your home has never been easier. Four simple
-              steps to quality service.
-            </p>
-          </div>
-
-          <div className="max-w-2xl mx-auto">
-            {steps.map((step, index) => (
-              <StepItem
-                key={index}
-                number={index + 1}
-                title={step.title}
-                description={step.description}
-                isLast={index === steps.length - 1}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* <Hero /> */}
 
       {/* Money-Back Guarantee */}
       <section className="py-16 lg:py-24 bg-green-50">
