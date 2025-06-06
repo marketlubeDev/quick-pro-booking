@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, Home, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,14 +12,22 @@ import PrimaryButton from './PrimaryButton';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
   const navigation = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Services', href: '/services' },
+    { name: 'Projects', href: '/projects' },
     { name: 'About', href: '/about' },
     { name: 'FAQ', href: '/faq' },
     { name: 'Contact', href: '/contact', icon: Phone },
   ];
+
+  const isActive = (href: string) => {
+    if (href === '/' && location.pathname === '/') return true;
+    if (href !== '/' && location.pathname.startsWith(href)) return true;
+    return false;
+  };
 
   return (
     <header className="bg-background/95 backdrop-blur-sm border-b sticky top-0 z-40">
@@ -39,7 +47,11 @@ const Header = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className="text-foreground hover:text-primary transition-colors"
+                className={`transition-colors ${
+                  isActive(item.href)
+                    ? 'text-primary font-semibold border-b-2 border-primary'
+                    : 'text-foreground hover:text-primary'
+                }`}
               >
                 {item.name}
               </Link>
@@ -66,7 +78,11 @@ const Header = () => {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className="flex items-center space-x-3 text-lg font-medium hover:text-primary transition-colors"
+                    className={`flex items-center space-x-3 text-lg font-medium transition-colors ${
+                      isActive(item.href)
+                        ? 'text-primary font-semibold'
+                        : 'hover:text-primary'
+                    }`}
                     onClick={() => setIsOpen(false)}
                   >
                     {item.icon && <item.icon className="w-5 h-5" />}

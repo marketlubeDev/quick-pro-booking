@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -24,7 +23,11 @@ import {
   Zap,
   Droplets,
   Wind,
-  Paintbrush
+  Paintbrush,
+  Users,
+  Award,
+  ThumbsUp,
+  Headphones
 } from 'lucide-react';
 
 const Index = () => {
@@ -159,6 +162,36 @@ const Index = () => {
     }
   ];
 
+  const stats = [
+    { icon: Users, number: '50,000+', label: 'Happy Customers' },
+    { icon: Award, number: '15,000+', label: 'Projects Completed' },
+    { icon: ThumbsUp, number: '4.9/5', label: 'Average Rating' },
+    { icon: Headphones, number: '24/7', label: 'Customer Support' }
+  ];
+
+  const whyChooseUs = [
+    {
+      icon: Shield,
+      title: 'Licensed & Insured',
+      description: 'All our professionals are fully licensed and insured for your peace of mind'
+    },
+    {
+      icon: Clock,
+      title: 'Same-Day Service',
+      description: 'Quick response times with most services available the same day'
+    },
+    {
+      icon: CheckCircle,
+      title: 'Quality Guaranteed',
+      description: '100% satisfaction guarantee on all our work with warranty coverage'
+    },
+    {
+      icon: Phone,
+      title: '24/7 Support',
+      description: 'Round-the-clock customer support for any questions or emergencies'
+    }
+  ];
+
   const handleQuickBook = () => {
     if (selectedService && zipCode) {
       window.location.href = `/request?service=${selectedService}&zip=${zipCode}`;
@@ -248,6 +281,25 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Stats Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="bg-primary p-3 rounded-full">
+                    <stat.icon className="w-6 h-6 text-primary-foreground" />
+                  </div>
+                </div>
+                <div className="font-heading text-2xl font-bold text-primary mb-2">{stat.number}</div>
+                <div className="text-muted-foreground">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Top Services */}
       <section className="py-16 lg:py-24">
         <div className="container mx-auto px-4">
@@ -324,8 +376,36 @@ const Index = () => {
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* Why Choose Us */}
       <section className="py-16 lg:py-24 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="font-heading mb-4">Why Choose SkillHands.us?</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              We're committed to providing the best home service experience with trusted professionals.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {whyChooseUs.map((item, index) => (
+              <Card key={index} className="text-center p-6 hover-lift transition-all duration-200">
+                <CardContent className="p-0">
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-primary p-3 rounded-full">
+                      <item.icon className="w-6 h-6 text-primary-foreground" />
+                    </div>
+                  </div>
+                  <h3 className="font-heading font-semibold text-lg mb-3">{item.title}</h3>
+                  <p className="text-muted-foreground text-sm">{item.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-16 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="font-heading mb-4">How It Works</h2>
@@ -349,7 +429,7 @@ const Index = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-16 lg:py-24">
+      <section className="py-16 lg:py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="font-heading mb-4">What Homeowners Say</h2>
@@ -368,6 +448,26 @@ const Index = () => {
                 text={testimonial.text}
                 avatar={testimonial.avatar}
               />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Service Areas */}
+      <section className="py-16 lg:py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="font-heading mb-4">Service Areas</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              We proudly serve homeowners across major cities and suburban areas.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-center">
+            {['Austin', 'Dallas', 'Houston', 'San Antonio', 'Phoenix', 'Miami', 'Orlando', 'Atlanta', 'Nashville', 'Denver', 'Seattle', 'Portland'].map((city, index) => (
+              <div key={index} className="bg-muted/50 rounded-lg p-4 hover:bg-muted transition-colors">
+                <div className="font-semibold text-primary">{city}</div>
+              </div>
             ))}
           </div>
         </div>
