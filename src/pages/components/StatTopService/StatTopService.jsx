@@ -413,6 +413,7 @@ export default function StatTopService() {
       <section
         className="py-20 lg:py-28 relative overflow-hidden"
         style={{
+          padding: "8rem 0",
           background:
             "linear-gradient(135deg, rgba(239, 246, 255, 0.6) 0%, rgba(237, 233, 254, 0.6) 50%, rgba(252, 231, 243, 0.6) 100%)",
         }}
