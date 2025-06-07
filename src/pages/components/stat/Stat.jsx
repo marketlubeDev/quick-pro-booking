@@ -1,306 +1,357 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { TrendingUp, Users, Award, Zap } from "lucide-react";
 
-// Sample stats data - replace with your actual data
-const stats = [
-  { icon: TrendingUp, number: "150K+", label: "Active Users" },
-  { icon: Users, number: "50K+", label: "Community Members" },
-  { icon: Award, number: "200+", label: "Awards Won" },
-  { icon: Zap, number: "99.9%", label: "Uptime" },
+// Optimized data structure - separated config from runtime state
+const STATS_CONFIG = [
+  {
+    id: "users",
+    icon: TrendingUp,
+    number: "150K+",
+    label: "Active Users",
+    color: { from: "#3b82f6", to: "#1e40af" },
+    delay: 0,
+  },
+  {
+    id: "community",
+    icon: Users,
+    number: "50K+",
+    label: "Community Members",
+    color: { from: "#8b5cf6", to: "#7c3aed" },
+    delay: 150,
+  },
+  {
+    id: "awards",
+    icon: Award,
+    number: "200+",
+    label: "Awards Won",
+    color: { from: "#ec4899", to: "#db2777" },
+    delay: 300,
+  },
+  {
+    id: "uptime",
+    icon: Zap,
+    number: "99.9%",
+    label: "Uptime",
+    color: { from: "#06b6d4", to: "#0891b2" },
+    delay: 450,
+  },
 ];
 
-export default function Stat() {
-  const [counters, setCounters] = useState(stats.map(() => 0));
-  const [isVisible, setIsVisible] = useState(false);
+// Animation configuration
+const ANIMATION_CONFIG = {
+  fadeInDuration: 800,
+  counterDuration: 1500,
+  hoverTransition: 300,
+  counterSteps: 50,
+  counterInterval: 30,
+};
 
+export default function ResponsiveStats() {
+  // Optimized state structure using Map for O(1) lookups
+  const [animationState, setAnimationState] = useState({
+    isVisible: false,
+    counters: new Map(STATS_CONFIG.map((stat) => [stat.id, 0])),
+    hoveredCard: null,
+  });
+
+  // Memoized target values extraction
+  const targetValues = useMemo(
+    () =>
+      new Map(
+        STATS_CONFIG.map((stat) => [
+          stat.id,
+          parseInt(stat.number.replace(/[^0-9.]/g, "")) || 0,
+        ])
+      ),
+    []
+  );
+
+  // Optimized visibility trigger
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
+    const timer = setTimeout(
+      () => setAnimationState((prev) => ({ ...prev, isVisible: true })),
+      100
+    );
     return () => clearTimeout(timer);
   }, []);
 
+  // Optimized counter animation with cleanup
   useEffect(() => {
-    if (!isVisible) return;
+    if (!animationState.isVisible) return;
+
+    const timers = new Set();
 
     const animateCounters = () => {
-      stats.forEach((stat, index) => {
-        const target = parseInt(stat.number.replace(/[^0-9.]/g, ""));
-        if (isNaN(target)) return;
+      STATS_CONFIG.forEach((stat) => {
+        const target = targetValues.get(stat.id);
+        if (!target) return;
 
         let current = 0;
-        const increment = target / 50;
+        const increment = target / ANIMATION_CONFIG.counterSteps;
+
         const timer = setInterval(() => {
-          current += increment;
+          current = Math.min(current + increment, target);
+
+          setAnimationState((prev) => ({
+            ...prev,
+            counters: new Map(prev.counters.set(stat.id, Math.floor(current))),
+          }));
+
           if (current >= target) {
-            current = target;
             clearInterval(timer);
+            timers.delete(timer);
           }
-          setCounters((prev) => {
-            const newCounters = [...prev];
-            newCounters[index] = Math.floor(current);
-            return newCounters;
-          });
-        }, 30);
+        }, ANIMATION_CONFIG.counterInterval);
+
+        timers.add(timer);
       });
     };
 
     const delay = setTimeout(animateCounters, 500);
-    return () => clearTimeout(delay);
-  }, [isVisible]);
+
+    return () => {
+      clearTimeout(delay);
+      timers.forEach((timer) => clearInterval(timer));
+    };
+  }, [animationState.isVisible, targetValues]);
+
+  // Memoized hover handlers
+  const handleMouseEnter = useCallback((statId) => {
+    setAnimationState((prev) => ({ ...prev, hoveredCard: statId }));
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setAnimationState((prev) => ({ ...prev, hoveredCard: null }));
+  }, []);
+
+  // Memoized format number function
+  const formatNumber = useCallback(
+    (stat) => {
+      const counterValue = animationState.counters.get(stat.id);
+
+      if (
+        stat.number.includes("%") ||
+        stat.number.includes("K") ||
+        stat.number.includes("+")
+      ) {
+        return stat.number;
+      }
+
+      return `${counterValue.toLocaleString()}${stat.number.replace(
+        /[0-9]/g,
+        ""
+      )}`;
+    },
+    [animationState.counters]
+  );
 
   return (
     <>
       <style>{`
         @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(40px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
+          from { opacity: 0; transform: translateY(40px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
-
+        @keyframes gentleFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
         @keyframes pulseGlow {
-          0%, 100% {
-            opacity: 0.3;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.6;
-            transform: scale(1.05);
-          }
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.03); }
         }
-
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-
         @keyframes bounce {
-          0%, 100% {
-            transform: translateY(0);
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20%); }
+        }
+        
+        .animate-fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .animate-gentle-float { animation: gentleFloat 4s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulseGlow 3s ease-in-out infinite; }
+        .animate-bounce-custom { animation: bounce 1.5s infinite; }
+        
+        .card-3d { transform-style: preserve-3d; perspective: 1000px; }
+        .card-inner { 
+          transform-style: preserve-3d; 
+          transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1); 
+        }
+        .card-3d:hover .card-inner { 
+          transform: rotateX(5deg) rotateY(5deg) translateZ(10px); 
+        }
+        
+        /* Mobile-specific optimizations */
+        @media (max-width: 640px) {
+          .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 1rem;
           }
-          50% {
-            transform: translateY(-25%);
+          .card-3d:hover .card-inner { 
+            transform: scale(1.02) translateZ(5px);
           }
         }
-
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
+        
+        /* Tablet optimization */
+        @media (min-width: 641px) and (max-width: 1023px) {
+          .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
           }
-          to {
-            transform: rotate(360deg);
+        }
+        
+        /* Desktop */
+        @media (min-width: 1024px) {
+          .stats-grid {
+            display: flex;
+            gap: 2rem;
+            width: 100%;
           }
-        }
-
-        .animate-fade-in-up {
-          animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        .animate-pulse-glow {
-          animation: pulseGlow 2s ease-in-out infinite;
-        }
-
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-
-        .animate-bounce-custom {
-          animation: bounce 1s infinite;
-        }
-
-        .animate-spin-slow {
-          animation: spin 4s linear infinite;
-        }
-
-        .bg-gradient-radial {
-          background: radial-gradient(circle, rgba(147, 51, 234, 0.1) 0%, transparent 70%);
-        }
-
-        .text-gradient {
-          background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .border-gradient {
-          background: linear-gradient(white, white) padding-box,
-                      linear-gradient(135deg, rgba(59, 130, 246, 0.5), rgba(147, 51, 234, 0.5)) border-box;
-          border: 2px solid transparent;
-        }
-
-        .card-glow:hover {
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
-                      0 0 40px rgba(59, 130, 246, 0.15),
-                      0 0 80px rgba(147, 51, 234, 0.1);
-        }
-
-        .icon-gradient {
-          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+          .stats-grid > div {
+            flex: 1;
+            min-width: 0;
+          }
         }
       `}</style>
 
-      <section
-        className="py-20 relative overflow-hidden"
-        style={{
-          background:
-            "linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #e0e7ff 100%)",
-        }}
-      >
+      <section className="py-12 sm:py-16 lg:py-20 relative overflow-hidden bg-gradient-to-br from-blue-50/60 via-purple-50/60 to-pink-50/60">
         {/* Background Effects */}
-        <div className="absolute inset-0 opacity-30">
-          <div
-            className="absolute top-0 left-0 w-full h-full"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.1) 50%, transparent 100%)",
-              transform: "skewY(-1deg)",
-            }}
-          ></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full blur-3xl bg-gradient-radial"></div>
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-blue-100/20 to-transparent transform -skew-y-1"></div>
+          <div className="absolute bottom-0 right-0 w-48 sm:w-96 h-48 sm:h-96 rounded-full blur-3xl bg-gradient-radial from-purple-200/30 to-transparent"></div>
         </div>
 
-        <div className="container mx-auto px-4 relative z-10">
-          {/* Stats Container - Force Single Row */}
-          <div className="flex flex-wrap justify-center lg:flex-nowrap lg:justify-between gap-4 lg:gap-6 max-w-7xl mx-auto">
-            {stats.map((stat, index) => (
-              <div
-                key={index}
-                className={`group relative flex-1 min-w-0 lg:min-w-[200px] ${
-                  isVisible ? "animate-fade-in-up" : "opacity-0"
-                }`}
-                style={{
-                  animationDelay: `${index * 150}ms`,
-                }}
-              >
-                {/* Main Card */}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Stats Container - Responsive Grid */}
+          <div className="stats-grid max-w-7xl mx-auto">
+            {STATS_CONFIG.map((stat) => {
+              const isHovered = animationState.hoveredCard === stat.id;
+
+              return (
                 <div
-                  className="relative border-gradient rounded-2xl p-4 lg:p-6 transition-all duration-700 hover:-translate-y-2 cursor-pointer card-glow"
-                  style={{
-                    background: "transparent",
-                    backdropFilter: "blur(12px)",
-                    border: "1px solid rgba(255, 255, 255, 0.2)",
-                  }}
+                  key={stat.id}
+                  className={`group relative card-3d ${
+                    animationState.isVisible
+                      ? "animate-fade-in-up"
+                      : "opacity-0"
+                  }`}
+                  style={{ animationDelay: `${stat.delay}ms` }}
+                  onMouseEnter={() => handleMouseEnter(stat.id)}
+                  onMouseLeave={handleMouseLeave}
                 >
-                  {/* Hover Glow Effect */}
-                  <div
-                    className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 51, 234, 0.05) 50%, rgba(236, 72, 153, 0.05) 100%)",
-                    }}
-                  ></div>
-
-                  {/* Content Container */}
-                  <div className="relative z-10">
-                    {/* Icon Container */}
-                    <div className="flex justify-center mb-4 lg:mb-6">
-                      <div className="relative animate-float">
-                        {/* Main Icon */}
-                        <div className="icon-gradient p-3 lg:p-4 rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 relative z-20 shadow-lg">
-                          <stat.icon className="w-6 h-6 lg:w-8 lg:h-8 text-white transition-all duration-300 group-hover:scale-110" />
-                        </div>
-
-                        {/* Animated Rings */}
-                        <div
-                          className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse-glow"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.3))",
-                          }}
-                        ></div>
-                        <div
-                          className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse-glow scale-125"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2))",
-                            animationDelay: "0.5s",
-                          }}
-                        ></div>
-
-                        {/* Floating Particles */}
-                        <div
-                          className="absolute -top-2 -right-2 w-3 h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-bounce-custom"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-                            animationDelay: "0ms",
-                          }}
-                        ></div>
-                        <div
-                          className="absolute -bottom-2 -left-2 w-2 h-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-bounce-custom"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, #8b5cf6, #ec4899)",
-                            animationDelay: "200ms",
-                          }}
-                        ></div>
-                        <div
-                          className="absolute top-1/2 -right-3 w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-bounce-custom"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, #3b82f6, #06b6d4)",
-                            animationDelay: "400ms",
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    {/* Number Display */}
-                    <div className="text-center mb-2 lg:mb-3">
-                      <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gradient transition-all duration-300 group-hover:scale-105">
-                        {stat.number.includes("%") ||
-                        stat.number.includes("K") ||
-                        stat.number.includes("+")
-                          ? stat.number
-                          : `${counters[
-                              index
-                            ].toLocaleString()}${stat.number.replace(
-                              /[0-9]/g,
-                              ""
-                            )}`}
-                      </div>
-                      {/* Animated underline */}
+                  {/* Main Card */}
+                  <div className="card-inner">
+                    <div
+                      className="relative p-4 sm:p-6 rounded-xl sm:rounded-2xl backdrop-blur-sm bg-white/90 border-2 border-transparent bg-gradient-to-br from-white/95 to-white/85 shadow-lg hover:shadow-2xl transition-all duration-700 hover:-translate-y-1 cursor-pointer"
+                      style={{
+                        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), linear-gradient(135deg, ${stat.color.from}40, ${stat.color.to}40)`,
+                        ...(isHovered && {
+                          boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 40px ${stat.color.from}40`,
+                        }),
+                      }}
+                    >
+                      {/* Enhanced Hover Glow */}
                       <div
-                        className="h-0.5 mx-auto mt-2 rounded-full transition-all duration-500 group-hover:w-full"
+                        className={`absolute inset-0 rounded-xl sm:rounded-2xl transition-opacity duration-700 ${
+                          isHovered ? "opacity-100" : "opacity-0"
+                        }`}
                         style={{
-                          width: "0",
-                          background:
-                            "linear-gradient(90deg, #3b82f6, #8b5cf6)",
+                          background: `linear-gradient(135deg, ${stat.color.from}08, ${stat.color.to}08)`,
                         }}
                       ></div>
-                    </div>
 
-                    {/* Label */}
-                    <div className="text-center">
-                      <div className="text-sm lg:text-base text-gray-600 font-medium transition-all duration-300 group-hover:text-gray-800 group-hover:scale-105">
-                        {stat.label}
+                      {/* Content */}
+                      <div className="relative z-10">
+                        {/* Icon Container */}
+                        <div className="flex justify-center mb-4 sm:mb-6">
+                          <div className="relative animate-gentle-float">
+                            {/* Main Icon */}
+                            <div
+                              className="relative z-20 p-2 sm:p-3 rounded-lg sm:rounded-xl transition-all duration-300"
+                              style={{
+                                background: `linear-gradient(135deg, ${stat.color.from}, ${stat.color.to})`,
+                                boxShadow: `0 8px 25px ${stat.color.from}30`,
+                              }}
+                            >
+                              <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                            </div>
+
+                            {/* Animated Rings */}
+                            <div
+                              className={`absolute inset-0 rounded-lg sm:rounded-xl transition-opacity duration-500 animate-pulse-glow ${
+                                isHovered ? "opacity-100" : "opacity-0"
+                              }`}
+                              style={{
+                                background: `linear-gradient(135deg, ${stat.color.from}40, ${stat.color.to}40)`,
+                              }}
+                            ></div>
+
+                            {/* Floating Particles */}
+                            <div
+                              className={`absolute -top-2 -right-2 w-2 h-2 sm:w-3 sm:h-3 rounded-full animate-bounce-custom transition-opacity duration-500 ${
+                                isHovered ? "opacity-100" : "opacity-0"
+                              }`}
+                              style={{
+                                background: `linear-gradient(135deg, ${stat.color.from}, ${stat.color.to})`,
+                                boxShadow: `0 4px 8px ${stat.color.from}30`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* Number Display */}
+                        <div className="text-center mb-2 sm:mb-3">
+                          <div
+                            className="text-2xl sm:text-3xl lg:text-4xl font-bold transition-all duration-300"
+                            style={{
+                              background: `linear-gradient(135deg, ${stat.color.from}, ${stat.color.to})`,
+                              WebkitBackgroundClip: "text",
+                              WebkitTextFillColor: "transparent",
+                              backgroundClip: "text",
+                            }}
+                          >
+                            {formatNumber(stat)}
+                          </div>
+
+                          {/* Animated underline */}
+                          <div
+                            className={`mx-auto mt-2 h-0.5 rounded transition-all duration-700 ${
+                              isHovered ? "w-full" : "w-0"
+                            }`}
+                            style={{
+                              background: `linear-gradient(90deg, ${stat.color.from}, ${stat.color.to})`,
+                              boxShadow: `0 2px 8px ${stat.color.from}30`,
+                            }}
+                          ></div>
+                        </div>
+
+                        {/* Label */}
+                        <div className="text-center">
+                          <div className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
+                            {stat.label}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Bottom Decoration */}
-          <div className="flex justify-center mt-8 lg:mt-12 space-x-2">
-            {stats.map((_, index) => (
+          <div className="flex justify-center space-x-2 mt-8 sm:mt-12">
+            {STATS_CONFIG.map((stat, index) => (
               <div
-                key={index}
-                className="w-2 h-2 rounded-full opacity-30 animate-pulse-glow"
+                key={stat.id}
+                className="w-2 h-2 rounded-full animate-pulse-glow opacity-40"
                 style={{
-                  background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-                  animationDelay: `${index * 200}ms`,
+                  background: `linear-gradient(135deg, ${stat.color.from}, ${stat.color.to})`,
+                  animationDelay: `${index * 300}ms`,
+                  boxShadow: `0 2px 8px ${stat.color.from}30`,
                 }}
-              ></div>
+              />
             ))}
           </div>
         </div>
