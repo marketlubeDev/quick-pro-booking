@@ -15,7 +15,7 @@ const Header = () => {
     { name: "Projects", href: "/projects" },
     { name: "About", href: "/about" },
     { name: "FAQ", href: "/faq" },
-    { name: "Contact", href: "/contact", icon: Phone },
+    // { name: "Contact", href: "/contact", icon: Phone },
   ];
 
   const isActive = (href: string) => {
@@ -105,7 +105,9 @@ const Header = () => {
           <div className="hidden md:block">
             <div className="relative group">
               <PrimaryButton
-                onClick={() => (window.location.href = "/request")}
+                onClick={() => {
+                  window.location.href = "https://wa.me/17622218208";
+                }}
                 className="relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/30 border-0 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-semibold"
               >
                 <span className="relative z-10 flex items-center space-x-2">

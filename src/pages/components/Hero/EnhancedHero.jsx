@@ -37,11 +37,14 @@ const EnhancedHeroSection = () => {
 
   const handleQuickBook = () => {
     if (selectedService && zipCode) {
-      alert(
-        `Booking ${
-          services.find((s) => s.value === selectedService)?.label
-        } service for ${zipCode}`
-      );
+      const selectedServiceLabel = services.find(
+        (s) => s.value === selectedService
+      )?.label;
+      const message = `Hi! I'm interested in booking ${selectedServiceLabel} service for ${zipCode}. Can you help me get started?`;
+      const whatsappUrl = `https://wa.me/17622218208?text=${encodeURIComponent(
+        message
+      )}`;
+      window.open(whatsappUrl, "_blank");
     } else {
       alert("Please select a service and enter your ZIP code");
     }
