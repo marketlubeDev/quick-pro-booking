@@ -38,6 +38,7 @@ export default function TrustedBy() {
       style={{
         background:
           "linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #e0e7ff 100%)",
+        padding: "5rem 0",
       }}
     >
       {/* Background decorative circles */}

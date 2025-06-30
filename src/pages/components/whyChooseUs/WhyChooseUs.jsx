@@ -91,6 +91,9 @@ export default function WhyChooseUs() {
       }}
       viewport={{ once: true, amount: 0.2 }}
       className="py-20 lg:py-32 bg-gradient-to-br from-muted/20 via-background to-muted/30 relative overflow-hidden"
+      style={{
+        padding: "5rem 0",
+      }}
     >
       {/* Background decorations */}
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-grid-pattern opacity-40" />

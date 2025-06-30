@@ -69,11 +69,6 @@ import {
   Hammer,
   Truck,
 } from "lucide-react";
-import Hero from "@/pages/components/Hero/Hero";
-// style={{
-//   background:
-//     "linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #e0e7ff 100%)",
-// }}
 
 const Index = () => {
   const [selectedService, setSelectedService] = useState("");
@@ -213,7 +208,12 @@ const Index = () => {
             <p className="text-muted-foreground mb-4">
               Don't see your city? We're expanding fast!
             </p>
-            <PrimaryButton variant="primary">
+            <PrimaryButton
+              variant="primary"
+              onClick={() =>
+                (window.location.href = "https://wa.me/17622218208")
+              }
+            >
               Request Service in Your Area
             </PrimaryButton>
           </div>
@@ -304,7 +304,9 @@ const Index = () => {
             <PrimaryButton
               variant="primary"
               size="lg"
-              onClick={() => (window.location.href = "/request")}
+              onClick={() =>
+                (window.location.href = "https://wa.me/17622218208")
+              }
             >
               Book a Pro Now
             </PrimaryButton>
@@ -312,16 +314,9 @@ const Index = () => {
               variant="primary"
               size="lg"
               className="bg-transparent border-2 border-accent-foreground text-accent-foreground hover:bg-accent-foreground hover:text-accent"
-              onClick={() => {
-                const message =
-                  "Hi! I'd like to learn more about your home services.";
-                window.open(
-                  `https://wa.me/919061663675?text=${encodeURIComponent(
-                    message
-                  )}`,
-                  "_blank"
-                );
-              }}
+              onClick={() =>
+                (window.location.href = "https://wa.me/17622218208")
+              }
             >
               Chat on WhatsApp
             </PrimaryButton>

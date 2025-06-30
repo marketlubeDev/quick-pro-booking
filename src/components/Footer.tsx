@@ -1,6 +1,5 @@
-
-import { Link } from 'react-router-dom';
-import { Home, Phone, Mail } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { Home, Phone, Mail } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -15,15 +14,18 @@ const Footer = () => {
               <div className="bg-primary-foreground p-2 rounded-lg">
                 <Home className="w-6 h-6 text-primary" />
               </div>
-              <span className="font-heading font-bold text-xl">SkillHands.us</span>
+              <span className="font-heading font-bold text-xl">
+                SkillHands.us
+              </span>
             </div>
             <p className="text-primary-foreground/80 mb-4 max-w-md">
-              Connecting homeowners with trusted local professionals. No accounts, no hassles – just quality service when you need it.
+              Connecting homeowners with trusted local professionals. No
+              accounts, no hassles – just quality service when you need it.
             </p>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4" />
-                <span>+91 90616 63675</span>
+                <span>+1 (762) 221‑8208</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4" />
@@ -36,10 +38,38 @@ const Footer = () => {
           <div>
             <h3 className="font-heading font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><Link to="/services" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">All Services</Link></li>
-              <li><Link to="/about" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">About Us</Link></li>
-              <li><Link to="/faq" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">FAQ</Link></li>
-              <li><Link to="/contact" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Contact</Link></li>
+              <li>
+                <Link
+                  to="/services"
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                >
+                  All Services
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/about"
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                >
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/faq"
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                >
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/contact"
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                >
+                  Contact
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -47,15 +77,31 @@ const Footer = () => {
           <div>
             <h3 className="font-heading font-semibold mb-4">Legal</h3>
             <ul className="space-y-2">
-              <li><Link to="/privacy" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">Terms of Service</Link></li>
+              <li>
+                <Link
+                  to="/privacy"
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/terms"
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                >
+                  Terms of Service
+                </Link>
+              </li>
             </ul>
-            
+
             <div className="mt-6">
               <h4 className="font-heading font-semibold mb-2">Quick FAQ</h4>
               <p className="text-sm text-primary-foreground/80">
-                <strong>Q:</strong> Do I need to create an account?<br/>
-                <strong>A:</strong> No! Just submit your request and we'll call you.
+                <strong>Q:</strong> Do I need to create an account?
+                <br />
+                <strong>A:</strong> No! Just submit your request and we'll call
+                you.
               </p>
             </div>
           </div>

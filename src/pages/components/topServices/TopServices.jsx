@@ -296,7 +296,7 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }) => {
 
   return (
     <div
-      className={`group relative rounded-3xl overflow-hidden shadow-xl transition-all duration-700 ease-out transform cursor-pointer ${
+      className={`group relative rounded-3xl overflow-hidden shadow-xl transition-all duration-700 ease-out transform cursor-pointer  ${
         isHovered ? "scale-105 z-20 shadow-2xl" : "scale-100"
       } ${isClicked ? "scale-95" : ""}`}
       style={{
@@ -574,6 +574,7 @@ export default function TopServices() {
       style={{
         background:
           "linear-gradient(135deg, rgba(239, 246, 255, 0.6) 0%, rgba(237, 233, 254, 0.6) 50%, rgba(252, 231, 243, 0.6) 100%)",
+        padding: "5rem 0",
       }}
     >
       {/* Animated Background Elements */}

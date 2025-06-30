@@ -198,7 +198,11 @@ export default function SeasonalService() {
           <p className="text-muted-foreground mb-6">
             Need a custom seasonal package?
           </p>
-          <PrimaryButton variant="outline" className="px-8 py-3">
+          <PrimaryButton
+            variant="outline"
+            className="px-8 py-3"
+            onClick={() => (window.location.href = "https://wa.me/17622218208")}
+          >
             Contact Our Specialists
           </PrimaryButton>
         </motion.div>
