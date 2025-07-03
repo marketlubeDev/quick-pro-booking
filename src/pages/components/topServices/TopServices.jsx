@@ -250,7 +250,7 @@ const featuredProjects = [
     id: 3,
     title: "Electrical System Upgrade",
     description: "Complete home electrical system modernization",
-    image: "/upgrade.jpg",
+    image: "https://images.pexels.com/photos/3623785/pexels-photo-3623785.jpeg",
     category: "Electrical",
     rating: 4.8,
     completedAt: "3 days ago",
@@ -739,7 +739,7 @@ export default function TopServices() {
                 </div>
               </button>
 
-              <button
+              {/* <button
                 className={`px-8 py-4 rounded-2xl font-bold text-lg shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${
                   activeButton === "quote" ? "scale-95" : "hover:scale-105"
                 }`}
@@ -760,7 +760,7 @@ export default function TopServices() {
                 onClick={() => handleButtonClick("quote")}
               >
                 Get Free Quote
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

@@ -310,7 +310,7 @@ const Index = () => {
             >
               Book a Pro Now
             </PrimaryButton>
-            <PrimaryButton
+            {/* <PrimaryButton
               variant="primary"
               size="lg"
               className="bg-transparent border-2 border-accent-foreground text-accent-foreground hover:bg-accent-foreground hover:text-accent"
@@ -319,7 +319,7 @@ const Index = () => {
               }
             >
               Chat on WhatsApp
-            </PrimaryButton>
+            </PrimaryButton> */}
           </div>
         </div>
       </section>
