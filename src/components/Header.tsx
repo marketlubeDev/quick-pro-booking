@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, Home, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,11 @@ import PrimaryButton from "./PrimaryButton";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+
+  // Add scroll to top effect when route changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
