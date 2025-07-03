@@ -1,67 +1,72 @@
-
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import FloatingWhatsApp from '@/components/FloatingWhatsApp';
-import PrimaryButton from '@/components/PrimaryButton';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, Upload } from 'lucide-react';
+import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import PrimaryButton from "@/components/PrimaryButton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CheckCircle, Upload } from "lucide-react";
 
 const Request = () => {
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    service: searchParams.get('service') || '',
-    description: '',
-    preferredDate: '',
-    preferredTime: '',
-    name: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: '',
-    zip: searchParams.get('zip') || '',
-    image: null as File | null
+    service: searchParams.get("service") || "",
+    description: "",
+    preferredDate: "",
+    preferredTime: "",
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    zip: searchParams.get("zip") || "",
+    image: null as File | null,
   });
 
   const services = [
-    'Plumbing',
-    'Electrical',
-    'House Cleaning',
-    'AC Repair',
-    'Appliance Repair',
-    'Painting',
-    'Handyman',
-    'Pest Control',
-    'Lawn Care',
-    'Moving'
+    "Plumbing",
+    "Electrical",
+    "House Cleaning",
+    "AC Repair",
+    "Appliance Repair",
+    "Painting",
+    "Handyman",
+    "Pest Control",
+    "Lawn Care",
+    "Moving",
   ];
 
   const timeSlots = [
-    'Morning (8AM - 12PM)',
-    'Afternoon (12PM - 5PM)', 
-    'Evening (5PM - 8PM)',
-    'Emergency (ASAP)'
+    "Morning (8AM - 12PM)",
+    "Afternoon (12PM - 5PM)",
+    "Evening (5PM - 8PM)",
+    "Emergency (ASAP)",
   ];
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFormData(prev => ({ ...prev, image: e.target.files![0] }));
+      setFormData((prev) => ({ ...prev, image: e.target.files![0] }));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Create WhatsApp message
     const message = `
 New Service Request:
@@ -77,10 +82,13 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
 
     // Redirect to success page and send WhatsApp message
     setStep(4);
-    
+
     // Open WhatsApp
     setTimeout(() => {
-      window.open(`https://wa.me/919061663675?text=${encodeURIComponent(message)}`, '_blank');
+      window.open(
+        `https://wa.me/17622218208?text=${encodeURIComponent(message)}`,
+        "_blank"
+      );
     }, 1000);
   };
 
@@ -96,28 +104,35 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        
+
         <section className="py-16 lg:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
               <div className="mb-8">
                 <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h1 className="font-heading text-3xl mb-4">Request Submitted!</h1>
+                <h1 className="font-heading text-3xl mb-4">
+                  Request Submitted!
+                </h1>
                 <p className="text-lg text-muted-foreground mb-6">
-                  Thanks! Our team will call you within minutes to confirm your service details.
+                  Thanks! Our team will call you within minutes to confirm your
+                  service details.
                 </p>
                 <div className="bg-muted/50 p-6 rounded-lg">
-                  <h3 className="font-heading font-semibold mb-2">What happens next?</h3>
+                  <h3 className="font-heading font-semibold mb-2">
+                    What happens next?
+                  </h3>
                   <ul className="text-left space-y-2 text-muted-foreground">
-                    <li>• We'll call you at {formData.phone} within 5 minutes</li>
+                    <li>
+                      • We'll call you at {formData.phone} within 5 minutes
+                    </li>
                     <li>• Confirm service details and scheduling</li>
                     <li>• Connect you with a local licensed professional</li>
                     <li>• Your pro will arrive at the scheduled time</li>
                   </ul>
                 </div>
               </div>
-              
-              <PrimaryButton onClick={() => window.location.href = '/'}>
+
+              <PrimaryButton onClick={() => (window.location.href = "/")}>
                 Return Home
               </PrimaryButton>
             </div>
@@ -133,7 +148,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
@@ -144,9 +159,9 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                   <div
                     key={num}
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                      step >= num 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-muted-foreground'
+                      step >= num
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
                     }`}
                   >
                     {num}
@@ -154,7 +169,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                 ))}
               </div>
               <div className="w-full bg-muted rounded-full h-2">
-                <div 
+                <div
                   className="bg-primary h-2 rounded-full transition-all duration-300"
                   style={{ width: `${(step / 3) * 100}%` }}
                 ></div>
@@ -164,9 +179,9 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
             <Card>
               <CardHeader>
                 <CardTitle className="font-heading">
-                  {step === 1 && 'Service Details'}
-                  {step === 2 && 'Schedule & Contact'}
-                  {step === 3 && 'Address & Final Details'}
+                  {step === 1 && "Service Details"}
+                  {step === 2 && "Schedule & Contact"}
+                  {step === 3 && "Address & Final Details"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -175,14 +190,24 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                   {step === 1 && (
                     <div className="space-y-4">
                       <div>
-                        <Label htmlFor="service">What service do you need?</Label>
-                        <Select value={formData.service} onValueChange={(value) => handleInputChange('service', value)}>
+                        <Label htmlFor="service">
+                          What service do you need?
+                        </Label>
+                        <Select
+                          value={formData.service}
+                          onValueChange={(value) =>
+                            handleInputChange("service", value)
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select a service" />
                           </SelectTrigger>
                           <SelectContent>
                             {services.map((service) => (
-                              <SelectItem key={service} value={service.toLowerCase()}>
+                              <SelectItem
+                                key={service}
+                                value={service.toLowerCase()}
+                              >
                                 {service}
                               </SelectItem>
                             ))}
@@ -191,12 +216,16 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                       </div>
 
                       <div>
-                        <Label htmlFor="description">Describe the issue or task</Label>
+                        <Label htmlFor="description">
+                          Describe the issue or task
+                        </Label>
                         <Textarea
                           id="description"
                           placeholder="Please provide details about what you need help with..."
                           value={formData.description}
-                          onChange={(e) => handleInputChange('description', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("description", e.target.value)
+                          }
                           rows={4}
                         />
                       </div>
@@ -238,13 +267,20 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                             id="date"
                             type="date"
                             value={formData.preferredDate}
-                            onChange={(e) => handleInputChange('preferredDate', e.target.value)}
-                            min={new Date().toISOString().split('T')[0]}
+                            onChange={(e) =>
+                              handleInputChange("preferredDate", e.target.value)
+                            }
+                            min={new Date().toISOString().split("T")[0]}
                           />
                         </div>
                         <div>
                           <Label htmlFor="time">Preferred Time</Label>
-                          <Select value={formData.preferredTime} onValueChange={(value) => handleInputChange('preferredTime', value)}>
+                          <Select
+                            value={formData.preferredTime}
+                            onValueChange={(value) =>
+                              handleInputChange("preferredTime", value)
+                            }
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Select time" />
                             </SelectTrigger>
@@ -265,7 +301,9 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                           id="name"
                           required
                           value={formData.name}
-                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("name", e.target.value)
+                          }
                           placeholder="John Smith"
                         />
                       </div>
@@ -277,7 +315,9 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                           type="tel"
                           required
                           value={formData.phone}
-                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("phone", e.target.value)
+                          }
                           placeholder="(555) 123-4567"
                         />
                       </div>
@@ -288,7 +328,9 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                           id="email"
                           type="email"
                           value={formData.email}
-                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("email", e.target.value)
+                          }
                           placeholder="john@example.com"
                         />
                       </div>
@@ -304,7 +346,9 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                           id="address"
                           required
                           value={formData.address}
-                          onChange={(e) => handleInputChange('address', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("address", e.target.value)
+                          }
                           placeholder="123 Main Street"
                         />
                       </div>
@@ -316,7 +360,9 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                             id="city"
                             required
                             value={formData.city}
-                            onChange={(e) => handleInputChange('city', e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("city", e.target.value)
+                            }
                             placeholder="Your City"
                           />
                         </div>
@@ -326,19 +372,32 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                             id="zip"
                             required
                             value={formData.zip}
-                            onChange={(e) => handleInputChange('zip', e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("zip", e.target.value)
+                            }
                             placeholder="12345"
                           />
                         </div>
                       </div>
 
                       <div className="bg-muted/50 p-4 rounded-lg">
-                        <h3 className="font-heading font-semibold mb-2">Review Your Request</h3>
+                        <h3 className="font-heading font-semibold mb-2">
+                          Review Your Request
+                        </h3>
                         <ul className="space-y-1 text-sm text-muted-foreground">
-                          <li><strong>Service:</strong> {formData.service}</li>
-                          <li><strong>Date:</strong> {formData.preferredDate}</li>
-                          <li><strong>Time:</strong> {formData.preferredTime}</li>
-                          <li><strong>Contact:</strong> {formData.name} - {formData.phone}</li>
+                          <li>
+                            <strong>Service:</strong> {formData.service}
+                          </li>
+                          <li>
+                            <strong>Date:</strong> {formData.preferredDate}
+                          </li>
+                          <li>
+                            <strong>Time:</strong> {formData.preferredTime}
+                          </li>
+                          <li>
+                            <strong>Contact:</strong> {formData.name} -{" "}
+                            {formData.phone}
+                          </li>
                         </ul>
                       </div>
                     </div>
@@ -355,7 +414,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                         Previous
                       </PrimaryButton>
                     )}
-                    
+
                     <div className="ml-auto">
                       {step < 3 ? (
                         <PrimaryButton
@@ -371,7 +430,9 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                       ) : (
                         <PrimaryButton
                           type="submit"
-                          disabled={!formData.address || !formData.city || !formData.zip}
+                          disabled={
+                            !formData.address || !formData.city || !formData.zip
+                          }
                         >
                           Submit Request
                         </PrimaryButton>

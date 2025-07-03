@@ -35,7 +35,7 @@ Message: ${formData.message}
 
     // Open WhatsApp
     window.open(
-      `https://wa.me/919061663675?text=${encodeURIComponent(message)}`,
+      `https://wa.me/17622218208?text=${encodeURIComponent(message)}`,
       "_blank"
     );
 
