@@ -127,7 +127,7 @@ export const testimonials = [
     rating: 5,
     text: "Amazing service! The plumber fixed our leak in under an hour. No fuss, no accounts to create.",
     avatar:
-      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
+      "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg",
   },
   {
     name: "Mike Chen",
