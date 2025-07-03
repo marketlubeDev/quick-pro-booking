@@ -46,7 +46,7 @@ const Projects = () => {
       id: 4,
       title: "HVAC Installation",
       image:
-        "https://images.pexels.com/photos/19741052/pexels-photo-19741052.jpeg",
+        "https://images.pexels.com/photos/7347538/pexels-photo-7347538.jpeg",
       description: "New HVAC system installation for improved efficiency",
       category: "HVAC",
       duration: "2 days",
