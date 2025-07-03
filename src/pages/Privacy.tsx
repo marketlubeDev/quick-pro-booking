@@ -1,19 +1,19 @@
-
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import FloatingWhatsApp from '@/components/FloatingWhatsApp';
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 const Privacy = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="font-heading mb-4">Privacy Policy</h1>
           <p className="text-xl opacity-90">
-            Your privacy is important to us. Here's how we protect your information.
+            Your privacy is important to us. Here's how we protect your
+            information.
           </p>
         </div>
       </section>
@@ -28,9 +28,12 @@ const Privacy = () => {
               </p>
 
               <div>
-                <h2 className="font-heading text-2xl mb-4">Information We Collect</h2>
+                <h2 className="font-heading text-2xl mb-4">
+                  Information We Collect
+                </h2>
                 <p className="text-muted-foreground mb-4">
-                  We collect information you provide when requesting services, including:
+                  We collect information you provide when requesting services,
+                  including:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>Name and contact information (phone, email)</li>
@@ -42,7 +45,9 @@ const Privacy = () => {
               </div>
 
               <div>
-                <h2 className="font-heading text-2xl mb-4">How We Use Your Information</h2>
+                <h2 className="font-heading text-2xl mb-4">
+                  How We Use Your Information
+                </h2>
                 <p className="text-muted-foreground mb-4">
                   We use your information to:
                 </p>
@@ -56,26 +61,36 @@ const Privacy = () => {
               </div>
 
               <div>
-                <h2 className="font-heading text-2xl mb-4">Information Sharing</h2>
+                <h2 className="font-heading text-2xl mb-4">
+                  Information Sharing
+                </h2>
                 <p className="text-muted-foreground mb-4">
-                  We share your information only when necessary to provide services:
+                  We share your information only when necessary to provide
+                  services:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                  <li>With service professionals to complete your requested work</li>
-                  <li>With our WhatsApp communication system for coordination</li>
+                  <li>
+                    With service professionals to complete your requested work
+                  </li>
+                  <li>
+                    With our WhatsApp communication system for coordination
+                  </li>
                   <li>When required by law or to protect our rights</li>
                 </ul>
                 <p className="text-muted-foreground mt-4">
-                  We do not sell, rent, or trade your personal information to third parties for marketing purposes.
+                  We do not sell, rent, or trade your personal information to
+                  third parties for marketing purposes.
                 </p>
               </div>
 
               <div>
                 <h2 className="font-heading text-2xl mb-4">Data Security</h2>
                 <p className="text-muted-foreground">
-                  We implement appropriate security measures to protect your personal information against 
-                  unauthorized access, alteration, disclosure, or destruction. However, no internet transmission 
-                  is completely secure, and we cannot guarantee absolute security.
+                  We implement appropriate security measures to protect your
+                  personal information against unauthorized access, alteration,
+                  disclosure, or destruction. However, no internet transmission
+                  is completely secure, and we cannot guarantee absolute
+                  security.
                 </p>
               </div>
 
@@ -93,32 +108,42 @@ const Privacy = () => {
               </div>
 
               <div>
-                <h2 className="font-heading text-2xl mb-4">Cookies and Tracking</h2>
+                <h2 className="font-heading text-2xl mb-4">
+                  Cookies and Tracking
+                </h2>
                 <p className="text-muted-foreground">
-                  We use minimal cookies and tracking technologies to improve website functionality 
-                  and user experience. These do not collect personally identifiable information 
-                  unless you provide it through our forms.
+                  We use minimal cookies and tracking technologies to improve
+                  website functionality and user experience. These do not
+                  collect personally identifiable information unless you provide
+                  it through our forms.
                 </p>
               </div>
 
               <div>
                 <h2 className="font-heading text-2xl mb-4">Contact Us</h2>
                 <p className="text-muted-foreground">
-                  If you have questions about this Privacy Policy or how we handle your information, 
-                  please contact us:
+                  If you have questions about this Privacy Policy or how we
+                  handle your information, please contact us:
                 </p>
                 <ul className="list-none space-y-2 text-muted-foreground mt-4">
-                  <li><strong>WhatsApp:</strong> +91 90616 63675</li>
-                  <li><strong>Email:</strong> hello@skillhands.us</li>
+                  <li>
+                    <strong>WhatsApp:</strong>+1 (762) 221-8208
+                  </li>
+                  <li>
+                    <strong>Email:</strong> hello@skillhands.us
+                  </li>
                 </ul>
               </div>
 
               <div>
-                <h2 className="font-heading text-2xl mb-4">Changes to This Policy</h2>
+                <h2 className="font-heading text-2xl mb-4">
+                  Changes to This Policy
+                </h2>
                 <p className="text-muted-foreground">
-                  We may update this Privacy Policy from time to time. We will notify users of 
-                  significant changes by updating the date at the top of this page and, when 
-                  appropriate, providing additional notice.
+                  We may update this Privacy Policy from time to time. We will
+                  notify users of significant changes by updating the date at
+                  the top of this page and, when appropriate, providing
+                  additional notice.
                 </p>
               </div>
             </div>
