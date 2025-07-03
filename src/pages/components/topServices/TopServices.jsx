@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 // SVG Icons as components
 const ChevronRight = ({ className, style }) => (
@@ -721,23 +722,25 @@ export default function TopServices() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                className={`px-8 py-4 rounded-2xl font-bold text-lg shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl ${
-                  activeButton === "view" ? "scale-95" : "hover:scale-105"
-                }`}
-                style={{
-                  borderRadius: "2rem",
-                  background:
-                    "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
-                  color: "#FFFFFF",
-                }}
-                onClick={() => handleButtonClick("view")}
-              >
-                <div className="flex items-center gap-2">
-                  <Eye className="w-5 h-5" />
-                  View All Projects
-                </div>
-              </button>
+              <Link to="/projects">
+                <button
+                  className={`px-8 py-4 rounded-2xl font-bold text-lg shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl ${
+                    activeButton === "view" ? "scale-95" : "hover:scale-105"
+                  }`}
+                  style={{
+                    borderRadius: "2rem",
+                    background:
+                      "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
+                    color: "#FFFFFF",
+                  }}
+                  onClick={() => handleButtonClick("view")}
+                >
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-5 h-5" />
+                    View All Projects
+                  </div>
+                </button>
+              </Link>
 
               {/* <button
                 className={`px-8 py-4 rounded-2xl font-bold text-lg shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${

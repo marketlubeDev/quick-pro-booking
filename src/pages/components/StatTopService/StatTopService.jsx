@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Wrench, Home, Zap, Paintbrush, Shield, Hammer } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const topServices = [
   {
@@ -573,9 +574,11 @@ export default function StatTopService() {
               style={{ animationDelay: "1.5s" }}
             >
               <div className="inline-flex flex-col items-center gap-6">
-                <PrimaryButton variant="primary">
-                  View All Services
-                </PrimaryButton>
+                <Link to="/services">
+                  <PrimaryButton variant="primary">
+                    View All Services
+                  </PrimaryButton>
+                </Link>
 
                 <div
                   className="flex items-center gap-4"
