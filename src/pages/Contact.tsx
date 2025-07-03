@@ -100,7 +100,7 @@ Message: ${formData.message}
                         size="sm"
                         onClick={() =>
                           window.open(
-                            "https://wa.me/919061663675?text=Hi! I have a question about SkillHands.us",
+                            "https://wa.me/17622218208?text=Hi! I have a question about SkillHands.us",
                             "_blank"
                           )
                         }
