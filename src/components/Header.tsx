@@ -4,9 +4,11 @@ import { Menu, Home, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import PrimaryButton from "./PrimaryButton";
+import ContactFormModal from "./ContactFormModal";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
 
   // Add scroll to top effect when route changes
@@ -39,6 +41,14 @@ const Header = () => {
           "linear-gradient(90deg, transparent, rgba(var(--primary), 0.2), transparent) 1",
       }}
     >
+      {/* Contact Form Modal */}
+      <ContactFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedService=""
+        zipCode=""
+      />
+
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Enhanced Logo */}
@@ -110,9 +120,7 @@ const Header = () => {
           <div className="hidden md:block">
             <div className="relative group">
               <PrimaryButton
-                onClick={() => {
-                  window.location.href = "https://wa.me/17622218208";
-                }}
+                onClick={() => setIsModalOpen(true)}
                 className="relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/30 border-0 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-semibold"
               >
                 <span className="relative z-10 flex items-center space-x-2">
@@ -205,7 +213,7 @@ const Header = () => {
                     className="w-full transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/30 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-semibold relative overflow-hidden group"
                     onClick={() => {
                       setIsOpen(false);
-                      window.location.href = "/request";
+                      setIsModalOpen(true);
                     }}
                   >
                     <span className="relative z-10">Book a Pro</span>

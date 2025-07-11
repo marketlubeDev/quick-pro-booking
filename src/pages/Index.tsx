@@ -69,10 +69,12 @@ import {
   Hammer,
   Truck,
 } from "lucide-react";
+import ContactFormModal from "@/components/ContactFormModal";
 
 const Index = () => {
   const [selectedService, setSelectedService] = useState("");
   const [zipCode, setZipCode] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleQuickBook = () => {
     if (selectedService && zipCode) {
@@ -210,9 +212,7 @@ const Index = () => {
             </p>
             <PrimaryButton
               variant="primary"
-              onClick={() =>
-                (window.location.href = "https://wa.me/17622218208")
-              }
+              onClick={() => setIsModalOpen(true)}
             >
               Request Service in Your Area
             </PrimaryButton>
@@ -304,9 +304,7 @@ const Index = () => {
             <PrimaryButton
               variant="primary"
               size="lg"
-              onClick={() =>
-                (window.location.href = "https://wa.me/17622218208")
-              }
+              onClick={() => setIsModalOpen(true)}
             >
               Book a Pro Now
             </PrimaryButton>
@@ -326,6 +324,13 @@ const Index = () => {
 
       <Footer />
       <FloatingWhatsApp />
+
+      <ContactFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedService={selectedService}
+        zipCode={zipCode}
+      />
     </div>
   );
 };

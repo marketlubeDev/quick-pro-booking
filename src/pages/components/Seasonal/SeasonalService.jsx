@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { seasonalServices } from "@/data/getData";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Sparkles } from "lucide-react";
 import PrimaryButton from "@/components/PrimaryButton";
 import { motion } from "framer-motion";
+import ContactFormModal from "@/components/ContactFormModal";
 
 export default function SeasonalService() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   // Explicit gradient definitions to ensure Tailwind includes them
   const getSeasonalGradient = (season) => {
     switch (season) {
@@ -201,12 +204,17 @@ export default function SeasonalService() {
           <PrimaryButton
             variant="outline"
             className="px-8 py-3"
-            onClick={() => (window.location.href = "https://wa.me/17622218208")}
+            onClick={() => setIsModalOpen(true)}
           >
             Contact Our Specialists
           </PrimaryButton>
         </motion.div>
       </div>
+
+      <ContactFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </motion.section>
   );
 }
