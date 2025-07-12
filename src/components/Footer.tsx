@@ -19,10 +19,10 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <div className="bg-primary-foreground p-2 rounded-lg">
-                <Home className="w-6 h-6 text-primary" />
+                <img src="/icon.png" alt="SkillHand Icon" className="w-6 h-6 object-contain" />
               </div>
               <span className="font-heading font-bold text-xl">
-                SkillHands.us
+             SkillHands
               </span>
             </div>
             <p className="text-primary-foreground/80 mb-4 max-w-md">
@@ -32,11 +32,11 @@ const Footer = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4" />
-                <span>+1 (762) 221‑8208</span>
+                <span>+1 240-360-8332</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4" />
-                <span>hello@skillhands.us</span>
+                <span>kasiedu@expedite-consults.com</span>
               </div>
             </div>
           </div>

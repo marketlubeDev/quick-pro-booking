@@ -54,13 +54,17 @@ const Header = () => {
           {/* Enhanced Logo */}
           <Link to="/" className="flex items-center space-x-3 group relative">
             <div className="relative bg-gradient-to-br from-primary to-primary/80 p-2.5 rounded-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 shadow-lg group-hover:shadow-xl group-hover:shadow-primary/30">
-              <Home className="w-6 h-6 text-primary-foreground transition-all duration-300 group-hover:scale-110" />
+              <img
+                src="/icon.png"
+                alt="SkillHand Icon"
+                className="w-6 h-6 object-contain"
+              />
               {/* Glow effect */}
               <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary to-primary/80 opacity-0 group-hover:opacity-30 blur-md transition-all duration-500" />
             </div>
             <div className="flex flex-col">
               <span className="font-heading font-bold text-xl text-primary transition-all duration-300 group-hover:text-primary/90 relative">
-                SkillHands.us
+                SkillHands
                 {/* Animated underline on logo */}
                 <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-gradient-to-r from-primary to-primary/60 transition-all duration-500 group-hover:w-full" />
               </span>

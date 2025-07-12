@@ -160,7 +160,7 @@ const ServiceDetail = () => {
                       className="w-full"
                       onClick={() => {
                         const message = `Hi! I need help with ${serviceData.title.toLowerCase()}.`;
-                        window.open(`https://wa.me/919061663675?text=${encodeURIComponent(message)}`, '_blank');
+                        window.open(`https://wa.me/12403608332?text=${encodeURIComponent(message)}`, '_blank');
                       }}
                     >
                       Chat on WhatsApp

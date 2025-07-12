@@ -51,11 +51,14 @@ const EnhancedHeroSection = () => {
   };
 
   const handleWhatsAppClick = () => {
-    window.open("https://wa.me/17622218208", "_blank");
+    window.open("https://wa.me/12403608332", "_blank");
   };
 
   const handleEmailClick = () => {
-    window.location.href = "mailto:support@skillhands.us";
+    window.open(
+      "https://mail.google.com/mail/?view=cm&fs=1&to=kasiedu@expedite-consults.com",
+      "_blank"
+    );
   };
 
   return (

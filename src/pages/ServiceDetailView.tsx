@@ -249,7 +249,7 @@ const ServiceDetailView = () => {
                       onClick={() => {
                         const message = `Hi! I need help with ${serviceData.title.toLowerCase()}.`;
                         window.open(
-                          `https://wa.me/919061663675?text=${encodeURIComponent(
+                          `https://wa.me/12403608332?text=${encodeURIComponent(
                             message
                           )}`,
                           "_blank"

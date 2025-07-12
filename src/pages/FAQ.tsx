@@ -91,14 +91,14 @@ const FAQ = () => {
                   <strong>Chat with us on WhatsApp:</strong>
                   <br />
                   <span className="text-muted-foreground">
-                    +1 (762) 221-8208
+                  +1 240-360-8332
                   </span>
                 </div>
                 <div>
                   <strong>Email us:</strong>
                   <br />
                   <span className="text-muted-foreground">
-                    hello@skillhands.us
+                  kasiedu@expedite-consults.com
                   </span>
                 </div>
               </div>

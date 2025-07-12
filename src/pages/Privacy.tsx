@@ -127,10 +127,10 @@ const Privacy = () => {
                 </p>
                 <ul className="list-none space-y-2 text-muted-foreground mt-4">
                   <li>
-                    <strong>WhatsApp:</strong>+1 (762) 221-8208
+                    <strong>WhatsApp:</strong>+1 240-360-8332
                   </li>
                   <li>
-                    <strong>Email:</strong> hello@skillhands.us
+                    <strong>Email:</strong>kasiedu@expedite-consults.com
                   </li>
                 </ul>
               </div>

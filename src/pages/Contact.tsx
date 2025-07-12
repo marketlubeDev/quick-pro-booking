@@ -35,7 +35,7 @@ Message: ${formData.message}
 
     // Open WhatsApp
     window.open(
-      `https://wa.me/17622218208?text=${encodeURIComponent(message)}`,
+      `https://wa.me/12403608332?text=${encodeURIComponent(message)}`,
       "_blank"
     );
 
@@ -77,7 +77,7 @@ Message: ${formData.message}
                       <p className="text-muted-foreground mb-2">
                         For immediate assistance
                       </p>
-                      <p className="font-medium">+1 (762) 221-8208</p>
+                      <p className="font-medium">+1 240-360-8332</p>
                     </div>
                   </div>
                 </CardContent>
@@ -100,7 +100,7 @@ Message: ${formData.message}
                         size="sm"
                         onClick={() =>
                           window.open(
-                            "https://wa.me/17622218208?text=Hi! I have a question about SkillHands.us",
+                            "https://wa.me/12403608332?text=Hi! I have a question about SkillHands.us",
                             "_blank"
                           )
                         }
@@ -123,7 +123,7 @@ Message: ${formData.message}
                       <p className="text-muted-foreground mb-2">
                         For detailed inquiries
                       </p>
-                      <p className="font-medium">hello@skillhands.us</p>
+                      <p className="font-medium">kasiedu@expedite-consults.com</p>
                     </div>
                   </div>
                 </CardContent>

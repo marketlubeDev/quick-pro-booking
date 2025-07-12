@@ -1,3 +1,6 @@
+/* Import Google Fonts */
+/* Definition of the design system for SkillHands.us */
+
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
@@ -169,10 +172,10 @@ const Terms = () => {
                 </p>
                 <ul className="list-none space-y-2 text-muted-foreground mt-4">
                   <li>
-                    <strong>WhatsApp:</strong>+1 (762) 221-8208
+                    <strong>WhatsApp:</strong>+1 240-360-8332
                   </li>
                   <li>
-                    <strong>Email:</strong> hello@skillhands.us
+                    <strong>Email:</strong> kasiedu@expedite-consults.com
                   </li>
                 </ul>
               </div>

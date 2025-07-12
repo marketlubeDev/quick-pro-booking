@@ -121,7 +121,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
     `.trim();
 
     // Open WhatsApp with the message
-    const whatsappUrl = `https://wa.me/17622218208?text=${encodeURIComponent(
+    const whatsappUrl = `https://wa.me/12403608332?text=${encodeURIComponent(
       message
     )}`;
     window.open(whatsappUrl, "_blank");
