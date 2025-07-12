@@ -527,8 +527,9 @@ const Request = () => {
       return;
     }
 
-    // Create WhatsApp message
-    const message = `
+    // Generate subject and body from form fields (same as ContactFormModal)
+    const subject = encodeURIComponent(`New Service Request from ${formData.name || 'Customer'} for ${formData.service || 'Service'}`);
+    const body = encodeURIComponent(`
 New Service Request:
 Service: ${formData.service}
 Description: ${formData.description}
@@ -538,18 +539,13 @@ Name: ${formData.name}
 Phone: ${formData.phone}
 Email: ${formData.email}
 Address: ${formData.address}, ${formData.city}, ${formData.zip}
-    `.trim();
+    `.trim());
 
-    // Redirect to success page and send WhatsApp message
+    // Open Gmail compose window
+    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=kasiedu@expedite-consults.com&su=${subject}&body=${body}`, '_blank');
+
+    // Redirect to success page
     setStep(4);
-
-    // Open WhatsApp
-    setTimeout(() => {
-      window.open(
-        `https://wa.me/12403608332?text=${encodeURIComponent(message)}`,
-        "_blank"
-      );
-    }, 1000);
   };
 
   const nextStep = () => {
@@ -858,10 +854,10 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                         <div>
                           <Label htmlFor="zip">ZIP Code *</Label>
                           <div className="relative">
-                            <Input
-                              id="zip"
-                              required
-                              value={formData.zip}
+                          <Input
+                            id="zip"
+                            required
+                            value={formData.zip}
                               onChange={(e) => {
                                 handleInputChange("zip", e.target.value);
                                 setZipDropdownOpen(true);
@@ -947,16 +943,16 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                     <div className="ml-auto">
                       {step < 3 ? (
                         <div>
-                          <PrimaryButton
-                            type="button"
-                            onClick={nextStep}
-                            disabled={
-                              (step === 1 && !formData.service) ||
-                              (step === 2 && (!formData.name || !formData.phone))
-                            }
-                          >
-                            Next
-                          </PrimaryButton>
+                        <PrimaryButton
+                          type="button"
+                          onClick={nextStep}
+                          disabled={
+                            (step === 1 && !formData.service) ||
+                            (step === 2 && (!formData.name || !formData.phone))
+                          }
+                        >
+                          Next
+                        </PrimaryButton>
                           {step === 2 && (!formData.name || !formData.phone) && (
                             <p className="text-orange-600 text-sm mt-2 text-center">
                               Please fill in all required fields to continue

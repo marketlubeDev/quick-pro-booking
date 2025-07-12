@@ -24,20 +24,18 @@ const Contact = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Create WhatsApp message
-    const message = `
+    // Generate subject and body from form fields
+    const subject = encodeURIComponent(`Contact Form: ${formData.subject || 'New Message from ' + formData.name}`);
+    const body = encodeURIComponent(`
 Contact Form Submission:
 Name: ${formData.name}
 Email: ${formData.email}
 Subject: ${formData.subject}
 Message: ${formData.message}
-    `.trim();
+    `.trim());
 
-    // Open WhatsApp
-    window.open(
-      `https://wa.me/12403608332?text=${encodeURIComponent(message)}`,
-      "_blank"
-    );
+    // Open Gmail compose window
+    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=kasiedu@expedite-consults.com&su=${subject}&body=${body}`, '_blank');
 
     // Reset form
     setFormData({ name: "", email: "", subject: "", message: "" });

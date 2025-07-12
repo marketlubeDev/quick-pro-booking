@@ -204,17 +204,14 @@ export default function SeasonalService() {
           <PrimaryButton
             variant="outline"
             className="px-8 py-3"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => window.open("https://wa.me/12403608332", "_blank")}
           >
             Contact Our Specialists
           </PrimaryButton>
         </motion.div>
       </div>
 
-      <ContactFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      {/* ContactFormModal removed for WhatsApp direct open */}
     </motion.section>
   );
 }

@@ -6,7 +6,7 @@ const FloatingWhatsApp = () => {
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    setIsModalOpen(true);
+    window.open("https://wa.me/12403608332", "_blank");
   };
 
   return (
@@ -22,10 +22,7 @@ const FloatingWhatsApp = () => {
         </div>
       </div>
 
-      <ContactFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      {/* ContactFormModal removed for WhatsApp direct open */}
     </>
   );
 };

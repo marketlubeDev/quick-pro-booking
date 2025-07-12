@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Phone, Mail } from "lucide-react";
+import { Home, Phone, Mail, MapPin } from "lucide-react";
 import { useEffect } from "react";
 
 const Footer = () => {
@@ -32,11 +32,15 @@ const Footer = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4" />
-                <span>+1 240-360-8332</span>
+                <span>+1 240-360-8332</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4" />
                 <span>kasiedu@expedite-consults.com</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-4 h-4" />
+                <span>3 Oak Run Rd, Laurel MD, 20724</span>
               </div>
             </div>
           </div>
