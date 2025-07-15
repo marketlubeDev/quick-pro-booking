@@ -473,12 +473,12 @@ const Request = () => {
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    
+
     // Clear ZIP error when user starts typing
     if (field === "zip") {
       setZipError("");
       setServiceAvailable(true);
-      
+
       // Auto-fill city if ZIP code is valid Maryland ZIP
       if (value.length === 5) {
         const zipData = marylandZipCodes.find(zip => zip.zip === value);
@@ -505,14 +505,14 @@ const Request = () => {
     if (zip.length !== 5) {
       return "ZIP code must be exactly 5 digits";
     }
-    
+
     // Check if ZIP code is in Maryland
     const isMarylandZip = marylandZipCodes.some(zipData => zipData.zip === zip);
     if (!isMarylandZip) {
       setServiceAvailable(false);
       return "Service not available in this area. We currently serve Maryland only.";
     }
-    
+
     setServiceAvailable(true);
     return "";
   };
@@ -963,8 +963,8 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                         <PrimaryButton
                           type="submit"
                           disabled={
-                            !formData.address || 
-                            !formData.city || 
+                            !formData.address ||
+                            !formData.city ||
                             !formData.zip ||
                             !!zipError ||
                             !serviceAvailable
