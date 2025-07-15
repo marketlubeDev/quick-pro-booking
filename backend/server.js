@@ -26,7 +26,10 @@ app.use(helmet());
 // CORS configuration
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:8080",
+    origin:
+      process.env.FRONTEND_URL ||
+      "https://skillhand-eight.vercel.app" ||
+      "http://localhost:8080",
     credentials: true,
   })
 );
