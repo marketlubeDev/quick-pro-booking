@@ -22,6 +22,7 @@ import {
 } from "./ui/command";
 import { useRef } from "react";
 import { contactApi } from "@/lib/api";
+import { toast } from "sonner";
 
 interface ContactFormModalProps {
   isOpen: boolean;
@@ -403,8 +404,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       console.log(result);
 
       if (result.success) {
-        // Show success message (you can add a toast notification here)
-        alert(
+        // Show success message using Sonner toast
+        toast.success(
           "Service request submitted successfully! We will contact you soon."
         );
 
@@ -431,6 +432,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       }
     } catch (error) {
       console.error("Error submitting form:", error);
+      toast.error("Network error. Please check your connection and try again.");
       setSubmitError(
         "Network error. Please check your connection and try again."
       );
