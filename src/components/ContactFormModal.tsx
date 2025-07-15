@@ -23,6 +23,13 @@ import {
 import { useRef } from "react";
 import { contactApi } from "@/lib/api";
 import { toast } from "sonner";
+import {
+  sanitizePhone,
+  sanitizeEmail,
+  sanitizeZipCode,
+  sanitizeTextarea,
+  sanitizeInputField,
+} from "@/lib/utils";
 
 interface ContactFormModalProps {
   isOpen: boolean;
@@ -311,7 +318,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     handleInputChange("zip", zipData.zip);
     setFormData((prev) => ({
       ...prev,
-      city: `${zipData.city}, ${zipData.county}`,
+      city: sanitizeInputField(`${zipData.city}, ${zipData.county}`),
     }));
     setZipDropdownOpen(false);
     setTimeout(() => zipInputRef.current?.blur(), 0);
@@ -322,8 +329,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     if (isOpen) {
       setFormData((prev) => ({
         ...prev,
-        service: selectedService?.toLowerCase() || "",
-        zip: zipCode || "",
+        service: sanitizeInputField(selectedService?.toLowerCase() || ""),
+        zip: sanitizeZipCode(zipCode || ""),
       }));
     }
   }, [isOpen, selectedService, zipCode]);
@@ -369,7 +376,36 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   ];
 
   const handleInputChange = (field: string, value: string | File | null) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    let sanitizedValue = value;
+
+    // Sanitize string inputs based on field type
+    if (typeof value === "string") {
+      switch (field) {
+        case "phone":
+          sanitizedValue = sanitizePhone(value);
+          break;
+        case "email":
+          sanitizedValue = sanitizeEmail(value);
+          break;
+        case "zip":
+          sanitizedValue = sanitizeZipCode(value);
+          break;
+        case "description":
+          sanitizedValue = sanitizeTextarea(value);
+          break;
+        case "name":
+        case "address":
+        case "city":
+          // Temporarily disable sanitization to test
+          sanitizedValue = value;
+          break;
+        default:
+          sanitizedValue = value;
+          break;
+      }
+    }
+
+    setFormData((prev) => ({ ...prev, [field]: sanitizedValue }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -385,6 +421,31 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitError("");
+
+    // Additional validation for sanitized data
+    if (
+      !formData.name.trim() ||
+      !formData.phone.trim() ||
+      !formData.address.trim()
+    ) {
+      setSubmitError("Please fill in all required fields.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate ZIP code format
+    if (!/^\d{5}$/.test(formData.zip)) {
+      setSubmitError("Please enter a valid 5-digit ZIP code.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate email format if provided
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setSubmitError("Please enter a valid email address.");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const result = await contactApi.submitForm({
@@ -655,7 +716,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     required
                     value={formData.zip}
                     onChange={(e) => {
-                      handleInputChange("zip", e.target.value);
+                      const sanitizedZip = sanitizeZipCode(e.target.value);
+                      handleInputChange("zip", sanitizedZip);
                       setZipDropdownOpen(true);
                     }}
                     placeholder="12345"
