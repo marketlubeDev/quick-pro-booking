@@ -90,7 +90,6 @@ export const contactApi = {
     formData.append("city", data.city);
     formData.append("zip", data.zip);
 
-
     if (data.image) {
       formData.append("image", data.image);
     }
