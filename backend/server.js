@@ -61,6 +61,13 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });
 
+app.use("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Server is running",
+  });
+});
+
 // Contact form submission endpoint with file upload
 app.post("/api/contact", upload.single("image"), async (req, res) => {
   try {
