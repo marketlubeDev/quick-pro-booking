@@ -1,4 +1,5 @@
 
+import React, { useRef, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -37,6 +38,30 @@ const ServiceDetail = () => {
   const handleRequestService = () => {
     window.location.href = `/request?service=${slug}`;
   };
+
+  const [hideFirstCard, setHideFirstCard] = useState(false);
+  const secondCardRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new window.IntersectionObserver(
+      ([entry]) => {
+        // If the top of the second card is at or above the sticky offset, hide the first card
+        setHideFirstCard(entry.boundingClientRect.top <= 96); // 96px = top-24
+      },
+      {
+        root: null,
+        threshold: 0,
+      }
+    );
+    if (secondCardRef.current) {
+      observer.observe(secondCardRef.current);
+    }
+    return () => {
+      if (secondCardRef.current) {
+        observer.unobserve(secondCardRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -128,28 +153,30 @@ const ServiceDetail = () => {
               {/* Sidebar */}
               <div className="space-y-6">
                 {/* Sticky CTA */}
-                <Card className="sticky top-24">
-                  <CardContent className="p-6 text-center">
-                    <h3 className="font-heading text-xl mb-4">Ready to Get Started?</h3>
-                    <p className="text-muted-foreground mb-6">
-                      No account required. Just tell us what you need and we'll connect you with a local pro.
-                    </p>
-                    <PrimaryButton 
-                      onClick={handleRequestService}
-                      className="w-full"
-                      size="lg"
-                    >
-                      Request This Service
-                    </PrimaryButton>
-                    <p className="text-sm text-muted-foreground mt-4">
-                      <Badge variant="secondary" className="mb-2">10% OFF</Badge><br/>
-                      First-time customer discount
-                    </p>
-                  </CardContent>
-                </Card>
+                {!hideFirstCard && (
+                  <Card className="sticky top-24 z-10">
+                    <CardContent className="p-6 text-center">
+                      <h3 className="font-heading text-xl mb-4">Ready to Get Started?</h3>
+                      <p className="text-muted-foreground mb-6">
+                        No account required. Just tell us what you need and we'll connect you with a local pro.
+                      </p>
+                      <PrimaryButton 
+                        onClick={handleRequestService}
+                        className="w-full"
+                        size="lg"
+                      >
+                        Request This Service
+                      </PrimaryButton>
+                      <p className="text-sm text-muted-foreground mt-4">
+                        <Badge variant="secondary" className="mb-2">10% OFF</Badge><br/>
+                        First-time customer discount
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Contact Info */}
-                <Card>
+                <Card ref={secondCardRef} className="sticky top-60 z-50">
                   <CardContent className="p-6">
                     <h3 className="font-heading text-lg mb-4">Need Help Deciding?</h3>
                     <p className="text-muted-foreground mb-4">
