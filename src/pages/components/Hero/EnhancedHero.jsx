@@ -61,6 +61,11 @@ const EnhancedHeroSection = () => {
     );
   };
 
+  const handleModalClose = (resetService = false) => {
+    setIsModalOpen(false);
+    if (resetService) setSelectedService("");
+  };
+
   return (
     <section
       style={{
@@ -75,10 +80,8 @@ const EnhancedHeroSection = () => {
       {/* Contact Form Modal */}
       <ContactFormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        selectedService={
-          services.find((s) => s.value === selectedService)?.label
-        }
+        onClose={() => handleModalClose(true)}
+        selectedService={services.find((s) => s.value === selectedService)?.label}
       />
 
       {/* Animated Background Elements */}
