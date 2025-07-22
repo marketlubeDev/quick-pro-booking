@@ -63,6 +63,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const [serviceAvailable, setServiceAvailable] = useState(true);
   const [zipDropdownOpen, setZipDropdownOpen] = useState(false);
   const zipInputRef = useRef<HTMLInputElement>(null);
+  const [imageError, setImageError] = useState("");
 
   // Maryland ZIP codes with corresponding cities and counties
   // Maryland ZIP codes with corresponding cities and counties
@@ -423,7 +424,15 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFormData((prev) => ({ ...prev, image: e.target.files![0] }));
+      const file = e.target.files[0];
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        setImageError("Image size should not exceed 2MB.");
+        // Optionally reset the file input
+        e.target.value = "";
+        return;
+      }
+      setImageError("");
+      setFormData((prev) => ({ ...prev, image: file }));
     }
   };
 
@@ -649,6 +658,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 </div>
               )}
             </div>
+            {imageError && (
+              <p className="text-red-500 text-sm mt-1">{imageError}</p>
+            )}
           </div>
         );
 
