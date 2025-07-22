@@ -446,9 +446,17 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
     // Additional validation for sanitized data
     if (
+      !formData.service ||
+      !formData.description ||
+      !formData.image ||
+      !formData.preferredDate ||
+      !formData.preferredTime ||
       !formData.name.trim() ||
       !formData.phone.trim() ||
-      !formData.address.trim()
+      !formData.email.trim() ||
+      !formData.address.trim() ||
+      !formData.city.trim() ||
+      !formData.zip.trim()
     ) {
       setSubmitError("Please fill in all required fields.");
       setIsSubmitting(false);
@@ -591,6 +599,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   handleInputChange("description", e.target.value)
                 }
                 rows={4}
+                required={true}
               />
             </div>
 
@@ -604,10 +613,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     accept="image/*"
                     onChange={handleImageUpload}
                     className="hidden"
+                    required={true}
                   />
                   <label
                     htmlFor="image"
                     className="cursor-pointer block"
+                   
                   >
                     <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground hover:text-primary transition-colors" />
                     <span className="text-primary hover:underline">
@@ -655,6 +666,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     handleInputChange("preferredDate", e.target.value)
                   }
                   min={new Date().toISOString().split("T")[0]}
+                  required
                 />
               </div>
               <div>
@@ -664,6 +676,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   onValueChange={(value) =>
                     handleInputChange("preferredTime", value)
                   }
+                  required
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select time" />
@@ -898,8 +911,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 type="button"
                 onClick={nextStep}
                 disabled={
-                  (step === 1 && !formData.service) ||
-                  (step === 2 && (!formData.name || !formData.phone))
+                  (step === 1 && (!formData.service || !formData.description || !formData.image)) ||
+                  (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
                 }
                 className={isMobile ? "w-full" : ""}
               >
