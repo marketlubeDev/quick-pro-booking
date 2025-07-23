@@ -616,24 +616,24 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
               <Label htmlFor="image">Upload a photo (optional)</Label>
               {!formData.image ? (
                 <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors">
-                  <input
-                    type="file"
-                    id="image"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
+                <input
+                  type="file"
+                  id="image"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
                     required={true}
-                  />
-                  <label
-                    htmlFor="image"
+                />
+                <label
+                  htmlFor="image"
                     className="cursor-pointer block"
                    
-                  >
+                >
                     <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground hover:text-primary transition-colors" />
                     <span className="text-primary hover:underline">
-                      Click to upload an image
+                  Click to upload an image
                     </span>
-                  </label>
+                </label>
                 </div>
               ) : (
                 <div className="relative">
@@ -656,8 +656,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     {formData.image.name}
                   </p>
                 </div>
-              )}
-            </div>
+                )}
+              </div>
             {imageError && (
               <p className="text-red-500 text-sm mt-1">{imageError}</p>
             )}

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -23,12 +23,25 @@ import {
   CommandItem,
   CommandEmpty,
 } from "@/components/ui/command";
+import { contactApi } from "@/lib/api";
+import { toast } from "sonner";
 
 const Request = () => {
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(1);
+  // Function to convert slug back to service title
+  const convertSlugToTitle = (slug: string) => {
+    if (!slug) return "";
+    return slug
+      .replace(/-/g, " ") // Replace hyphens with spaces
+      .replace(/\b\w/g, l => l.toUpperCase()) // Capitalize first letter of each word
+      .replace(/\s+And\s+/g, " & ") // Replace " And " with " & "
+      .replace(/\bAc\b/g, "AC") // Convert "Ac" to "AC"
+      .replace(/\bHvac\b/g, "HVAC"); // Convert "Hvac" to "HVAC"
+  };
+
   const [formData, setFormData] = useState({
-    service: searchParams.get("service") || "",
+    service: convertSlugToTitle(searchParams.get("service") || ""),
     description: "",
     preferredDate: "",
     preferredTime: "",
@@ -45,18 +58,21 @@ const Request = () => {
   const [serviceAvailable, setServiceAvailable] = useState(true);
   const [zipDropdownOpen, setZipDropdownOpen] = useState(false);
   const zipInputRef = useRef<HTMLInputElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const services = [
+    "Home Maintenance",
+    "Cleaning",
+    "Appliance Repairs",
+    "Electrical & Plumbing",
     "Plumbing",
-    "Electrical",
-    "House Cleaning",
-    "AC Repair",
-    "Appliance Repair",
+    "AC & HVAC",
     "Painting",
-    "Handyman",
-    "Pest Control",
+    "Roof & Gutter",
     "Lawn Care",
-    "Moving",
+    "Pest Control",
+    "Moving & Storage",
   ];
 
   const timeSlots = [
@@ -491,9 +507,38 @@ const Request = () => {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFormData((prev) => ({ ...prev, image: e.target.files![0] }));
+      const file = e.target.files[0];
+      if (file.size > 3 * 1024 * 1024) { // 3MB limit
+        alert("Image size should not exceed 3MB. Please select a smaller image.");
+        // Reset the file input
+        e.target.value = "";
+        return;
+      }
+      setFormData((prev) => ({ ...prev, image: file }));
     }
   };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({ ...prev, image: null }));
+    // Reset the file input
+    const fileInput = document.getElementById('image') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
+  // Effect to update service availability when ZIP changes
+  useEffect(() => {
+    if (formData.zip && formData.zip.length === 5) {
+      const found = marylandZipCodes.some((zipData) => zipData.zip === formData.zip);
+      setServiceAvailable(found);
+      if (!found) {
+        setFormData((prev) => ({ ...prev, city: '' }));
+      }
+    } else {
+      setServiceAvailable(true); // Default to true for incomplete ZIPs
+    }
+  }, [formData.zip]);
 
   const validateZipCode = (zip: string) => {
     if (!zip.trim()) {
@@ -517,35 +562,83 @@ const Request = () => {
     return "";
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError("");
 
-    // Validate ZIP code
-    const zipValidation = validateZipCode(formData.zip);
-    if (zipValidation) {
-      setZipError(zipValidation);
+    // Additional validation for sanitized data
+    if (
+      !formData.service ||
+      !formData.description ||
+      !formData.image ||
+      !formData.preferredDate ||
+      !formData.preferredTime ||
+      !formData.name.trim() ||
+      !formData.phone.trim() ||
+      !formData.email.trim() ||
+      !formData.address.trim() ||
+      !formData.city.trim() ||
+      !formData.zip.trim()
+    ) {
+      setSubmitError("Please fill in all required fields.");
+      setIsSubmitting(false);
       return;
     }
 
-    // Generate subject and body from form fields (same as ContactFormModal)
-    const subject = encodeURIComponent(`New Service Request from ${formData.name || 'Customer'} for ${formData.service || 'Service'}`);
-    const body = encodeURIComponent(`
-New Service Request:
-Service: ${formData.service}
-Description: ${formData.description}
-Preferred Date: ${formData.preferredDate}
-Preferred Time: ${formData.preferredTime}
-Name: ${formData.name}
-Phone: ${formData.phone}
-Email: ${formData.email}
-Address: ${formData.address}, ${formData.city}, ${formData.zip}
-    `.trim());
+    // Validate ZIP code format
+    if (!/^\d{5}$/.test(formData.zip)) {
+      setSubmitError("Please enter a valid 5-digit ZIP code.");
+      setIsSubmitting(false);
+      return;
+    }
 
-    // Open Gmail compose window
-    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=kasiedu@expedite-consults.com&su=${subject}&body=${body}`, '_blank');
+    // Validate email format if provided
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setSubmitError("Please enter a valid email address.");
+      setIsSubmitting(false);
+      return;
+    }
 
-    // Redirect to success page
-    setStep(4);
+    try {
+      const result = await contactApi.submitForm({
+        service: formData.service,
+        description: formData.description,
+        preferredDate: formData.preferredDate,
+        preferredTime: formData.preferredTime,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address,
+        city: formData.city,
+        zip: formData.zip,
+        image: formData.image,
+      });
+
+      console.log(result);
+
+      if (result.success) {
+        // Show success message using Sonner toast
+        toast.success(
+          "Service request submitted successfully! We will contact you soon."
+        );
+
+        // Redirect to success page
+        setStep(4);
+      } else {
+        setSubmitError(
+          result.message || "Failed to submit request. Please try again."
+        );
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Network error. Please check your connection and try again.");
+      setSubmitError(
+        "Network error. Please check your connection and try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const nextStep = () => {
@@ -667,6 +760,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                           onValueChange={(value) =>
                             handleInputChange("service", value)
                           }
+                          required
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select a service" />
@@ -675,7 +769,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                             {services.map((service) => (
                               <SelectItem
                                 key={service}
-                                value={service.toLowerCase()}
+                                value={service}
                               >
                                 {service}
                               </SelectItem>
@@ -696,32 +790,54 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                             handleInputChange("description", e.target.value)
                           }
                           rows={4}
+                          required
                         />
                       </div>
 
                       <div>
                         <Label htmlFor="image">Upload a photo (optional)</Label>
-                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                          <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                          <input
-                            type="file"
-                            id="image"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                          />
-                          <label
-                            htmlFor="image"
-                            className="text-primary cursor-pointer hover:underline"
-                          >
-                            Click to upload an image
-                          </label>
-                          {formData.image && (
+                        {!formData.image ? (
+                          <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors">
+                            <input
+                              type="file"
+                              id="image"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                              required
+                            />
+                            <label
+                              htmlFor="image"
+                              className="cursor-pointer block"
+                            >
+                              <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground hover:text-primary transition-colors" />
+                              <span className="text-primary hover:underline">
+                                Click to upload an image
+                              </span>
+                            </label>
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <div className="w-24 h-24 border-2 border-muted-foreground/25 rounded-lg overflow-hidden">
+                              <img
+                                src={URL.createObjectURL(formData.image)}
+                                alt="Preview"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleRemoveImage}
+                              className="absolute top-1 left-16 w-6 h-6 bg-white text-red-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors text-sm font-bold shadow-sm"
+                              title="Remove image"
+                            >
+                              ×
+                            </button>
                             <p className="mt-2 text-sm text-muted-foreground">
-                              Selected: {formData.image.name}
+                              {formData.image.name}
                             </p>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -740,6 +856,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                               handleInputChange("preferredDate", e.target.value)
                             }
                             min={new Date().toISOString().split("T")[0]}
+                            required
                           />
                         </div>
                         <div>
@@ -749,6 +866,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                             onValueChange={(value) =>
                               handleInputChange("preferredTime", value)
                             }
+                            required
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select time" />
@@ -774,11 +892,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                             handleInputChange("name", e.target.value)
                           }
                           placeholder="John Smith"
-                          className={step === 2 && !formData.name ? "border-red-500" : ""}
                         />
-                        {step === 2 && !formData.name && (
-                          <p className="text-red-500 text-sm mt-1">Name is required to continue</p>
-                        )}
                       </div>
 
                       <div>
@@ -792,11 +906,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                             handleInputChange("phone", e.target.value)
                           }
                           placeholder="(555) 123-4567"
-                          className={step === 2 && !formData.phone ? "border-red-500" : ""}
                         />
-                        {step === 2 && !formData.phone && (
-                          <p className="text-red-500 text-sm mt-1">Phone number is required to continue</p>
-                        )}
                       </div>
 
                       <div>
@@ -809,6 +919,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                             handleInputChange("email", e.target.value)
                           }
                           placeholder="john@example.com"
+                          required
                         />
                       </div>
                     </div>
@@ -854,19 +965,33 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                         <div>
                           <Label htmlFor="zip">ZIP Code *</Label>
                           <div className="relative">
-                          <Input
-                            id="zip"
-                            required
-                            value={formData.zip}
-                              onChange={(e) => {
-                                handleInputChange("zip", e.target.value);
-                                setZipDropdownOpen(true);
-                              }}
-                              placeholder="12345"
-                              maxLength={5}
-                              className={zipError ? "border-red-500" : ""}
-                              onFocus={() => setZipDropdownOpen(true)}
-                              ref={zipInputRef}
+                                                      <Input
+                              id="zip"
+                              required
+                              value={formData.zip}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  handleInputChange("zip", value);
+                                  setZipDropdownOpen(true);
+                                  
+                                  // Clear ZIP error when user starts typing
+                                  if (zipError) {
+                                    setZipError("");
+                                  }
+                                  
+                                  // Validate ZIP when it reaches 5 digits
+                                  if (value.length === 5) {
+                                    const validation = validateZipCode(value);
+                                    if (validation) {
+                                      setZipError(validation);
+                                    }
+                                  }
+                                }}
+                                placeholder="12345"
+                                maxLength={5}
+                                className={zipError ? "border-red-500" : ""}
+                                onFocus={() => setZipDropdownOpen(true)}
+                                ref={zipInputRef}
                             />
                             {/* Combobox for searching ZIP codes */}
                             {zipDropdownOpen && filteredZipCodes.length > 0 && (
@@ -897,7 +1022,7 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                               ✓ Service available in {formData.city || "this area"}
                             </p>
                           )}
-                          {!serviceAvailable && formData.zip && (
+                          {!zipError && !serviceAvailable && formData.zip && (
                             <p className="text-orange-600 text-sm mt-1">
                               ⚠ Service not available in this area. We currently serve Maryland only.
                             </p>
@@ -928,6 +1053,13 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                     </div>
                   )}
 
+                  {/* Submit Error Display */}
+                  {submitError && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+                      <p className="text-red-600 text-sm">{submitError}</p>
+                    </div>
+                  )}
+
                   {/* Navigation Buttons */}
                   <div className="flex justify-between pt-6">
                     {step > 1 && (
@@ -947,17 +1079,12 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                           type="button"
                           onClick={nextStep}
                           disabled={
-                            (step === 1 && !formData.service) ||
-                            (step === 2 && (!formData.name || !formData.phone))
+                            (step === 1 && (!formData.service || !formData.description || !formData.image)) ||
+                            (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
                           }
                         >
                           Next
                         </PrimaryButton>
-                          {step === 2 && (!formData.name || !formData.phone) && (
-                            <p className="text-orange-600 text-sm mt-2 text-center">
-                              Please fill in all required fields to continue
-                            </p>
-                          )}
                         </div>
                       ) : (
                         <PrimaryButton
@@ -967,10 +1094,19 @@ Address: ${formData.address}, ${formData.city}, ${formData.zip}
                             !formData.city ||
                             !formData.zip ||
                             !!zipError ||
-                            !serviceAvailable
+                            !serviceAvailable ||
+                            !formData.service ||
+                            !formData.description ||
+                            !formData.image ||
+                            !formData.preferredDate ||
+                            !formData.preferredTime ||
+                            !formData.name ||
+                            !formData.phone ||
+                            !formData.email ||
+                            isSubmitting
                           }
                         >
-                          Submit Request
+                          {isSubmitting ? "Submitting..." : "Submit Request"}
                         </PrimaryButton>
                       )}
                     </div>
