@@ -14,35 +14,35 @@ const ProjectDetail = () => {
   // This would typically come from a database or API
   const allProjects = [
     {
-      id: 1,
-      title: 'Modern Kitchen Renovation',
-      description: 'Complete kitchen makeover with modern fixtures, appliances, and custom cabinetry. This project transformed an outdated kitchen into a modern, functional space perfect for cooking and entertaining.',
-      image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=600&fit=crop',
-      gallery: [
-        'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop',
-        'https://images.unsplash.com/photo-1556909210-20ab1c2b7a96?w=400&h=300&fit=crop',
-        'https://images.unsplash.com/photo-1556908641-3dcf0ffdbcf8?w=400&h=300&fit=crop'
-      ],
-      category: 'Kitchen Renovation',
-      duration: '2 weeks',
-      location: 'Austin, TX',
-      completed: true,
-      rating: 5,
-      clientName: 'Sarah Johnson',
-      projectDetails: {
-        scope: 'Full kitchen renovation including plumbing, electrical, and custom cabinetry',
-        materials: 'Quartz countertops, stainless steel appliances, custom maple cabinets',
-        challenges: 'Working around existing plumbing and electrical while maintaining daily functionality',
-        outcome: 'Increased home value by 15% and improved functionality dramatically'
-      },
-      features: [
-        'Custom cabinet installation',
-        'Quartz countertop installation',
-        'Modern appliance setup',
-        'Electrical outlet upgrades',
-        'Plumbing fixture installation',
-        'LED lighting system'
-      ]
+    id: 1,
+    title: 'Modern Kitchen Renovation',
+    description: 'Complete kitchen makeover with modern fixtures, appliances, and custom cabinetry. This project transformed an outdated kitchen into a modern, functional space perfect for cooking and entertaining.',
+    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=600&fit=crop',
+    gallery: [
+      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop',
+        'https://images.unsplash.com/photo-1556909115-3f381036bcb3?w=400&h=300&fit=crop',
+        'https://images.unsplash.com/photo-1556909114-16a2409962b9?w=400&h=300&fit=crop'
+    ],
+    category: 'Kitchen Renovation',
+    duration: '2 weeks',
+    location: 'Austin, TX',
+    completed: true,
+    rating: 5,
+    clientName: 'Sarah Johnson',
+    projectDetails: {
+      scope: 'Full kitchen renovation including plumbing, electrical, and custom cabinetry',
+      materials: 'Quartz countertops, stainless steel appliances, custom maple cabinets',
+      challenges: 'Working around existing plumbing and electrical while maintaining daily functionality',
+      outcome: 'Increased home value by 15% and improved functionality dramatically'
+    },
+    features: [
+      'Custom cabinet installation',
+      'Quartz countertop installation',
+      'Modern appliance setup',
+      'Electrical outlet upgrades',
+      'Plumbing fixture installation',
+      'LED lighting system'
+    ]
     },
     {
       id: 2,
@@ -135,9 +135,9 @@ const ProjectDetail = () => {
       id: 5,
       title: 'Home Painting Project',
       description: 'Interior and exterior painting with premium materials and professional finish.',
-      image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&h=600&fit=crop',
+      image: 'https://images.pexels.com/photos/4792518/pexels-photo-4792518.jpeg',
       gallery: [
-        'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&h=300&fit=crop'
+        'https://images.pexels.com/photos/4792518/pexels-photo-4792518.jpeg'
       ],
       category: 'Painting',
       duration: '1 week',
@@ -302,23 +302,23 @@ const ProjectDetail = () => {
                 {/* Project Details */}
                 <Card>
                   <CardContent className="p-8">
-                    <h2 className="font-heading text-2xl mb-6">Project Details</h2>
+                    <h2 className="font-heading text-3xl font-bold mb-6">Project Details</h2>
                     <div className="space-y-6">
                       <div>
-                        <h3 className="font-semibold mb-2">Project Scope</h3>
-                        <p className="text-muted-foreground">{projectData.projectDetails.scope}</p>
+                        <h3 className="font-semibold text-lg text-muted-foreground mb-1">Category</h3>
+                        <p className="text-foreground mb-2">{projectData.category}</p>
                       </div>
                       <div>
-                        <h3 className="font-semibold mb-2">Materials Used</h3>
-                        <p className="text-muted-foreground">{projectData.projectDetails.materials}</p>
+                        <h3 className="font-semibold text-lg text-muted-foreground mb-1">Materials Used</h3>
+                        <p className="text-foreground mb-2">{projectData.projectDetails.materials}</p>
                       </div>
                       <div>
-                        <h3 className="font-semibold mb-2">Challenges Overcome</h3>
-                        <p className="text-muted-foreground">{projectData.projectDetails.challenges}</p>
+                        <h3 className="font-semibold text-lg text-muted-foreground mb-1">Challenges Overcome</h3>
+                        <p className="text-foreground mb-2">{projectData.projectDetails.challenges}</p>
                       </div>
                       <div>
-                        <h3 className="font-semibold mb-2">Project Outcome</h3>
-                        <p className="text-muted-foreground">{projectData.projectDetails.outcome}</p>
+                        <h3 className="font-semibold text-lg text-muted-foreground mb-1">Project Outcome</h3>
+                        <p className="text-foreground mb-2">{projectData.projectDetails.outcome}</p>
                       </div>
                     </div>
                   </CardContent>

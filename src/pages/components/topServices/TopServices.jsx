@@ -529,13 +529,13 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }) => {
           style={{ borderTop: "1px solid rgba(229, 231, 235, 0.8)" }}
         >
           <div
-            className="flex items-center gap-2 px-5 py-3 rounded-full font-bold shadow-lg transition-all duration-300 hover:scale-105"
+            className="flex items-center gap-2 px-5 py-3 rounded-full font-bold shadow-lg transition-all duration-300 hover:scale-105 min-w-[150px]"
             style={{
               background: "linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)",
               color: "#FFFFFF",
             }}
           >
-            <DollarSign className="w-4 h-4" />
+            {/* <DollarSign className="w-4 h-4" /> */}
             {project.budget}
           </div>
           <button
@@ -544,6 +544,7 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }) => {
               color: "#3B82F6",
               background: isHovered ? "rgba(59, 130, 246, 0.1)" : "transparent",
             }}
+            onClick={() => window.location.href = `/projects/${project.id}`}
           >
             Learn More
             <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />

@@ -64,6 +64,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const [zipDropdownOpen, setZipDropdownOpen] = useState(false);
   const zipInputRef = useRef<HTMLInputElement>(null);
   const [imageError, setImageError] = useState("");
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [step2Error, setStep2Error] = useState("");
+
+  function isValidEmail(email: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
 
   // Maryland ZIP codes with corresponding cities and counties
   // Maryland ZIP codes with corresponding cities and counties
@@ -369,6 +375,18 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     }
   }, [formData.zip]);
 
+  useEffect(() => {
+    if (formData.image) {
+      const url = URL.createObjectURL(formData.image);
+      setImagePreviewUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else {
+      setImagePreviewUrl(null);
+    }
+  }, [formData.image]);
+
   const services = [
     "Plumbing",
     "Electrical",
@@ -457,15 +475,14 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     if (
       !formData.service ||
       !formData.description ||
-      !formData.image ||
       !formData.preferredDate ||
       !formData.preferredTime ||
       !formData.name.trim() ||
       !formData.phone.trim() ||
-      !formData.email.trim() ||
       !formData.address.trim() ||
       !formData.city.trim() ||
-      !formData.zip.trim()
+      !formData.zip.trim() ||
+      !formData.email.trim()
     ) {
       setSubmitError("Please fill in all required fields.");
       setIsSubmitting(false);
@@ -480,7 +497,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     }
 
     // Validate email format if provided
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (formData.email && !isValidEmail(formData.email)) {
       setSubmitError("Please enter a valid email address.");
       setIsSubmitting(false);
       return;
@@ -548,6 +565,13 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   };
 
   const nextStep = () => {
+    if (step === 2) {
+      setStep2Error("");
+      if (!formData.email || !isValidEmail(formData.email)) {
+        setStep2Error("Please enter a valid email address.");
+        return;
+      }
+    }
     if (step < 3) setStep(step + 1);
   };
 
@@ -628,7 +652,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   accept="image/*"
                   onChange={handleImageUpload}
                   className="hidden"
-                    required={true}
+                    // required={true}
                 />
                 <label
                   htmlFor="image"
@@ -645,7 +669,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 <div className="relative">
                   <div className="w-24 h-24 border-2 border-muted-foreground/25 rounded-lg overflow-hidden">
                     <img
-                      src={URL.createObjectURL(formData.image)}
+                      src={imagePreviewUrl || ""}
                       alt="Preview"
                       className="w-full h-full object-cover"
                     />
@@ -653,7 +677,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    className="absolute top-1 left-16 w-6 h-6 bg-white text-red-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors text-sm font-bold shadow-sm"
+                    className="absolute top-1 left-16 w-6 h-6 bg-white text-red-500 rounded-full flex items-center justify-center hover:bg-gray-100 text-sm font-bold shadow-sm"
                     title="Remove image"
                   >
                     ×
@@ -716,7 +740,14 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 id="name"
                 required
                 value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
+                inputMode="text"
+                pattern="[A-Za-z. ]*"
+                onChange={(e) =>
+                  handleInputChange(
+                    "name",
+                    e.target.value.replace(/[^A-Za-z. ]/g, "")
+                  )
+                }
                 placeholder="John Smith"
               />
             </div>
@@ -741,11 +772,15 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
               <Input
                 id="email"
                 type="email"
+                required
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 placeholder="john@example.com"
               />
             </div>
+            {step2Error && (
+              <p className="text-red-500 text-sm mt-1">{step2Error}</p>
+            )}
           </div>
         );
 
@@ -857,6 +892,11 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 <li>
                   <strong>Contact:</strong> {formData.name} - {formData.phone}
                 </li>
+                {formData.email && (
+                  <li>
+                    <strong>Email:</strong> {formData.email}
+                  </li>
+                )}
               </ul>
             </div>
 
@@ -932,7 +972,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 type="button"
                 onClick={nextStep}
                 disabled={
-                  (step === 1 && (!formData.service || !formData.description || !formData.image)) ||
+                  (step === 1 && (!formData.service || !formData.description)) ||
                   (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
                 }
                 className={isMobile ? "w-full" : ""}

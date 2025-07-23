@@ -32,15 +32,33 @@ const Footer = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4" />
-                <span>+1 240-360-8332</span>
+                <a href="tel:+12403608332" className="hover:underline" style={{ color: "inherit" }}>
+                  +1 240-360-8332
+                </a>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4" />
-                <span>kasiedu@expedite-consults.com</span>
+                <a
+                  href="https://mail.google.com/mail/?view=cm&fs=1&to=kasiedu@expedite-consults.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                  style={{ color: "inherit" }}
+                >
+                  kasiedu@expedite-consults.com
+                </a>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4" />
-                <span>3 Oak Run Rd, Laurel MD, 20724</span>
+                <a
+                  href="https://maps.google.com/?q=3 Oak Run Rd, Laurel MD, 20724"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                  style={{ color: "inherit" }}
+                >
+                  3 Oak Run Rd, Laurel MD, 20724
+                </a>
               </div>
             </div>
           </div>
@@ -55,6 +73,14 @@ const Footer = () => {
                   className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
                 >
                   All Services
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/projects"
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                >
+                  Projects
                 </Link>
               </li>
               <li>

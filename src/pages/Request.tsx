@@ -26,6 +26,11 @@ import {
 import { contactApi } from "@/lib/api";
 import { toast } from "sonner";
 
+function isValidEmail(email: string) {
+  // Simple regex for email validation
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 const Request = () => {
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(1);
@@ -82,6 +87,9 @@ const Request = () => {
   const zipInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [step2Error, setStep2Error] = useState("");
+  const [imageError, setImageError] = useState("");
 
   const services = [
     "Home Maintenance",
@@ -530,12 +538,12 @@ const Request = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 3 * 1024 * 1024) { // 3MB limit
-        alert("Image size should not exceed 3MB. Please select a smaller image.");
-        // Reset the file input
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        setImageError("Image size should not exceed 2MB.");
         e.target.value = "";
         return;
       }
+      setImageError("");
       setFormData((prev) => ({ ...prev, image: file }));
     }
   };
@@ -561,6 +569,19 @@ const Request = () => {
       setServiceAvailable(true); // Default to true for incomplete ZIPs
     }
   }, [formData.zip]);
+
+  // Effect to manage the object URL
+  useEffect(() => {
+    if (formData.image) {
+      const url = URL.createObjectURL(formData.image);
+      setImagePreviewUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else {
+      setImagePreviewUrl(null);
+    }
+  }, [formData.image]);
 
   const validateZipCode = (zip: string) => {
     if (!zip.trim()) {
@@ -593,7 +614,6 @@ const Request = () => {
     if (
       !formData.service ||
       !formData.description ||
-      !formData.image ||
       !formData.preferredDate ||
       !formData.preferredTime ||
       !formData.name.trim() ||
@@ -616,7 +636,7 @@ const Request = () => {
     }
 
     // Validate email format if provided
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (formData.email && !isValidEmail(formData.email)) {
       setSubmitError("Please enter a valid email address.");
       setIsSubmitting(false);
       return;
@@ -670,6 +690,13 @@ const Request = () => {
   };
 
   const nextStep = () => {
+    if (step === 2) {
+      setStep2Error("");
+      if (formData.email && !isValidEmail(formData.email)) {
+        setStep2Error("Please enter a valid email address.");
+        return; // Do not proceed
+      }
+    }
     if (step < 3) setStep(step + 1);
   };
 
@@ -832,7 +859,7 @@ const Request = () => {
                               accept="image/*"
                               onChange={handleImageUpload}
                               className="hidden"
-                              required
+                              // required
                             />
                             <label
                               htmlFor="image"
@@ -848,7 +875,7 @@ const Request = () => {
                           <div className="relative">
                             <div className="w-24 h-24 border-2 border-muted-foreground/25 rounded-lg overflow-hidden">
                               <img
-                                src={URL.createObjectURL(formData.image)}
+                                src={imagePreviewUrl || ""}
                                 alt="Preview"
                                 className="w-full h-full object-cover"
                               />
@@ -856,7 +883,7 @@ const Request = () => {
                             <button
                               type="button"
                               onClick={handleRemoveImage}
-                              className="absolute top-1 left-16 w-6 h-6 bg-white text-red-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors text-sm font-bold shadow-sm"
+                              className="absolute top-1 left-16 w-6 h-6 bg-white text-red-500 rounded-full flex items-center justify-center hover:bg-gray-100 text-sm font-bold shadow-sm"
                               title="Remove image"
                             >
                               ×
@@ -865,6 +892,9 @@ const Request = () => {
                               {formData.image.name}
                             </p>
                           </div>
+                        )}
+                        {imageError && (
+                          <p className="text-red-500 text-sm mt-1">{imageError}</p>
                         )}
                       </div>
                     </div>
@@ -916,8 +946,13 @@ const Request = () => {
                           id="name"
                           required
                           value={formData.name}
+                          inputMode="text"
+                          pattern="[A-Za-z. ]*"
                           onChange={(e) =>
-                            handleInputChange("name", e.target.value)
+                            handleInputChange(
+                              "name",
+                              e.target.value.replace(/[^A-Za-z. ]/g, "")
+                            )
                           }
                           placeholder="John Smith"
                         />
@@ -941,18 +976,21 @@ const Request = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor="email">Email (optional)</Label>
+                        <Label htmlFor="email">Email*</Label>
                         <Input
                           id="email"
                           type="email"
+                          required
                           value={formData.email}
                           onChange={(e) =>
                             handleInputChange("email", e.target.value)
                           }
                           placeholder="john@example.com"
-                          required
                         />
                       </div>
+                      {step2Error && (
+                        <p className="text-red-500 text-sm mt-1">{step2Error}</p>
+                      )}
                     </div>
                   )}
 
@@ -1076,9 +1114,14 @@ const Request = () => {
                             <strong>Time:</strong> {formData.preferredTime}
                           </li>
                           <li>
-                            <strong>Contact:</strong> {formData.name} -{" "}
-                            {formData.phone}
+                            <strong>Contact:</strong> {formData.name} - {formData.phone}
                           </li>
+                          {formData.email && (
+                            <li>
+                              <strong>Email:</strong> {formData.email}
+                            </li>
+                          )}
+
                         </ul>
                       </div>
                     </div>
@@ -1110,7 +1153,7 @@ const Request = () => {
                           type="button"
                           onClick={nextStep}
                           disabled={
-                            (step === 1 && (!formData.service || !formData.description || !formData.image)) ||
+                            (step === 1 && (!formData.service || !formData.description)) ||
                             (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
                           }
                         >
@@ -1128,7 +1171,6 @@ const Request = () => {
                             !serviceAvailable ||
                             !formData.service ||
                             !formData.description ||
-                            !formData.image ||
                             !formData.preferredDate ||
                             !formData.preferredTime ||
                             !formData.name ||

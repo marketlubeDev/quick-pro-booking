@@ -57,7 +57,7 @@ const Projects = () => {
       id: 5,
       title: "Home Painting Project",
       image:
-        "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600&h=400&fit=crop",
+        "https://images.pexels.com/photos/4792518/pexels-photo-4792518.jpeg",
       description: "Interior and exterior painting with premium materials",
       category: "Painting",
       duration: "1 week",
