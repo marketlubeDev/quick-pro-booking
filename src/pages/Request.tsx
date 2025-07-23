@@ -32,6 +32,28 @@ const Request = () => {
   // Function to convert slug back to service title
   const convertSlugToTitle = (slug: string) => {
     if (!slug) return "";
+    
+    // Map service slugs to actual service names
+    const slugToServiceMap: { [key: string]: string } = {
+      'home-maintenance': 'Home Maintenance',
+      'cleaning': 'Cleaning',
+      'appliance-repairs': 'Appliance Repairs',
+      'electrical-plumbing': 'Electrical & Plumbing',
+      'ac-hvac': 'AC & HVAC',
+      'painting': 'Painting',
+      'roof-gutter': 'Roof & Gutter',
+      'lawn-care': 'Lawn Care',
+      'pest-control': 'Pest Control',
+      'moving-storage': 'Moving & Storage',
+      'kitchen-renovation': 'Kitchen Renovation'
+    };
+    
+    // Check if we have a direct mapping
+    if (slugToServiceMap[slug]) {
+      return slugToServiceMap[slug];
+    }
+    
+    // Fallback to the original conversion logic
     return slug
       .replace(/-/g, " ") // Replace hyphens with spaces
       .replace(/\b\w/g, l => l.toUpperCase()) // Capitalize first letter of each word
@@ -66,13 +88,13 @@ const Request = () => {
     "Cleaning",
     "Appliance Repairs",
     "Electrical & Plumbing",
-    "Plumbing",
     "AC & HVAC",
     "Painting",
     "Roof & Gutter",
     "Lawn Care",
     "Pest Control",
     "Moving & Storage",
+    "Kitchen Renovation",
   ];
 
   const timeSlots = [
@@ -600,6 +622,12 @@ const Request = () => {
       return;
     }
 
+    if (!(formData.phone.length === 10 || formData.phone.length === 12)) {
+      setSubmitError("Phone number must be 10 digits (without country code) or 12 digits (with country code). Please check your entry.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const result = await contactApi.submitForm({
         service: formData.service,
@@ -902,8 +930,11 @@ const Request = () => {
                           type="tel"
                           required
                           value={formData.phone}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={12}
                           onChange={(e) =>
-                            handleInputChange("phone", e.target.value)
+                            handleInputChange("phone", e.target.value.replace(/\D/g, "").slice(0, 12))
                           }
                           placeholder="(555) 123-4567"
                         />

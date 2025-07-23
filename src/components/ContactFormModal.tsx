@@ -486,6 +486,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       return;
     }
 
+    if (!(formData.phone.length === 10 || formData.phone.length === 12)) {
+      setSubmitError("Phone number must be 10 digits (without country code) or 12 digits (with country code). Please check your entry.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const result = await contactApi.submitForm({
         service: formData.service,
@@ -722,7 +728,10 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 type="tel"
                 required
                 value={formData.phone}
-                onChange={(e) => handleInputChange("phone", e.target.value)}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={12}
+                onChange={(e) => handleInputChange("phone", e.target.value.replace(/\D/g, "").slice(0, 12))}
                 placeholder="(555) 123-4567"
               />
             </div>

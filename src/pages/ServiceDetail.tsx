@@ -9,13 +9,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Shield, Clock, Star } from 'lucide-react';
 
-const ServiceDetail = () => {
-  const { slug } = useParams();
-  
-  // This would typically come from a database or API
-  const serviceData = {
-    title: 'Professional Plumbing Services',
-    description: 'Expert plumbing solutions for your home, from emergency repairs to new installations.',
+const serviceMap: { [key: string]: any } = {
+  "home-maintenance": {
+    title: "Home Maintenance",
+    description: "General repairs, handyman services, and home upkeep.",
     commonTasks: [
       'Leak detection and repair',
       'Drain cleaning and unclogging',
@@ -33,10 +30,222 @@ const ServiceDetail = () => {
     ],
     averageRating: 4.9,
     completedJobs: 2547
+  },
+  "cleaning": {
+    title: "Cleaning Services",
+    description: "Deep cleaning, regular maintenance, and specialized cleaning.",
+    commonTasks: [
+      'Deep cleaning of all rooms',
+      'Window washing',
+      'Carpet cleaning',
+      'Furniture dusting',
+      'Appliance cleaning',
+      'Kitchen deep cleaning',
+      'Bathroom sanitization',
+      'Move-in/out cleaning'
+    ],
+    trustBadges: [
+      { icon: Shield, text: 'Licensed' },
+      { icon: CheckCircle, text: 'Insured' },
+      { icon: Star, text: 'Background-Checked' }
+    ],
+    averageRating: 4.8,
+    completedJobs: 1800
+  },
+  "appliance-repairs": {
+    title: "Appliance Repairs",
+    description: "Fix washers, dryers, refrigerators, and kitchen appliances.",
+    commonTasks: [
+      'Washer and dryer repair',
+      'Refrigerator and freezer repair',
+      'Oven and stove repair',
+      'Microwave repair',
+      'Dishwasher repair',
+      'Garbage disposal repair',
+      'Water dispenser repair',
+      'Appliance installation'
+    ],
+    trustBadges: [
+      { icon: Shield, text: 'Licensed' },
+      { icon: CheckCircle, text: 'Insured' },
+      { icon: Star, text: 'Background-Checked' }
+    ],
+    averageRating: 4.9,
+    completedJobs: 3200
+  },
+  "electrical-plumbing": {
+    title: "Electrical & Plumbing",
+    description: "Wiring, outlets, pipes, fixtures, and safety inspections.",
+    commonTasks: [
+      'Electrical panel upgrades',
+      'Lighting installation and repair',
+      'Water heater installation',
+      'Pipe repair and replacement',
+      'Faucet and fixture installation',
+      'Sewer line maintenance',
+      'Electrical safety inspection',
+      'Outlet and switch repair'
+    ],
+    trustBadges: [
+      { icon: Shield, text: 'Licensed' },
+      { icon: CheckCircle, text: 'Insured' },
+      { icon: Star, text: 'Background-Checked' }
+    ],
+    averageRating: 4.7,
+    completedJobs: 2800
+  },
+  "ac-hvac": {
+    title: "AC & HVAC",
+    description: "Air conditioning repair, heating systems, and ventilation.",
+    commonTasks: [
+      'Air conditioner repair and maintenance',
+      'Heating system repair and replacement',
+      'Ventilation system repair',
+      'Duct cleaning and sealing',
+      'Thermostat repair and replacement',
+      'Air filter replacement',
+      'HVAC system tune-up',
+      'Emergency HVAC services'
+    ],
+    trustBadges: [
+      { icon: Shield, text: 'Licensed' },
+      { icon: CheckCircle, text: 'Insured' },
+      { icon: Star, text: 'Background-Checked' }
+    ],
+    averageRating: 4.9,
+    completedJobs: 4000
+  },
+  "painting": {
+    title: "Painting",
+    description: "Interior and exterior painting, touch-ups, and color consultation.",
+    commonTasks: [
+      'Interior and exterior painting',
+      'Wall preparation and repair',
+      'Color consultation and selection',
+      'Trim and baseboard painting',
+      'Door and window painting',
+      'Ceiling painting',
+      'Specialty finishes (e.g., faux finishes, murals)',
+      'Interior wall repair'
+    ],
+    trustBadges: [
+      { icon: Shield, text: 'Licensed' },
+      { icon: CheckCircle, text: 'Insured' },
+      { icon: Star, text: 'Background-Checked' }
+    ],
+    averageRating: 4.8,
+    completedJobs: 3500
+  },
+  "roof-gutter": {
+    title: "Roof & Gutter",
+    description: "Roof repairs, gutter cleaning, and weatherproofing.",
+    commonTasks: [
+      'Roof inspection and repair',
+      'Gutter cleaning and repair',
+      'Downspout repair and replacement',
+      'Roof flashing repair',
+      'Weatherproofing installation',
+      'Roof vent repair',
+      'Gutter guard installation',
+      'Gutter replacement'
+    ],
+    trustBadges: [
+      { icon: Shield, text: 'Licensed' },
+      { icon: CheckCircle, text: 'Insured' },
+      { icon: Star, text: 'Background-Checked' }
+    ],
+    averageRating: 4.9,
+    completedJobs: 3000
+  },
+  "lawn-care": {
+    title: "Lawn Care",
+    description: "Landscaping, lawn maintenance, and outdoor beautification.",
+    commonTasks: [
+      'Mowing and trimming',
+      'Edging and weed control',
+      'Fertilization and weed control',
+      'Tree and shrub trimming',
+      'Hedge trimming',
+      'Leaf removal',
+      'Pruning',
+      'Outdoor lighting installation'
+    ],
+    trustBadges: [
+      { icon: Shield, text: 'Licensed' },
+      { icon: CheckCircle, text: 'Insured' },
+      { icon: Star, text: 'Background-Checked' }
+    ],
+    averageRating: 4.7,
+    completedJobs: 2500
+  },
+  "pest-control": {
+    title: "Pest Control",
+    description: "Extermination, prevention, and ongoing pest management.",
+    commonTasks: [
+      'Extermination services (e.g., ants, spiders, rodents)',
+      'Preventive treatments',
+      'Ongoing pest management',
+      'Termite inspection and treatment',
+      'Rodent exclusion',
+      'Bird control',
+      'Ant control',
+      'Pest-proofing'
+    ],
+    trustBadges: [
+      { icon: Shield, text: 'Licensed' },
+      { icon: CheckCircle, text: 'Insured' },
+      { icon: Star, text: 'Background-Checked' }
+    ],
+    averageRating: 4.9,
+    completedJobs: 4500
+  },
+  "moving-storage": {
+    title: "Moving & Storage",
+    description: "Local moving, packing services, and storage solutions.",
+    commonTasks: [
+      'Local moving services',
+      'Packing and unpacking',
+      'Storage solutions',
+      'Furniture disassembly and reassembly',
+      'Heavy item moving',
+      'Storage unit delivery and pickup',
+      'Packing materials',
+      'Unpacking and organization'
+    ],
+    trustBadges: [
+      { icon: Shield, text: 'Licensed' },
+      { icon: CheckCircle, text: 'Insured' },
+      { icon: Star, text: 'Background-Checked' }
+    ],
+    averageRating: 4.8,
+    completedJobs: 3800
+  },
+};
+
+const normalizeSlug = (slug = "") =>
+  slug
+    .toLowerCase()
+    .replace(/\s+/g, "-")      // spaces to hyphens
+    .replace(/&/g, "-")         // & to hyphen
+    .replace(/and/g, "-")       // and to hyphen
+    .replace(/\//g, "-")       // slashes to hyphens
+    .replace(/-+/g, "-")        // multiple hyphens to single
+    .replace(/[^a-z0-9-]/g, ""); // remove any other non-alphanum/hyphen
+
+const ServiceDetail = () => {
+  const { slug } = useParams();
+  const normalizedSlug = normalizeSlug(slug);
+  const serviceData = serviceMap[normalizedSlug] || {
+    title: "Service Not Found",
+    description: "We couldn't find the service you're looking for.",
+    commonTasks: [],
+    trustBadges: [],
+    averageRating: 0,
+    completedJobs: 0
   };
 
   const handleRequestService = () => {
-    window.location.href = `/request?service=${slug}`;
+    window.location.href = `/request?service=${normalizedSlug}`;
   };
 
   const [hideFirstCard, setHideFirstCard] = useState(false);
@@ -186,7 +395,7 @@ const ServiceDetail = () => {
                       variant="primary"
                       className="w-full"
                       onClick={() => {
-                        const message = `Hi! I need help with ${serviceData.title.toLowerCase()}.`;
+                        const message = `Hi! I need help with ${serviceData.title.toLowerCase().replace(/\s+/g, '-').replace('&', 'and').replace(/\//g, '-').replace(/-+/g, '-').replace(/[^a-z0-9-]/g, '')}.`;
                         window.open(`https://wa.me/12403608332?text=${encodeURIComponent(message)}`, '_blank');
                       }}
                     >
