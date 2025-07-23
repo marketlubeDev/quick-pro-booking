@@ -7,7 +7,7 @@ import { emergencyServices } from "@/data/getData";
 
 export default function EmergencyServices() {
   return (
-    <section className="py-8 bg-red-50 border-l-4 border-red-500">
+    <section className="py-12 bg-red-50 border-l-4 border-red-500">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-center space-x-4 mb-6">
           <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -42,7 +42,7 @@ export default function EmergencyServices() {
         <div className="text-center mt-6">
           <PrimaryButton
             onClick={() => (window.location.href = "/request?urgent=true")}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red-600 hover:bg-red-700 text-black"
           >
             Get Emergency Help Now
           </PrimaryButton>

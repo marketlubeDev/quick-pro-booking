@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Phone, Mail, MessageCircle, MapPin } from "lucide-react";
+import { contactApi } from "@/lib/api";
+import { toast } from "sonner";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -18,27 +20,38 @@ const Contact = () => {
   });
 
   const handleInputChange = (field: string, value: string) => {
+    if (field === "name") {
+      // Allow only letters, spaces, and full stops
+      if (!/^[a-zA-Z .]*$/.test(value)) {
+        return; // Ignore invalid input
+      }
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Generate subject and body from form fields
-    const subject = encodeURIComponent(`Contact Form: ${formData.subject || 'New Message from ' + formData.name}`);
-    const body = encodeURIComponent(`
-Contact Form Submission:
-Name: ${formData.name}
-Email: ${formData.email}
-Subject: ${formData.subject}
-Message: ${formData.message}
-    `.trim());
-
-    // Open Gmail compose window
-    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=kasiedu@expedite-consults.com&su=${subject}&body=${body}`, '_blank');
-
-    // Reset form
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    // Validate required fields
+    if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    try {
+      const result = await contactApi.submitForm({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      });
+      if (result.success) {
+        toast.success("Message sent successfully! We'll get back to you soon.");
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      } else {
+        toast.error(result.message || "Failed to send message. Please try again.");
+      }
+    } catch (error) {
+      toast.error("Network error. Please check your connection and try again.");
+    }
   };
 
   return (
@@ -64,84 +77,110 @@ Message: ${formData.message}
             <div className="space-y-6">
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-primary/10 p-3 rounded-lg">
-                      <Phone className="w-6 h-6 text-primary" />
+                  <a
+                    href="tel:+12403608332"
+                    className="block hover:bg-gray-50 transition-colors"
+                    style={{ color: "inherit", textDecoration: "none" }}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-primary/10 p-3 rounded-lg">
+                        <Phone className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-heading font-semibold mb-2">
+                          Call or Text
+                        </h3>
+                        <p className="text-muted-foreground mb-2">
+                          For immediate assistance
+                        </p>
+                        <p className="font-medium">+1 240-360-8332</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-heading font-semibold mb-2">
-                        Call or Text
-                      </h3>
-                      <p className="text-muted-foreground mb-2">
-                        For immediate assistance
-                      </p>
-                      <p className="font-medium">+1 240-360-8332</p>
-                    </div>
-                  </div>
+                  </a>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-primary/10 p-3 rounded-lg">
-                      <MessageCircle className="w-6 h-6 text-primary" />
+                  <a
+                    href="https://wa.me/12403608332?text=Hi! I have a question about SkillHands.us"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block hover:bg-gray-50 transition-colors"
+                    style={{ color: "inherit", textDecoration: "none" }}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-primary/10 p-3 rounded-lg">
+                        <MessageCircle className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-heading font-semibold mb-2">
+                          WhatsApp
+                        </h3>
+                        <p className="text-muted-foreground mb-3">
+                          Chat with us instantly
+                        </p>
+                        <PrimaryButton
+                          size="sm"
+                          className="bg-[#fbc94b] text-[#0d3359] hover:bg-[#fbc94b]/90"
+                        >
+                          Start Chat
+                        </PrimaryButton>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-heading font-semibold mb-2">
-                        WhatsApp
-                      </h3>
-                      <p className="text-muted-foreground mb-3">
-                        Chat with us instantly
-                      </p>
-                      <PrimaryButton
-                        size="sm"
-                        onClick={() =>
-                          window.open(
-                            "https://wa.me/12403608332?text=Hi! I have a question about SkillHands.us",
-                            "_blank"
-                          )
-                        }
-                      >
-                        Start Chat
-                      </PrimaryButton>
-                    </div>
-                  </div>
+                  </a>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-primary/10 p-3 rounded-lg">
-                      <Mail className="w-6 h-6 text-primary" />
+                  <a
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=kasiedu@expedite-consults.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block hover:bg-gray-50 transition-colors"
+                    style={{ color: "inherit", textDecoration: "none" }}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-primary/10 p-3 rounded-lg">
+                        <Mail className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-heading font-semibold mb-2">Email</h3>
+                        <p className="text-muted-foreground mb-2">
+                          For detailed inquiries
+                        </p>
+                        <p className="font-medium">kasiedu@expedite-consults.com</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-heading font-semibold mb-2">Email</h3>
-                      <p className="text-muted-foreground mb-2">
-                        For detailed inquiries
-                      </p>
-                      <p className="font-medium">kasiedu@expedite-consults.com</p>
-                    </div>
-                  </div>
+                  </a>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-primary/10 p-3 rounded-lg">
-                      <MapPin className="w-6 h-6 text-primary" />
+                  <a
+                    href="https://maps.google.com/?q=3 Oak Run Rd, Laurel MD, 20724"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block hover:bg-gray-50 transition-colors"
+                    style={{ color: "inherit", textDecoration: "none" }}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-primary/10 p-3 rounded-lg">
+                        <MapPin className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-heading font-semibold mb-2">
+                          Service Areas
+                        </h3>
+                        <p className="text-muted-foreground mb-2">
+                          Visit us or send mail to our main address
+                        </p>
+                        <p className="font-medium">3 Oak Run Rd, Laurel MD, 20724</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-heading font-semibold mb-2">
-                        Service Areas
-                      </h3>
-                      <p className="text-muted-foreground">
-                        Major metropolitan areas across the United States
-                      </p>
-                    </div>
-                  </div>
+                  </a>
                 </CardContent>
               </Card>
             </div>
