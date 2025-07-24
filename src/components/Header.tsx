@@ -20,7 +20,7 @@ const Header = () => {
     { name: "Home", href: "/", icon: Home },
     { name: "Services", href: "/services" },
     { name: "Projects", href: "/projects" },
-    { name: "About", href: "/about" },
+    { name: "About Us", href: "/about" },
     { name: "FAQ", href: "/faq" },
     // { name: "Contact", href: "/contact", icon: Phone },
   ];
@@ -150,7 +150,7 @@ const Header = () => {
                 className="relative transition-all duration-300 hover:scale-110 hover:bg-primary/10 group overflow-hidden"
               >
                 <Menu
-                  className={`w-5 h-5 transition-all duration-300 ${
+                  className={`w-8 h-8 transition-all scale-[170%] duration-300 ${
                     isOpen ? "rotate-90 scale-110" : "group-hover:rotate-90"
                   }`}
                 />

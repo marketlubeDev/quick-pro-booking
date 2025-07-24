@@ -127,10 +127,26 @@ const Privacy = () => {
                 </p>
                 <ul className="list-none space-y-2 text-muted-foreground mt-4">
                   <li>
-                    <strong>WhatsApp:</strong>+1 240-360-8332
+                    <strong>WhatsApp:</strong>{" "}
+                    <a
+                      href="https://wa.me/12403608332"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:text-primary/80 transition-colors"
+                    >
+                      +1 240-360-8332
+                    </a>
                   </li>
                   <li>
-                    <strong>Email:</strong>kasiedu@expedite-consults.com
+                    <strong>Email:</strong>{" "}
+                    <a
+                      href="https://mail.google.com/mail/?view=cm&fs=1&to=kasiedu@expedite-consults.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:text-primary/80 transition-colors"
+                    >
+                      kasiedu@expedite-consults.com
+                    </a>
                   </li>
                 </ul>
               </div>

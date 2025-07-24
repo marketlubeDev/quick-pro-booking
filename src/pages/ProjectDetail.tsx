@@ -12,15 +12,16 @@ const ProjectDetail = () => {
   const { id } = useParams();
   
   // This would typically come from a database or API
-  const projectData = {
+  const allProjects = [
+    {
     id: 1,
     title: 'Modern Kitchen Renovation',
     description: 'Complete kitchen makeover with modern fixtures, appliances, and custom cabinetry. This project transformed an outdated kitchen into a modern, functional space perfect for cooking and entertaining.',
     image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=600&fit=crop',
     gallery: [
       'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1556909210-20ab1c2b7a96?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1556908641-3dcf0ffdbcf8?w=400&h=300&fit=crop'
+        'https://images.unsplash.com/photo-1556909115-3f381036bcb3?w=400&h=300&fit=crop',
+        'https://images.unsplash.com/photo-1556909114-16a2409962b9?w=400&h=300&fit=crop'
     ],
     category: 'Kitchen Renovation',
     duration: '2 weeks',
@@ -42,10 +43,170 @@ const ProjectDetail = () => {
       'Plumbing fixture installation',
       'LED lighting system'
     ]
-  };
+    },
+    {
+      id: 2,
+      title: 'Bathroom Plumbing Overhaul',
+      description: 'Complete bathroom plumbing replacement and fixture installation with modern water-efficient systems.',
+      image: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&h=600&fit=crop',
+      gallery: [
+        'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=400&h=300&fit=crop'
+      ],
+      category: 'Plumbing',
+      duration: '1 week',
+      location: 'Seattle, WA',
+      completed: true,
+      rating: 5,
+      clientName: 'Mike Chen',
+      projectDetails: {
+        scope: 'Full bathroom plumbing replacement and fixture installation',
+        materials: 'Modern plumbing fixtures, water-efficient systems',
+        challenges: 'Working with existing plumbing layout while upgrading to modern standards',
+        outcome: 'Improved water efficiency and modern bathroom functionality'
+      },
+      features: [
+        'Plumbing fixture replacement',
+        'Water-efficient system installation',
+        'Drain system upgrade',
+        'Shower valve installation',
+        'Toilet replacement',
+        'Sink installation'
+      ]
+    },
+    {
+      id: 3,
+      title: 'Electrical System Upgrade',
+      description: 'Complete home electrical system modernization with smart home integration.',
+      image: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=800&h=600&fit=crop',
+      gallery: [
+        'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=400&h=300&fit=crop'
+      ],
+      category: 'Electrical',
+      duration: '3 days',
+      location: 'Miami, FL',
+      completed: true,
+      rating: 5,
+      clientName: 'Lisa Rodriguez',
+      projectDetails: {
+        scope: 'Complete home electrical system modernization',
+        materials: 'Modern electrical panels, smart switches, LED lighting',
+        challenges: 'Upgrading electrical system while maintaining power to the home',
+        outcome: 'Enhanced electrical safety and smart home capabilities'
+      },
+      features: [
+        'Electrical panel upgrade',
+        'Smart switch installation',
+        'LED lighting system',
+        'Outlet upgrades',
+        'Safety inspection',
+        'Smart home integration'
+      ]
+    },
+    {
+      id: 4,
+      title: 'HVAC Installation',
+      description: 'New HVAC system installation for improved efficiency and comfort.',
+      image: 'https://images.pexels.com/photos/7347538/pexels-photo-7347538.jpeg',
+      gallery: [
+        'https://images.pexels.com/photos/7347538/pexels-photo-7347538.jpeg'
+      ],
+      category: 'HVAC',
+      duration: '2 days',
+      location: 'Denver, CO',
+      completed: true,
+      rating: 5,
+      clientName: 'David Thompson',
+      projectDetails: {
+        scope: 'New HVAC system installation',
+        materials: 'High-efficiency HVAC unit, ductwork, thermostat',
+        challenges: 'Installing new system while maintaining home comfort',
+        outcome: 'Improved energy efficiency and home comfort'
+      },
+      features: [
+        'HVAC unit installation',
+        'Ductwork setup',
+        'Thermostat installation',
+        'Air filter system',
+        'Energy efficiency optimization',
+        'System testing'
+      ]
+    },
+    {
+      id: 5,
+      title: 'Home Painting Project',
+      description: 'Interior and exterior painting with premium materials and professional finish.',
+      image: 'https://images.pexels.com/photos/4792518/pexels-photo-4792518.jpeg',
+      gallery: [
+        'https://images.pexels.com/photos/4792518/pexels-photo-4792518.jpeg'
+      ],
+      category: 'Painting',
+      duration: '1 week',
+      location: 'Phoenix, AZ',
+      completed: true,
+      rating: 5,
+      clientName: 'Jennifer White',
+      projectDetails: {
+        scope: 'Interior and exterior painting',
+        materials: 'Premium paint, primer, protective coatings',
+        challenges: 'Preparing surfaces and ensuring consistent finish',
+        outcome: 'Transformed home appearance with professional finish'
+      },
+      features: [
+        'Surface preparation',
+        'Primer application',
+        'Interior painting',
+        'Exterior painting',
+        'Trim work',
+        'Cleanup and protection'
+      ]
+    },
+    {
+      id: 6,
+      title: 'Roof Repair & Maintenance',
+      description: 'Comprehensive roof repair and weatherproofing for long-term protection.',
+      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
+      gallery: [
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop'
+      ],
+      category: 'Roofing',
+      duration: '3 days',
+      location: 'Portland, OR',
+      completed: true,
+      rating: 5,
+      clientName: 'Robert Davis',
+      projectDetails: {
+        scope: 'Comprehensive roof repair and weatherproofing',
+        materials: 'Quality roofing materials, weatherproofing sealants',
+        challenges: 'Repairing damage while ensuring weather protection',
+        outcome: 'Restored roof integrity and weather protection'
+      },
+      features: [
+        'Roof inspection',
+        'Damage repair',
+        'Weatherproofing',
+        'Gutter maintenance',
+        'Ventilation check',
+        'Final inspection'
+      ]
+    }
+  ];
+
+  // Find the project based on the ID parameter
+  const projectData = allProjects.find(project => project.id === parseInt(id || '1')) || allProjects[0];
 
   const handleBookSimilar = () => {
-    window.location.href = `/request?service=kitchen-renovation`;
+    // Map project categories to service slugs
+    const categoryToServiceMap: { [key: string]: string } = {
+      'Kitchen Renovation': 'kitchen-renovation',
+      'Plumbing': 'electrical-plumbing',
+      'Electrical': 'electrical-plumbing',
+      'HVAC': 'ac-hvac',
+      'Painting': 'painting',
+      'Roofing': 'roof-gutter'
+    };
+    
+    const serviceSlug = categoryToServiceMap[projectData.category] || 'home-maintenance';
+    window.location.href = `/request?service=${serviceSlug}`;
   };
 
   return (
@@ -141,23 +302,23 @@ const ProjectDetail = () => {
                 {/* Project Details */}
                 <Card>
                   <CardContent className="p-8">
-                    <h2 className="font-heading text-2xl mb-6">Project Details</h2>
+                    <h2 className="font-heading text-3xl font-bold mb-6">Project Details</h2>
                     <div className="space-y-6">
                       <div>
-                        <h3 className="font-semibold mb-2">Project Scope</h3>
-                        <p className="text-muted-foreground">{projectData.projectDetails.scope}</p>
+                        <h3 className="font-semibold text-lg text-muted-foreground mb-1">Category</h3>
+                        <p className="text-foreground mb-2">{projectData.category}</p>
                       </div>
                       <div>
-                        <h3 className="font-semibold mb-2">Materials Used</h3>
-                        <p className="text-muted-foreground">{projectData.projectDetails.materials}</p>
+                        <h3 className="font-semibold text-lg text-muted-foreground mb-1">Materials Used</h3>
+                        <p className="text-foreground mb-2">{projectData.projectDetails.materials}</p>
                       </div>
                       <div>
-                        <h3 className="font-semibold mb-2">Challenges Overcome</h3>
-                        <p className="text-muted-foreground">{projectData.projectDetails.challenges}</p>
+                        <h3 className="font-semibold text-lg text-muted-foreground mb-1">Challenges Overcome</h3>
+                        <p className="text-foreground mb-2">{projectData.projectDetails.challenges}</p>
                       </div>
                       <div>
-                        <h3 className="font-semibold mb-2">Project Outcome</h3>
-                        <p className="text-muted-foreground">{projectData.projectDetails.outcome}</p>
+                        <h3 className="font-semibold text-lg text-muted-foreground mb-1">Project Outcome</h3>
+                        <p className="text-foreground mb-2">{projectData.projectDetails.outcome}</p>
                       </div>
                     </div>
                   </CardContent>
