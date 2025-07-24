@@ -113,6 +113,7 @@ const Request = () => {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [step2Error, setStep2Error] = useState("");
   const [imageError, setImageError] = useState("");
+  const [step2NameError, setStep2NameError] = useState("");
 
   const services = [
     "Home Maintenance",
@@ -722,6 +723,11 @@ const Request = () => {
   const nextStep = () => {
     if (step === 2) {
       setStep2Error("");
+      setStep2NameError("");
+      if (!formData.name.trim()) {
+        setStep2NameError("Please enter your name.");
+        return; // Do not proceed to phone/email validation
+      }
       if (formData.email && !isValidEmail(formData.email)) {
         setStep2Error("Please enter a valid email address.");
         return; // Do not proceed
@@ -997,6 +1003,9 @@ const Request = () => {
                           }
                           placeholder="John Smith"
                         />
+                        {step2NameError && (
+                          <p className="text-red-500 text-sm mt-1">{step2NameError}</p>
+                        )}
                       </div>
 
                       <div>

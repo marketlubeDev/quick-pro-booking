@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ContactFormModal from "../../../components/ContactFormModal";
+import { toast } from "sonner";
 
 const EnhancedHeroSection = () => {
   const [selectedService, setSelectedService] = useState("");
@@ -46,7 +47,7 @@ const EnhancedHeroSection = () => {
     if (selectedService) {
       setIsModalOpen(true);
     } else {
-      alert("Please select a service");
+      toast.error("Please select a service");
     }
   };
 
