@@ -535,7 +535,7 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }) => {
             {project.budget}
           </div>
           <button
-            className="font-bold flex items-center justify-center sm:justify-end gap-1 md:gap-2 transition-all duration-300 px-4 md:px-5 py-2 md:py-3 rounded-full hover:scale-105 active:scale-95 text-sm md:text-base ml-auto"
+            className="font-bold flex items-center justify-center sm:justify-end gap-1 md:gap-2 transition-all duration-300 px-4 md:px-5 py-2 md:py-3 rounded-full hover:scale-105 active:scale-95 text-sm md:text-base w-full sm:w-auto sm:ml-auto"
             style={{
               color: "#3B82F6",
               background: isHovered ? "rgba(59, 130, 246, 0.1)" : "transparent",
@@ -856,6 +856,27 @@ export default function TopServices() {
            .group .grid.grid-cols-2 .font-bold {
              font-size: 13px !important;
            }
+           
+           /* Make budget button bigger on iPad Pro */
+           .group .flex.items-center.justify-center.sm\\:justify-start {
+             padding: 14px 16px !important;
+             font-size: 16px !important;
+             min-width: 100px !important;
+             height: 44px !important;
+           }
+           
+           /* Ensure footer buttons align on same line for iPad Pro */
+           .group .flex.flex-col.sm\\:flex-row {
+             flex-direction: row !important;
+             align-items: center !important;
+             justify-content: space-between !important;
+           }
+           
+           /* Learn More button sizing for iPad Pro */
+           .group .w-full.sm\\:w-auto {
+             width: auto !important;
+             margin-left: auto !important;
+           }
          }
          
          /* iPad Pro Portrait Mode */
@@ -879,6 +900,26 @@ export default function TopServices() {
              padding: 10px !important;
            }
          }
+        
+        /* Desktop specific styling for amount button */
+        @media (min-width: 1367px) {
+          .group .flex.items-center.justify-center.sm\\:justify-start {
+            padding: 16px 24px !important;
+            font-size: 18px !important;
+            min-width: 140px !important;
+            height: 52px !important;
+            font-weight: 700 !important;
+          }
+          
+          /* Desktop specific styling for Learn More button */
+          .group .w-full.sm\\:w-auto.sm\\:ml-auto {
+            padding: 16px 24px !important;
+            font-size: 16px !important;
+            min-width: 140px !important;
+            height: 52px !important;
+            font-weight: 600 !important;
+          }
+        }
         
         @keyframes float {
           0%, 100% {
