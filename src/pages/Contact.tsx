@@ -82,12 +82,12 @@ const Contact = () => {
                     className="block hover:bg-gray-50 transition-colors"
                     style={{ color: "inherit", textDecoration: "none" }}
                   >
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-start space-x-4">
                       <div className="bg-primary/10 p-3 rounded-lg">
                         <Phone className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="font-heading font-semibold mb-2">
+                        <h3 className="font-heading font-semibold mb-2 text-[22px]">
                           Call or Text
                         </h3>
                         <p className="text-muted-foreground mb-2">
@@ -109,12 +109,12 @@ const Contact = () => {
                     className="block hover:bg-gray-50 transition-colors"
                     style={{ color: "inherit", textDecoration: "none" }}
                   >
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-start space-x-4">
                       <div className="bg-primary/10 p-3 rounded-lg">
                         <MessageCircle className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="font-heading font-semibold mb-2">
+                        <h3 className="font-heading font-semibold mb-2 text-[22px]">
                           WhatsApp
                         </h3>
                         <p className="text-muted-foreground mb-3">
@@ -141,16 +141,16 @@ const Contact = () => {
                     className="block hover:bg-gray-50 transition-colors"
                     style={{ color: "inherit", textDecoration: "none" }}
                   >
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-start space-x-4">
                       <div className="bg-primary/10 p-3 rounded-lg">
                         <Mail className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="font-heading font-semibold mb-2">Email</h3>
+                        <h3 className="font-heading font-semibold mb-2 text-[22px]">Email</h3>
                         <p className="text-muted-foreground mb-2">
                           For detailed inquiries
                         </p>
-                        <p className="font-medium">kasiedu@expedite-consults.com</p>
+                        {/* <p className="font-medium">kasiedu@expedite-consults.com</p> */}
                       </div>
                     </div>
                   </a>
@@ -166,18 +166,18 @@ const Contact = () => {
                     className="block hover:bg-gray-50 transition-colors"
                     style={{ color: "inherit", textDecoration: "none" }}
                   >
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-start space-x-4">
                       <div className="bg-primary/10 p-3 rounded-lg">
                         <MapPin className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="font-heading font-semibold mb-2">
+                        <h3 className="font-heading font-semibold mb-2 ">
                           Service Areas
                         </h3>
                         <p className="text-muted-foreground mb-2">
                           Visit us or send mail to our main address
                         </p>
-                        <p className="font-medium">3 Oak Run Rd, Laurel MD, 20724</p>
+                        {/* <p className="font-medium">3 Oak Run Rd, Laurel MD, 20724</p> */}
                       </div>
                     </div>
                   </a>

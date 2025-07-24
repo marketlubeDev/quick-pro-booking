@@ -32,7 +32,7 @@ const Footer = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4" />
-                <a href="tel:+12403608332" className="hover:underline" style={{ color: "inherit" }}>
+                <a href="tel:+12403608332" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
                   +1 240-360-8332
                 </a>
               </div>
@@ -42,8 +42,7 @@ const Footer = () => {
                   href="https://mail.google.com/mail/?view=cm&fs=1&to=kasiedu@expedite-consults.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:underline"
-                  style={{ color: "inherit" }}
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
                 >
                   kasiedu@expedite-consults.com
                 </a>
@@ -54,8 +53,7 @@ const Footer = () => {
                   href="https://maps.google.com/?q=3 Oak Run Rd, Laurel MD, 20724"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:underline"
-                  style={{ color: "inherit" }}
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
                 >
                   3 Oak Run Rd, Laurel MD, 20724
                 </a>

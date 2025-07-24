@@ -284,7 +284,7 @@ const ServiceDetail = () => {
             <p className="text-xl opacity-90 mb-8">{serviceData.description}</p>
             
             {/* Trust Badges */}
-            <div className="flex justify-center gap-6 mb-8">
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-6 mb-8">
               {serviceData.trustBadges.map((badge, index) => (
                 <div key={index} className="flex items-center space-x-2 bg-primary-foreground/10 px-4 py-2 rounded-lg">
                   <badge.icon className="w-5 h-5" />
@@ -364,24 +364,24 @@ const ServiceDetail = () => {
                 {/* Sticky CTA */}
                 {!hideFirstCard && (
                   <Card className="sticky top-24 z-10">
-                    <CardContent className="p-6 text-center">
-                      <h3 className="font-heading text-xl mb-4">Ready to Get Started?</h3>
-                      <p className="text-muted-foreground mb-6">
-                        No account required. Just tell us what you need and we'll connect you with a local pro.
-                      </p>
-                      <PrimaryButton 
-                        onClick={handleRequestService}
-                        className="w-full"
-                        size="lg"
-                      >
-                        Request This Service
-                      </PrimaryButton>
-                      <p className="text-sm text-muted-foreground mt-4">
-                        <Badge variant="secondary" className="mb-2">10% OFF</Badge><br/>
-                        First-time customer discount
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <CardContent className="p-6 text-center">
+                    <h3 className="font-heading text-xl mb-4">Ready to Get Started?</h3>
+                    <p className="text-muted-foreground mb-6">
+                      No account required. Just tell us what you need and we'll connect you with a local pro.
+                    </p>
+                    <PrimaryButton 
+                      onClick={handleRequestService}
+                      className="w-full"
+                      size="lg"
+                    >
+                      Request This Service
+                    </PrimaryButton>
+                    <p className="text-sm text-muted-foreground mt-4">
+                      <Badge variant="secondary" className="mb-2">10% OFF</Badge><br/>
+                      First-time customer discount
+                    </p>
+                  </CardContent>
+                </Card>
                 )}
 
                 {/* Contact Info */}
