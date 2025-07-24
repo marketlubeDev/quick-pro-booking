@@ -600,7 +600,7 @@ export default function TopServices() {
         }}
       />
 
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 md:px-6 lg:px-8 xl:px-6 relative z-10">
         {/* Header */}
         <div
           className={`text-center mb-12 md:mb-16 transition-all duration-1000 ${
@@ -659,7 +659,7 @@ export default function TopServices() {
 
         {/* Project Cards */}
         <div
-          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12 md:mb-16 transition-all duration-1000 delay-300 ${
+          className={`grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 md:gap-6 lg:gap-8 mb-12 md:mb-16 transition-all duration-1000 delay-300 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
           style={{ margin: "2rem 0 3rem 0" }}
@@ -740,7 +740,7 @@ export default function TopServices() {
         </div>
 
         {/* Stats */}
-        <div className="mt-12 md:mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 px-4">
+        <div className="mt-12 md:mt-16 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 px-4">
           {[
             {
               label: "Projects Completed",
