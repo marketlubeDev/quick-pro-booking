@@ -904,19 +904,10 @@ export default function TopServices() {
         /* Desktop specific styling for amount button */
         @media (min-width: 1367px) {
           .group .flex.items-center.justify-center.sm\\:justify-start {
-            padding: 16px 24px !important;
-            font-size: 18px !important;
-            min-width: 140px !important;
-            height: 52px !important;
-            font-weight: 700 !important;
-          }
-          
-          /* Desktop specific styling for Learn More button */
-          .group .w-full.sm\\:w-auto.sm\\:ml-auto {
-            padding: 16px 24px !important;
+            padding: 12px 18px !important;
             font-size: 16px !important;
-            min-width: 140px !important;
-            height: 52px !important;
+            min-width: 120px !important;
+            height: 46px !important;
             font-weight: 600 !important;
           }
         }
