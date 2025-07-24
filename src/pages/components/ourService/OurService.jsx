@@ -26,7 +26,9 @@ export default function OurService() {
           </p>
         </div>
 
-        <ServiceSlider services={allServices} />
+        <div className="carousel-container">
+          <ServiceSlider services={allServices} />
+        </div>
 
         <div className="text-center mt-12">
           <Link to="/services">

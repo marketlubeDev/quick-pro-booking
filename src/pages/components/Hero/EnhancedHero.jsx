@@ -155,11 +155,12 @@ const EnhancedHeroSection = () => {
       </div>
 
       <div
+        className="hero-main-container"
         style={{
           position: "relative",
           maxWidth: "1200px",
           margin: "0 auto",
-          padding: "5rem 1rem",
+          padding: window.innerWidth <= 768 ? "3rem 1rem" : "5rem 1rem",
         }}
       >
         <div
@@ -563,6 +564,7 @@ const EnhancedHeroSection = () => {
 
               {/* Main Image Container */}
               <div
+                className="hero-image-container"
                 style={{
                   position: "relative",
                   backgroundColor: "rgba(255, 255, 255, 0.1)",
@@ -577,9 +579,11 @@ const EnhancedHeroSection = () => {
                   alt="Happy homeowner with service professional"
                   style={{
                     width: "100%",
-                    height: "24rem",
-                    objectFit: "cover",
+                    height: window.innerWidth <= 768 ? "20rem" : "24rem",
+                    objectFit: "contain",
+                    objectPosition: "center",
                     transition: "transform 0.7s ease",
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
                   }}
                 />
 
@@ -673,6 +677,17 @@ const EnhancedHeroSection = () => {
       </div>
       <style>
         {`
+          @media (max-width: 768px) {
+            .hero-image-container img {
+              height: 18rem !important;
+              object-fit: contain !important;
+              object-position: center !important;
+            }
+            .hero-main-container {
+              padding: 2rem 1rem !important;
+            }
+          }
+          
           @media (max-width: 600px) {
             .service-actions {
               display: flex !important;
@@ -691,6 +706,15 @@ const EnhancedHeroSection = () => {
             .service-actions .select-arrow {
               right: 1rem !important;
               font-size: 1.1rem !important;
+            }
+            .hero-image-container img {
+              height: 16rem !important;
+            }
+          }
+          
+          @media (max-width: 480px) {
+            .hero-image-container img {
+              height: 14rem !important;
             }
           }
         `}
