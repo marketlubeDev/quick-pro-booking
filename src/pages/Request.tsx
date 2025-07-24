@@ -31,6 +31,29 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function isValidUSPhoneNumber(phone: string) {
+  // Remove all non-digit characters (only digits and parentheses allowed)
+  const digitsOnly = phone.replace(/[^\d]/g, '');
+  
+  // US phone number patterns:
+  // 1. 10 digits (standard US number without country code)
+  // 2. 11 digits starting with 1 (US number with country code)
+  // 3. 7 digits (local number, though less common for business)
+  
+  if (digitsOnly.length === 10) {
+    // Standard 10-digit US number
+    return true;
+  } else if (digitsOnly.length === 11 && digitsOnly.startsWith('1')) {
+    // 11-digit number starting with 1 (US country code)
+    return true;
+  } else if (digitsOnly.length === 7) {
+    // 7-digit local number (less common but valid)
+    return true;
+  }
+  
+  return false;
+}
+
 const Request = () => {
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState(1);
@@ -103,6 +126,7 @@ const Request = () => {
     "Pest Control",
     "Moving & Storage",
     "Kitchen Renovation",
+    
   ];
 
   const timeSlots = [
@@ -642,8 +666,8 @@ const Request = () => {
       return;
     }
 
-    if (!(formData.phone.length === 10 || formData.phone.length === 12)) {
-      setSubmitError("Phone number must be 10 digits (without country code) or 12 digits (with country code). Please check your entry.");
+    if (!isValidUSPhoneNumber(formData.phone)) {
+      setSubmitError("Please enter a valid US phone number (e.g., (555)1234567 or 15551234567).");
       setIsSubmitting(false);
       return;
     }
@@ -689,11 +713,21 @@ const Request = () => {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = (e?: React.MouseEvent) => {
+    // Prevent any form submission
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (step === 2) {
       setStep2Error("");
       if (formData.email && !isValidEmail(formData.email)) {
         setStep2Error("Please enter a valid email address.");
+        return; // Do not proceed
+      }
+      if (!formData.phone || !isValidUSPhoneNumber(formData.phone)) {
+        setStep2Error("Please enter a valid US phone number.");
         return; // Do not proceed
       }
     }
@@ -802,7 +836,14 @@ const Request = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={(e) => {
+                  // Only allow form submission when in step 3
+                  if (step !== 3) {
+                    e.preventDefault();
+                    return;
+                  }
+                  handleSubmit(e);
+                }}>
                   {/* Step 1: Service Details */}
                   {step === 1 && (
                     <div className="space-y-4">
@@ -965,18 +1006,22 @@ const Request = () => {
                           type="tel"
                           required
                           value={formData.phone}
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          maxLength={12}
-                          onChange={(e) =>
-                            handleInputChange("phone", e.target.value.replace(/\D/g, "").slice(0, 12))
-                          }
+                          inputMode="tel"
+                          maxLength={15}
+                          onChange={(e) => {
+                            // Only allow digits and parentheses
+                            const sanitizedValue = e.target.value.replace(/[^\d\(\)]/g, '');
+                            handleInputChange("phone", sanitizedValue);
+                          }}
                           placeholder="(555) 123-4567"
                         />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Only digits and parentheses allowed
+                        </p>
                       </div>
 
                       <div>
-                        <Label htmlFor="email">Email*</Label>
+                        <Label htmlFor="email">Email *</Label>
                         <Input
                           id="email"
                           type="email"
@@ -1151,7 +1196,7 @@ const Request = () => {
                         <div>
                         <PrimaryButton
                           type="button"
-                          onClick={nextStep}
+                          onClick={(e) => nextStep(e)}
                           disabled={
                             (step === 1 && (!formData.service || !formData.description)) ||
                             (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))

@@ -71,6 +71,29 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
+  function isValidUSPhoneNumber(phone: string) {
+    // Remove all non-digit characters (only digits and parentheses allowed)
+    const digitsOnly = phone.replace(/[^\d]/g, '');
+    
+    // US phone number patterns:
+    // 1. 10 digits (standard US number without country code)
+    // 2. 11 digits starting with 1 (US number with country code)
+    // 3. 7 digits (local number, though less common for business)
+    
+    if (digitsOnly.length === 10) {
+      // Standard 10-digit US number
+      return true;
+    } else if (digitsOnly.length === 11 && digitsOnly.startsWith('1')) {
+      // 11-digit number starting with 1 (US country code)
+      return true;
+    } else if (digitsOnly.length === 7) {
+      // 7-digit local number (less common but valid)
+      return true;
+    }
+    
+    return false;
+  }
+
   // Maryland ZIP codes with corresponding cities and counties
   // Maryland ZIP codes with corresponding cities and counties
   // (Copied from Request.tsx, truncated for brevity. Add/remove as needed.)
@@ -334,9 +357,28 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   // Effect to update form data when modal opens or props change
   useEffect(() => {
     if (isOpen) {
+      // Map the selected service to match the services array format
+      let mappedService = "";
+      if (selectedService) {
+        const serviceMap: { [key: string]: string } = {
+          "plumbing": "plumbing",
+          "electrical": "electrical", 
+          "house cleaning": "house cleaning",
+          "ac repair": "ac repair",
+          "appliance repair": "appliance repair",
+          "painting": "painting",
+          "handyman": "handyman",
+          "pest control": "pest control",
+          "lawn care": "lawn care",
+          "moving": "moving",
+          "roofing": "roofing"
+        };
+        mappedService = serviceMap[selectedService.toLowerCase()] || selectedService.toLowerCase();
+      }
+      
       setFormData((prev) => ({
         ...prev,
-        service: sanitizeInputField(selectedService?.toLowerCase() || ""),
+        service: sanitizeInputField(mappedService),
         zip: sanitizeZipCode(zipCode || ""),
       }));
     }
@@ -398,6 +440,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     "Pest Control",
     "Lawn Care",
     "Moving",
+    "Roofing",
   ];
 
   const timeSlots = [
@@ -496,15 +539,15 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       return;
     }
 
-    // Validate email format if provided
-    if (formData.email && !isValidEmail(formData.email)) {
+    // Validate email format (required)
+    if (!formData.email || !isValidEmail(formData.email)) {
       setSubmitError("Please enter a valid email address.");
       setIsSubmitting(false);
       return;
     }
 
-    if (!(formData.phone.length === 10 || formData.phone.length === 12)) {
-      setSubmitError("Phone number must be 10 digits (without country code) or 12 digits (with country code). Please check your entry.");
+    if (!isValidUSPhoneNumber(formData.phone)) {
+      setSubmitError("Please enter a valid US phone number (e.g., 555-123-4567 or 1-555-123-4567).");
       setIsSubmitting(false);
       return;
     }
@@ -564,11 +607,21 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     }
   };
 
-  const nextStep = () => {
+  const nextStep = (e?: React.MouseEvent) => {
+    // Prevent any form submission
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (step === 2) {
       setStep2Error("");
       if (!formData.email || !isValidEmail(formData.email)) {
         setStep2Error("Please enter a valid email address.");
+        return;
+      }
+      if (!formData.phone || !isValidUSPhoneNumber(formData.phone)) {
+        setStep2Error("Please enter a valid US phone number.");
         return;
       }
     }
@@ -759,16 +812,22 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 type="tel"
                 required
                 value={formData.phone}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={12}
-                onChange={(e) => handleInputChange("phone", e.target.value.replace(/\D/g, "").slice(0, 12))}
+                inputMode="tel"
+                maxLength={15}
+                onChange={(e) => {
+                  // Only allow digits and parentheses
+                  const sanitizedValue = e.target.value.replace(/[^\d\(\)]/g, '');
+                  handleInputChange("phone", sanitizedValue);
+                }}
                 placeholder="(555) 123-4567"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Only digits and parentheses allowed
+              </p>
             </div>
 
             <div>
-              <Label htmlFor="email">Email (optional)</Label>
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 type="email"
@@ -943,7 +1002,14 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       }
       centered
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={(e) => {
+        // Only allow form submission when in step 3
+        if (step !== 3) {
+          e.preventDefault();
+          return;
+        }
+        handleSubmit(e);
+      }} className="space-y-6">
         {renderStepIndicator()}
         <div className="w-full mx-auto px-2">{renderStepContent()}</div>
 
@@ -970,7 +1036,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             {step < 3 ? (
               <PrimaryButton
                 type="button"
-                onClick={nextStep}
+                onClick={(e) => nextStep(e)}
                 disabled={
                   (step === 1 && (!formData.service || !formData.description)) ||
                   (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
