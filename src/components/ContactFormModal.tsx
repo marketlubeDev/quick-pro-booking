@@ -466,6 +466,14 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           break;
         case "zip":
           sanitizedValue = sanitizeZipCode(value);
+          // ZIP code must start with '2'
+          if (sanitizedValue && sanitizedValue.length > 0 && sanitizedValue[0] !== '2') {
+            setZipError("Service not available in this area. We currently serve Maryland only.");
+            setServiceAvailable(false);
+          } else {
+            setZipError("");
+            setServiceAvailable(true);
+          }
           break;
         case "description":
           sanitizedValue = sanitizeTextarea(value);
@@ -820,9 +828,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 }}
                 placeholder="(555) 123-4567"
               />
-              <p className="text-xs text-muted-foreground mt-1">
+              {/* <p className="text-xs text-muted-foreground mt-1">
                 Only digits and parentheses allowed
-              </p>
+              </p> */}
               {step2PhoneError && (
                 <p className="text-red-500 text-sm mt-1">{step2PhoneError}</p>
               )}

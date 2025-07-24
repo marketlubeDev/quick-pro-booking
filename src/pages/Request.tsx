@@ -549,6 +549,12 @@ const Request = () => {
       setZipError("");
       setServiceAvailable(true);
 
+      // ZIP code must start with '2'
+      if (value.length > 0 && value[0] !== '2') {
+        setZipError("Service not available in this area. We currently serve Maryland only.");
+        setServiceAvailable(false);
+      }
+
       // Auto-fill city if ZIP code is valid Maryland ZIP
       if (value.length === 5) {
         const zipData = marylandZipCodes.find(zip => zip.zip === value);
@@ -1009,9 +1015,9 @@ const Request = () => {
                           }}
                           placeholder="(555) 123-4567"
                         />
-                        <p className="text-xs text-muted-foreground mt-1">
+                        {/* <p className="text-xs text-muted-foreground mt-1">
                           Only digits and parentheses allowed
-                        </p>
+                        </p> */}
                         {step2Error && step2Error.includes("phone") && (
                           <p className="text-red-500 text-sm mt-1">{step2Error}</p>
                         )}
