@@ -721,7 +721,7 @@ const Request = () => {
         return; // Do not proceed
       }
       if (!formData.phone || !isValidUSPhoneNumber(formData.phone)) {
-        setStep2Error("Please enter a valid US phone number.");
+        setStep2Error("Invalid phone number format!");
         return; // Do not proceed
       }
     }
@@ -1012,6 +1012,9 @@ const Request = () => {
                         <p className="text-xs text-muted-foreground mt-1">
                           Only digits and parentheses allowed
                         </p>
+                        {step2Error && step2Error.includes("phone") && (
+                          <p className="text-red-500 text-sm mt-1">{step2Error}</p>
+                        )}
                       </div>
 
                       <div>
@@ -1026,10 +1029,10 @@ const Request = () => {
                           }
                           placeholder="john@example.com"
                         />
+                        {step2Error && step2Error.includes("email") && (
+                          <p className="text-red-500 text-sm mt-1">{step2Error}</p>
+                        )}
                       </div>
-                      {step2Error && (
-                        <p className="text-red-500 text-sm mt-1">{step2Error}</p>
-                      )}
                     </div>
                   )}
 

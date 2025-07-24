@@ -66,6 +66,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const [imageError, setImageError] = useState("");
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [step2Error, setStep2Error] = useState("");
+  const [step2PhoneError, setStep2PhoneError] = useState("");
+  const [step2EmailError, setStep2EmailError] = useState("");
 
   function isValidEmail(email: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -609,15 +611,18 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
   const nextStep = () => {
     if (step === 2) {
-      setStep2Error("");
+      setStep2PhoneError("");
+      setStep2EmailError("");
+      let hasError = false;
       if (!formData.email || !isValidEmail(formData.email)) {
-        setStep2Error("Please enter a valid email address.");
-        return;
+        setStep2EmailError("Please enter a valid email address.");
+        hasError = true;
       }
       if (!formData.phone || !isValidUSPhoneNumber(formData.phone)) {
-        setStep2Error("Please enter a valid US phone number.");
-        return;
+        setStep2PhoneError("Invalid phone number format!");
+        hasError = true;
       }
+      if (hasError) return;
     }
     if (step < 3) setStep(step + 1);
   };
@@ -818,6 +823,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
               <p className="text-xs text-muted-foreground mt-1">
                 Only digits and parentheses allowed
               </p>
+              {step2PhoneError && (
+                <p className="text-red-500 text-sm mt-1">{step2PhoneError}</p>
+              )}
             </div>
 
             <div>
@@ -830,10 +838,10 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 placeholder="john@example.com"
               />
+              {step2EmailError && (
+                <p className="text-red-500 text-sm mt-1">{step2EmailError}</p>
+              )}
             </div>
-            {step2Error && (
-              <p className="text-red-500 text-sm mt-1">{step2Error}</p>
-            )}
           </div>
         );
 

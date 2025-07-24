@@ -2,6 +2,16 @@ import React, { useState } from "react";
 import { Wrench, Home, Zap, Paintbrush, Shield, Hammer } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// Service mapping to match ServiceDetail.tsx slugs
+const serviceSlugMap = {
+  "Plumbing": "electrical-plumbing",
+  "Cleaning": "cleaning",
+  "Electrical": "electrical-plumbing", 
+  "Painting": "painting",
+  "Security": "home-maintenance",
+  "Carpentry": "home-maintenance"
+};
+
 const topServices = [
   {
     icon: Wrench,
@@ -557,11 +567,10 @@ export default function StatTopService() {
                   color={service.color}
                   lightColor={service.lightColor}
                   index={index}
-                  onClick={() =>
-                    (window.location.href = `/services/${service.title
-                      .toLowerCase()
-                      .replace(/\s+/g, "-")}`)
-                  }
+                  onClick={() => {
+                    const slug = serviceSlugMap[service.title] || service.title.toLowerCase().replace(/\s+/g, "-");
+                    window.location.href = `/services/${slug}`;
+                  }}
                 />
               </div>
             ))}
