@@ -248,29 +248,7 @@ const ServiceDetail = () => {
     window.location.href = `/request?service=${normalizedSlug}`;
   };
 
-  const [hideFirstCard, setHideFirstCard] = useState(false);
-  const secondCardRef = useRef(null);
 
-  useEffect(() => {
-    const observer = new window.IntersectionObserver(
-      ([entry]) => {
-        // If the top of the second card is at or above the sticky offset, hide the first card
-        setHideFirstCard(entry.boundingClientRect.top <= 96); // 96px = top-24
-      },
-      {
-        root: null,
-        threshold: 0,
-      }
-    );
-    if (secondCardRef.current) {
-      observer.observe(secondCardRef.current);
-    }
-    return () => {
-      if (secondCardRef.current) {
-        observer.unobserve(secondCardRef.current);
-      }
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -361,9 +339,8 @@ const ServiceDetail = () => {
 
               {/* Sidebar */}
               <div className="space-y-6">
-                {/* Sticky CTA */}
-                {!hideFirstCard && (
-                  <Card className="sticky top-24 z-10">
+                {/* Request Service Card */}
+                <Card>
                   <CardContent className="p-6 text-center">
                     <h3 className="font-heading text-xl mb-4">Ready to Get Started?</h3>
                     <p className="text-muted-foreground mb-6">
@@ -382,10 +359,9 @@ const ServiceDetail = () => {
                     </p>
                   </CardContent>
                 </Card>
-                )}
 
-                {/* Contact Info */}
-                <Card ref={secondCardRef} className="sticky top-60 z-50">
+                {/* WhatsApp Chat Card */}
+                <Card>
                   <CardContent className="p-6">
                     <h3 className="font-heading text-lg mb-4">Need Help Deciding?</h3>
                     <p className="text-muted-foreground mb-4">

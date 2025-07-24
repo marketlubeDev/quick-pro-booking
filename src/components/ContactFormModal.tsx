@@ -607,13 +607,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     }
   };
 
-  const nextStep = (e?: React.MouseEvent) => {
-    // Prevent any form submission
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
+  const nextStep = () => {
     if (step === 2) {
       setStep2Error("");
       if (!formData.email || !isValidEmail(formData.email)) {
@@ -1036,7 +1030,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             {step < 3 ? (
               <PrimaryButton
                 type="button"
-                onClick={(e) => nextStep(e)}
+                onClick={nextStep}
                 disabled={
                   (step === 1 && (!formData.service || !formData.description)) ||
                   (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
