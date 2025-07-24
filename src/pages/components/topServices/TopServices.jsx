@@ -231,7 +231,7 @@ const featuredProjects = [
     completedAt: "2 weeks ago",
     location: "Austin, TX",
     teamSize: 4,
-    budget: "$35,000",
+    budget: "$ 35,000",
     duration: "2 weeks",
   },
   {
@@ -244,20 +244,20 @@ const featuredProjects = [
     completedAt: "1 week ago",
     location: "Seattle, WA",
     teamSize: 3,
-    budget: "$12,000",
+    budget: "$ 12,000",
     duration: "1 week",
   },
   {
     id: 3,
     title: "Electrical System Upgrade",
-    description: "Complete home electrical system modernization",
+    description: "Complete home electrical system modernization and upgrade",
     image: "https://images.pexels.com/photos/3623785/pexels-photo-3623785.jpeg",
     category: "Electrical",
     rating: 4.8,
     completedAt: "3 days ago",
     location: "Miami, FL",
     teamSize: 2,
-    budget: "$8,500",
+    budget: "$ 8,500",
     duration: "3 days",
   },
 ];
@@ -297,7 +297,7 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }) => {
 
   return (
     <div
-      className={`group relative rounded-3xl overflow-hidden shadow-xl transition-all duration-700 ease-out transform cursor-pointer  ${
+      className={`group relative rounded-2xl md:rounded-3xl overflow-hidden shadow-xl transition-all duration-700 ease-out transform cursor-pointer  ${
         isHovered ? "scale-105 z-20 shadow-2xl" : "scale-100"
       } ${isClicked ? "scale-95" : ""}`}
       style={{
@@ -313,7 +313,7 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }) => {
       onClick={handleClick}
     >
       {/* Image */}
-      <div className="relative h-64 overflow-hidden">
+      <div className="relative h-48 md:h-64 overflow-hidden">
         <img
           src={project.image}
           alt={project.title}
@@ -333,28 +333,28 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }) => {
 
         {/* Top badges */}
         <div
-          className="absolute top-4 left-4 flex flex-col gap-3"
-          style={{ gap: "1rem" }}
+          className="absolute top-3 md:top-4 left-3 md:left-4 flex flex-col gap-2 md:gap-3"
+          style={{ gap: "0.75rem" }}
         >
           <div
-            className="flex items-center gap-2 px-4 py-2 rounded-full shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105"
+            className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105"
             style={{
               background: "rgba(255, 255, 255, 0.95)",
               border: "1px solid rgba(255, 255, 255, 0.2)",
             }}
           >
             <Star
-              className="w-4 h-4"
+              className="w-3 h-3 md:w-4 md:h-4"
               style={{ color: "#F59E0B" }}
               fill="currentColor"
             />
-            <span className="text-sm font-bold" style={{ color: "#1F2937" }}>
+            <span className="text-xs md:text-sm font-bold" style={{ color: "#1F2937" }}>
               {project.rating}
             </span>
-            <Sparkles className="w-3 h-3" style={{ color: "#F59E0B" }} />
+            <Sparkles className="w-2 h-2 md:w-3 md:h-3" style={{ color: "#F59E0B" }} />
           </div>
           <div
-            className="px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105"
+            className="px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-105"
             style={{
               ...getCategoryStyles(project.category),
               border: "1px solid rgba(255, 255, 255, 0.2)",
@@ -366,29 +366,29 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }) => {
 
         {/* View Details Button */}
         <div
-          className={`absolute bottom-4 right-4 transition-all duration-500 transform ${
+          className={`absolute bottom-3 md:bottom-4 right-3 md:right-4 transition-all duration-500 transform ${
             isHovered
               ? "opacity-100 translate-y-0 scale-100"
               : "opacity-0 translate-y-4 scale-90"
           }`}
         >
           <button
-            className="px-5 py-3 rounded-full font-bold transition-all duration-300 flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95"
+            className="px-3 md:px-5 py-2 md:py-3 rounded-full font-bold transition-all duration-300 flex items-center gap-1 md:gap-2 shadow-xl hover:scale-105 active:scale-95 text-xs md:text-sm"
             style={{
               background: "linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%)",
               color: "#3B82F6",
               border: "1px solid rgba(59, 130, 246, 0.2)",
             }}
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-3 h-3 md:w-4 md:h-4" />
             View Details
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className="w-3 h-3 md:w-4 md:h-4 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
 
         {/* Completed Badge */}
         <div
-          className="absolute top-4 right-4 px-4 py-2 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm"
+          className="absolute top-3 md:top-4 right-3 md:right-4 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm"
           style={{
             background: "linear-gradient(135deg, #10B981 0%, #34D399 100%)",
             color: "#FFFFFF",
@@ -399,124 +399,120 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }) => {
       </div>
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <h3
-          className="text-xl font-bold mb-3 transition-colors duration-300 group-hover:scale-105 transform origin-left"
+          className="text-lg md:text-xl font-bold mb-2 md:mb-3 transition-colors duration-300 group-hover:scale-105 transform origin-left line-clamp-2"
           style={{
             color: isHovered ? "#3B82F6" : "#111827",
           }}
         >
           {project.title}
         </h3>
-        <p className="mb-6 leading-relaxed" style={{ color: "#6B7280" }}>
+        <p className="mb-4 md:mb-6 leading-relaxed text-sm md:text-base line-clamp-2" style={{ color: "#6B7280" }}>
           {project.description}
         </p>
 
         {/* Info Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-6" style={{ gap: "1rem" }}>
+        <div className="grid grid-cols-2 gap-2 md:gap-3 mb-4 md:mb-6" style={{ gap: "0.75rem" }}>
           <div
-            className="flex items-center gap-3 p-4 rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+            className="flex items-center gap-2 md:gap-3 p-3 md:p-4 rounded-lg md:rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
             style={{
-              gap: "1rem",
               background:
                 "linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 197, 253, 0.1) 100%)",
               border: "1px solid rgba(59, 130, 246, 0.1)",
             }}
           >
             <div
-              className="p-2 rounded-lg"
+              className="p-2.5 md:p-3 rounded-lg md:rounded-xl"
               style={{
                 background: "linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)",
               }}
             >
-              <Calendar className="w-4 h-4" style={{ color: "#FFFFFF" }} />
+              <Calendar className="w-4 h-4 md:w-5 md:h-5" style={{ color: "#FFFFFF" }} />
             </div>
             <div>
               <div className="text-xs font-medium" style={{ color: "#6B7280" }}>
                 COMPLETED
               </div>
-              <div className="text-sm font-bold" style={{ color: "#111827" }}>
+              <div className="text-xs md:text-sm font-bold" style={{ color: "#111827" }}>
                 {project.completedAt}
               </div>
             </div>
           </div>
 
           <div
-            className="flex items-center gap-3 p-4 rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+            className="flex items-center gap-2 md:gap-3 p-3 md:p-4 rounded-lg md:rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
             style={{
-              gap: "1rem",
               background:
                 "linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.1) 100%)",
               border: "1px solid rgba(16, 185, 129, 0.1)",
             }}
           >
             <div
-              className="p-2 rounded-lg"
+              className="p-2.5 md:p-3 rounded-lg md:rounded-xl"
               style={{
                 background: "linear-gradient(135deg, #10B981 0%, #34D399 100%)",
               }}
             >
-              <MapPin className="w-4 h-4" style={{ color: "#FFFFFF" }} />
+              <MapPin className="w-4 h-4 md:w-5 md:h-5" style={{ color: "#FFFFFF" }} />
             </div>
             <div>
               <div className="text-xs font-medium" style={{ color: "#6B7280" }}>
                 LOCATION
               </div>
-              <div className="text-sm font-bold" style={{ color: "#111827" }}>
+              <div className="text-xs md:text-sm font-bold" style={{ color: "#111827" }}>
                 {project.location}
               </div>
             </div>
           </div>
 
           <div
-            className="flex items-center gap-3 p-4 rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+            className="flex items-center gap-2 md:gap-3 p-3 md:p-4 rounded-lg md:rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
             style={{
-              gap: "1rem",
               background:
                 "linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%)",
               border: "1px solid rgba(139, 92, 246, 0.1)",
             }}
           >
             <div
-              className="p-2 rounded-lg"
+              className="p-2.5 md:p-3 rounded-lg md:rounded-xl"
               style={{
                 background: "linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)",
               }}
             >
-              <Users className="w-4 h-4" style={{ color: "#FFFFFF" }} />
+              <Users className="w-4 h-4 md:w-5 md:h-5" style={{ color: "#FFFFFF" }} />
             </div>
             <div>
               <div className="text-xs font-medium" style={{ color: "#6B7280" }}>
                 TEAM SIZE
               </div>
-              <div className="text-sm font-bold" style={{ color: "#111827" }}>
+              <div className="text-xs md:text-sm font-bold" style={{ color: "#111827" }}>
                 {project.teamSize} experts
               </div>
             </div>
           </div>
 
           <div
-            className="flex items-center gap-3 p-4 rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+            className="flex items-center gap-2 md:gap-3 p-3 md:p-4 rounded-lg md:rounded-xl transition-all duration-300 hover:scale-105 cursor-pointer"
             style={{
-              gap: "1rem",
               background:
                 "linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(251, 146, 60, 0.1) 100%)",
               border: "1px solid rgba(249, 115, 22, 0.1)",
             }}
           >
             <div
-              className="p-2 rounded-lg"
+              className="p-2.5 md:p-3 rounded-lg md:rounded-xl"
               style={{
                 background: "linear-gradient(135deg, #F97316 0%, #FB923C 100%)",
               }}
             >
-              <Clock className="w-4 h-4" style={{ color: "#FFFFFF" }} />
+              <Clock className="w-4 h-4 md:w-5 md:h-5" style={{ color: "#FFFFFF" }} />
             </div>
             <div>
               <div className="text-xs font-medium" style={{ color: "#6B7280" }}>
                 DURATION
               </div>
-              <div className="text-sm font-bold" style={{ color: "#111827" }}>
+              <div className="text-xs md:text-sm font-bold" style={{ color: "#111827" }}>
                 {project.duration}
               </div>
             </div>
@@ -525,21 +521,20 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }) => {
 
         {/* Footer */}
         <div
-          className="flex justify-between items-center pt-4"
+          className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pt-3 md:pt-4"
           style={{ borderTop: "1px solid rgba(229, 231, 235, 0.8)" }}
         >
           <div
-            className="flex items-center gap-2 px-5 py-3 rounded-full font-bold shadow-lg transition-all duration-300 hover:scale-105 min-w-[150px]"
+            className="flex items-center justify-center gap-1 md:gap-2 px-4 md:px-5 py-2 md:py-3 rounded-full font-bold shadow-lg transition-all duration-300 hover:scale-105 text-sm md:text-base"
             style={{
               background: "linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)",
               color: "#FFFFFF",
             }}
           >
-            {/* <DollarSign className="w-4 h-4" /> */}
             {project.budget}
           </div>
           <button
-            className="font-bold flex items-center gap-2 transition-all duration-300 px-5 py-3 rounded-full hover:scale-105 active:scale-95"
+            className="font-bold flex items-center justify-center gap-1 md:gap-2 transition-all duration-300 px-4 md:px-5 py-2 md:py-3 rounded-full hover:scale-105 active:scale-95 text-sm md:text-base"
             style={{
               color: "#3B82F6",
               background: isHovered ? "rgba(59, 130, 246, 0.1)" : "transparent",
@@ -547,7 +542,7 @@ const ProjectCard = ({ project, index, isHovered, onHover, onLeave }) => {
             onClick={() => window.location.href = `/projects/${project.id}`}
           >
             Learn More
-            <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            <ChevronRight className="w-3 h-3 md:w-4 md:h-4 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
       </div>
@@ -572,16 +567,16 @@ export default function TopServices() {
 
   return (
     <section
-      className="py-20 lg:py-32 relative overflow-hidden min-h-screen"
+      className="py-12 md:py-20 lg:py-32 relative overflow-hidden min-h-screen"
       style={{
         background:
           "linear-gradient(135deg, rgba(239, 246, 255, 0.6) 0%, rgba(237, 233, 254, 0.6) 50%, rgba(252, 231, 243, 0.6) 100%)",
-        padding: "5rem 0",
+        padding: "3rem 0 5rem 0",
       }}
     >
       {/* Animated Background Elements */}
       <div
-        className="absolute top-20 left-20 w-32 h-32 rounded-full blur-3xl animate-pulse"
+        className="absolute top-10 md:top-20 left-4 md:left-20 w-20 h-20 md:w-32 md:h-32 rounded-full blur-3xl animate-pulse"
         style={{
           background:
             "linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(147, 51, 234, 0.3) 100%)",
@@ -589,7 +584,7 @@ export default function TopServices() {
         }}
       />
       <div
-        className="absolute top-1/2 right-20 w-24 h-24 rounded-full blur-3xl animate-pulse"
+        className="absolute top-1/2 right-4 md:right-20 w-16 h-16 md:w-24 md:h-24 rounded-full blur-3xl animate-pulse"
         style={{
           background:
             "linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(236, 72, 153, 0.3) 100%)",
@@ -597,7 +592,7 @@ export default function TopServices() {
         }}
       />
       <div
-        className="absolute bottom-32 left-1/3 w-20 h-20 rounded-full blur-3xl animate-pulse"
+        className="absolute bottom-20 md:bottom-32 left-1/3 w-12 h-12 md:w-20 md:h-20 rounded-full blur-3xl animate-pulse"
         style={{
           background:
             "linear-gradient(135deg, rgba(236, 72, 153, 0.3) 0%, rgba(249, 115, 22, 0.3) 100%)",
@@ -605,32 +600,32 @@ export default function TopServices() {
         }}
       />
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container mx-auto px-4 md:px-6 relative z-10">
         {/* Header */}
         <div
-          className={`text-center mb-16 transition-all duration-1000 ${
+          className={`text-center mb-12 md:mb-16 transition-all duration-1000 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
           <div
-            className="inline-flex items-center gap-3 px-6 py-3 rounded-full text-sm font-bold mb-6 shadow-xl transition-all duration-300 hover:scale-105"
+            className="inline-flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2 md:py-3 rounded-full text-xs md:text-sm font-bold mb-4 md:mb-6 shadow-xl transition-all duration-300 hover:scale-105"
             style={{
               background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
               color: "#FFFFFF",
             }}
           >
-            <Zap className="w-5 h-5 animate-pulse" />
+            <Zap className="w-4 h-4 md:w-5 md:h-5 animate-pulse" />
             Featured Projects
             <Star
-              className="w-5 h-5 animate-spin"
+              className="w-4 h-4 md:w-5 md:h-5 animate-spin"
               style={{ color: "#FCD34D" }}
               fill="currentColor"
             />
           </div>
 
           <h2
-            className="text-4xl lg:text-6xl font-black mb-6 leading-tight"
-            style={{ color: "#111827", fontSize: "3rem", lineHeight: "1.2" }}
+            className="text-2xl md:text-4xl lg:text-6xl font-black mb-4 md:mb-6 leading-tight px-4"
+            style={{ color: "#111827", lineHeight: "1.2" }}
           >
             Our Recent <br />
             <span
@@ -647,7 +642,7 @@ export default function TopServices() {
           </h2>
 
           <p
-            className="text-lg lg:text-xl max-w-3xl mx-auto"
+            className="text-base md:text-lg lg:text-xl max-w-3xl mx-auto px-4"
             style={{ color: "#6B7280" }}
           >
             Discover how we've transformed homes with{" "}
@@ -664,10 +659,10 @@ export default function TopServices() {
 
         {/* Project Cards */}
         <div
-          className={`grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16 transition-all duration-1000 delay-300 ${
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12 md:mb-16 transition-all duration-1000 delay-300 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
-          style={{ margin: "3rem 0" }}
+          style={{ margin: "2rem 0 3rem 0" }}
         >
           {featuredProjects.map((project, index) => (
             <ProjectCard
@@ -683,22 +678,21 @@ export default function TopServices() {
 
         {/* CTA Section */}
         <div
-          className="text-center"
-          style={{ borderRadius: "2rem", margin: "5rem 0" }}
+          className="text-center px-4"
+          style={{ borderRadius: "2rem", margin: "3rem 0 5rem 0" }}
         >
           <div
-            className="p-12 rounded-3xl shadow-2xl max-w-4xl mx-auto backdrop-blur-xl"
+            className="p-6 md:p-12 rounded-2xl md:rounded-3xl shadow-2xl max-w-4xl mx-auto backdrop-blur-xl"
             style={{
-              borderRadius: "2rem",
-              padding: "2rem 0",
+              borderRadius: "1.5rem",
               background:
                 "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)",
               border: "1px solid rgba(255, 255, 255, 0.2)",
             }}
           >
             <h3
-              className="text-3xl lg:text-4xl font-black mb-6"
-              style={{ color: "#111827", borderRadius: "2rem" }}
+              className="text-xl md:text-3xl lg:text-4xl font-black mb-4 md:mb-6"
+              style={{ color: "#111827" }}
             >
               Ready to Start Your{" "}
               <span
@@ -715,62 +709,38 @@ export default function TopServices() {
             </h3>
 
             <p
-              className="text-lg mb-8 max-w-2xl mx-auto"
+              className="text-sm md:text-lg mb-6 md:mb-8 max-w-2xl mx-auto"
               style={{ color: "#6B7280" }}
             >
               Join hundreds of satisfied customers who've transformed their
               homes with our expert services.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
               <Link to="/projects">
                 <button
-                  className={`px-8 py-4 rounded-2xl font-bold text-lg shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl ${
+                  className={`w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold text-sm md:text-lg shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl ${
                     activeButton === "view" ? "scale-95" : "hover:scale-105"
                   }`}
                   style={{
-                    borderRadius: "2rem",
                     background:
                       "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
                     color: "#FFFFFF",
                   }}
                   onClick={() => handleButtonClick("view")}
                 >
-                  <div className="flex items-center gap-2">
-                    <Eye className="w-5 h-5" />
+                  <div className="flex items-center justify-center gap-2">
+                    <Eye className="w-4 h-4 md:w-5 md:h-5" />
                     View All Projects
                   </div>
                 </button>
               </Link>
-
-              {/* <button
-                className={`px-8 py-4 rounded-2xl font-bold text-lg shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${
-                  activeButton === "quote" ? "scale-95" : "hover:scale-105"
-                }`}
-                style={{
-                  borderRadius: "2rem",
-                  background: "#FFFFFF",
-                  color: "#3B82F6",
-                  border: "2px solid #3B82F6",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "#3B82F6";
-                  e.target.style.color = "#FFFFFF";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "#FFFFFF";
-                  e.target.style.color = "#3B82F6";
-                }}
-                onClick={() => handleButtonClick("quote")}
-              >
-                Get Free Quote
-              </button> */}
             </div>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="mt-12 md:mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 px-4">
           {[
             {
               label: "Projects Completed",
@@ -799,7 +769,7 @@ export default function TopServices() {
           ].map((stat, index) => (
             <div
               key={index}
-              className="text-center p-6 rounded-2xl shadow-lg transition-all duration-500 cursor-pointer transform hover:-translate-y-2 hover:shadow-xl group"
+              className="text-center p-4 md:p-6 rounded-xl md:rounded-2xl shadow-lg transition-all duration-500 cursor-pointer transform hover:-translate-y-2 hover:shadow-xl group"
               style={{
                 background:
                   "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%)",
@@ -808,21 +778,20 @@ export default function TopServices() {
               }}
             >
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110"
+                className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 transition-all duration-300 group-hover:scale-110"
                 style={{
-                  borderRadius: "2rem",
                   background: stat.gradient,
                 }}
               >
-                <stat.icon className="w-8 h-8" style={{ color: "#FFFFFF" }} />
+                <stat.icon className="w-6 h-6 md:w-8 md:h-8" style={{ color: "#FFFFFF" }} />
               </div>
               <div
-                className="text-2xl font-black mb-2 transition-all duration-300 group-hover:scale-105"
+                className="text-lg md:text-2xl font-black mb-1 md:mb-2 transition-all duration-300 group-hover:scale-105"
                 style={{ color: "#111827" }}
               >
                 {stat.value}
               </div>
-              <div className="font-medium text-sm" style={{ color: "#6B7280" }}>
+              <div className="font-medium text-xs md:text-sm" style={{ color: "#6B7280" }}>
                 {stat.label}
               </div>
             </div>

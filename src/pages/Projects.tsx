@@ -36,7 +36,8 @@ const Projects = () => {
       title: "Electrical System Upgrade",
       image:
         "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=600&h=400&fit=crop",
-      description: "Complete home electrical system modernization",
+      description:
+        "Complete home electrical system modernization and upgrade",
       category: "Electrical",
       duration: "3 days",
       location: "Miami, FL",
