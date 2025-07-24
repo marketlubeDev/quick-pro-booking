@@ -726,15 +726,18 @@ const Request = () => {
       setStep2NameError("");
       if (!formData.name.trim()) {
         setStep2NameError("Please enter your name.");
-        return; // Do not proceed to phone/email validation
+        setStep2Error(""); // Clear phone/email errors
+        return;
+      } else {
+        setStep2NameError("");
       }
       if (formData.email && !isValidEmail(formData.email)) {
         setStep2Error("Please enter a valid email address.");
-        return; // Do not proceed
+        return;
       }
       if (!formData.phone || !isValidUSPhoneNumber(formData.phone)) {
         setStep2Error("Invalid phone number format!");
-        return; // Do not proceed
+        return;
       }
     }
     if (step < 3) setStep(step + 1);
@@ -1018,9 +1021,12 @@ const Request = () => {
                           inputMode="tel"
                           maxLength={15}
                           onChange={(e) => {
-                            // Only allow digits and parentheses
                             const sanitizedValue = e.target.value.replace(/[^\d\(\)]/g, '');
                             handleInputChange("phone", sanitizedValue);
+                            // Real-time validation
+                            if (sanitizedValue && isValidUSPhoneNumber(sanitizedValue)) {
+                              setStep2Error("");
+                            }
                           }}
                           placeholder="(555) 123-4567"
                         />

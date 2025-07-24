@@ -822,9 +822,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 inputMode="tel"
                 maxLength={15}
                 onChange={(e) => {
-                  // Only allow digits and parentheses
                   const sanitizedValue = e.target.value.replace(/[^\d\(\)]/g, '');
                   handleInputChange("phone", sanitizedValue);
+                  // Real-time validation
+                  if (sanitizedValue && isValidUSPhoneNumber(sanitizedValue)) {
+                    setStep2PhoneError("");
+                  }
                 }}
                 placeholder="(555) 123-4567"
               />
