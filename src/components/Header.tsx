@@ -160,17 +160,34 @@ const Header = () => {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="w-80 bg-gradient-to-br from-background to-background/95 backdrop-blur-xl border-l-2 border-primary/20"
+              className="w-80 bg-gradient-to-br from-background to-background/95 backdrop-blur-xl border-l-2 border-primary/20 mobile-nav-sheet"
             >
               <div className="flex flex-col space-y-2 mt-8">
-                {/* Mobile menu header */}
-                <div className="mb-6 pb-4 border-b border-primary/20">
-                  <h3 className="text-lg font-semibold text-primary mb-1">
-                    Navigation
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Explore our services
-                  </p>
+                {/* Mobile menu header with logo */}
+                <div className="mb-6 pb-4 border-b border-primary/20 flex justify-start">
+                  <div className="flex items-center space-x-3 group relative cursor-pointer">
+                    <div className="relative bg-gradient-to-br from-primary to-primary/80 p-2.5 rounded-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 shadow-lg group-hover:shadow-xl group-hover:shadow-primary/30">
+                      <img
+                        src="/icon.png"
+                        alt="SkillHand Icon"
+                        className="w-6 h-6 object-contain"
+                      />
+                      {/* Glow effect */}
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary to-primary/80 opacity-0 group-hover:opacity-30 blur-md transition-all duration-500" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-heading font-bold text-xl text-primary transition-all duration-300 group-hover:text-primary/90 relative">
+                        SkillHands
+                        {/* Animated underline on logo */}
+                        <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-gradient-to-r from-primary to-primary/60 transition-all duration-500 group-hover:w-full" />
+                      </span>
+                      <span className="text-xs text-muted-foreground opacity-70 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
+                        Professional Services
+                      </span>
+                    </div>
+                    {/* Ripple effect */}
+                    <div className="absolute inset-0 rounded-full bg-primary/10 scale-0 group-hover:scale-150 opacity-0 group-hover:opacity-100 transition-all duration-700 -z-10" />
+                  </div>
                 </div>
 
                 {navigation.map((item, index) => (
@@ -240,6 +257,56 @@ const Header = () => {
           to {
             opacity: 1;
             transform: translateX(0);
+          }
+        }
+        
+        /* Mobile close button styling */
+        @media screen and (max-width: 768px) {
+          /* Sheet close button selectors */
+          [data-radix-dialog-content] button[data-radix-dialog-close] {
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+            padding: 0.5rem !important;
+          }
+          [data-radix-dialog-content] button[data-radix-dialog-close] svg {
+            width: 1.5rem !important;
+            height: 1.5rem !important;
+          }
+          /* Alternative selectors for close button */
+          .lucide-x {
+            width: 1.5rem !important;
+            height: 1.5rem !important;
+          }
+          /* Sheet component close button */
+          [data-state="open"] button[aria-label="Close"] {
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+            padding: 0.5rem !important;
+          }
+          [data-state="open"] button[aria-label="Close"] svg {
+            width: 1.5rem !important;
+            height: 1.5rem !important;
+          }
+          /* General close button in mobile menu */
+          .mobile-menu-close {
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+            padding: 0.5rem !important;
+          }
+          .mobile-menu-close svg {
+            width: 1.5rem !important;
+            height: 1.5rem !important;
+          }
+          /* Mobile nav sheet close button */
+          .mobile-nav-sheet button[data-radix-dialog-close] {
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+            padding: 0.5rem !important;
+          }
+          .mobile-nav-sheet button[data-radix-dialog-close] svg {
+            width: 1.5rem !important;
+            height: 1.5rem !important;
+            stroke-width: 2.5 !important;
           }
         }
         
