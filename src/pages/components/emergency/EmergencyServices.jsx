@@ -8,13 +8,13 @@ import { emergencyServices } from "@/data/getData";
 export default function EmergencyServices() {
   return (
     <section className="py-12 bg-red-50 border-l-4 border-red-500">
-      <div className="container mx-auto px-2 sm:px-4">
-        <div className="flex items-center justify-center space-x-2 sm:space-x-4 mb-6 overflow-visible">
-          <AlertTriangle className="w-6 h-6 sm:w-6 sm:h-6 text-red-600 flex-shrink-0" />
-          <h2 className="font-heading text-base sm:text-xl md:text-2xl text-red-800 text-center px-2">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-center space-x-4 mb-6">
+          <AlertTriangle className="w-6 h-6 text-red-600" />
+          <h2 className="font-heading text-lg sm:text-xl md:text-2xl text-red-800 whitespace-nowrap">
             Emergency Services Available 24/7
           </h2>
-          <AlertTriangle className="w-6 h-6 sm:w-6 sm:h-6 text-red-600 flex-shrink-0" />
+          <AlertTriangle className="w-6 h-6 text-red-600" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {emergencyServices.map((service, index) => (
