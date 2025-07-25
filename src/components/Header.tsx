@@ -49,7 +49,7 @@ const Header = () => {
         zipCode=""
       />
 
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 lg:px-4 ipad-mini-container">
         <div className="flex items-center justify-between h-16">
           {/* Enhanced Logo */}
           <Link to="/" className="flex items-center space-x-3 group relative">
@@ -77,12 +77,12 @@ const Header = () => {
           </Link>
 
           {/* Enhanced Desktop Navigation - Fixed hover bleeding */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex items-center space-x-1 lg:space-x-1 ipad-mini-nav">
             {navigation.map((item, index) => (
               <div key={item.name} className="relative">
                 <Link
                   to={item.href}
-                  className={`relative block px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 group overflow-hidden ${
+                  className={`ipad-mini-nav-item relative block px-4 lg:px-4 py-2 lg:py-2 rounded-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 group overflow-hidden text-sm lg:text-base ${
                     isActive(item.href)
                       ? "text-primary font-semibold bg-primary/10 shadow-md"
                       : "text-foreground hover:text-primary hover:bg-primary/5"
@@ -125,7 +125,7 @@ const Header = () => {
             <div className="relative group">
               <PrimaryButton
                 onClick={() => setIsModalOpen(true)}
-                className="relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/30 border-0 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-semibold"
+                className="ipad-mini-cta relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/30 border-0 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-semibold"
               >
                 <span className="relative z-10 flex items-center space-x-2">
                   <span>Book a Pro</span>
@@ -231,7 +231,7 @@ const Header = () => {
       </div>
 
       {/* Add keyframes for mobile menu animation */}
-      <style jsx>{`
+      <style>{`
         @keyframes slideInRight {
           from {
             opacity: 0;
@@ -240,6 +240,25 @@ const Header = () => {
           to {
             opacity: 1;
             transform: translateX(0);
+          }
+        }
+        
+        /* iPad Mini specific styles */
+        @media screen and (min-width: 768px) and (max-width: 834px) {
+          .ipad-mini-container {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+          }
+          .ipad-mini-nav {
+            gap: 0.25rem !important;
+          }
+          .ipad-mini-nav-item {
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.875rem !important;
+          }
+          .ipad-mini-cta {
+            padding: 0.5rem 1rem !important;
+            font-size: 0.875rem !important;
           }
         }
       `}</style>

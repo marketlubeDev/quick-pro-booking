@@ -1031,48 +1031,80 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             isMobile ? "flex-col gap-4" : ""
           }`}
         >
+          {/* Mobile: Next/Submit button first */}
+          {isMobile && (
+            <div className="w-full">
+              {step < 3 ? (
+                <PrimaryButton
+                  type="button"
+                  onClick={nextStep}
+                  disabled={
+                    (step === 1 && (!formData.service || !formData.description)) ||
+                    (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
+                  }
+                  className="w-full h-12 text-base font-medium"
+                >
+                  Next
+                </PrimaryButton>
+              ) : (
+                <PrimaryButton
+                  type="submit"
+                  disabled={
+                    !formData.address ||
+                    !formData.city ||
+                    !formData.zip ||
+                    isSubmitting
+                  }
+                  className="w-full h-12 text-base font-medium"
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Request"}
+                </PrimaryButton>
+              )}
+            </div>
+          )}
+
+          {/* Mobile: Previous button second, Desktop: Previous button first */}
           {step > 1 && (
             <PrimaryButton
               type="button"
               onClick={prevStep}
-              className={isMobile ? "w-full" : ""}
+              className={isMobile ? "w-full h-12 text-base font-medium" : ""}
             >
               Previous
             </PrimaryButton>
           )}
 
-          <div
-            className={`${step > 1 ? "ml-auto" : "ml-auto"} ${
-              isMobile ? "w-full" : ""
-            }`}
-          >
-            {step < 3 ? (
-              <PrimaryButton
-                type="button"
-                onClick={nextStep}
-                disabled={
-                  (step === 1 && (!formData.service || !formData.description)) ||
-                  (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
-                }
-                className={isMobile ? "w-full" : ""}
-              >
-                Next
-              </PrimaryButton>
-            ) : (
-              <PrimaryButton
-                type="submit"
-                disabled={
-                  !formData.address ||
-                  !formData.city ||
-                  !formData.zip ||
-                  isSubmitting
-                }
-                className={isMobile ? "w-full" : ""}
-              >
-                {isSubmitting ? "Submitting..." : "Submit Request"}
-              </PrimaryButton>
-            )}
-          </div>
+          {/* Desktop: Next/Submit button */}
+          {!isMobile && (
+            <div
+              className={`${step > 1 ? "ml-auto" : "ml-auto"}`}
+            >
+              {step < 3 ? (
+                <PrimaryButton
+                  type="button"
+                  onClick={nextStep}
+                  disabled={
+                    (step === 1 && (!formData.service || !formData.description)) ||
+                    (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
+                  }
+                >
+                  Next
+                </PrimaryButton>
+              ) : (
+                <PrimaryButton
+                  type="submit"
+                  disabled={
+                    !formData.address ||
+                    !formData.city ||
+                    !formData.zip ||
+                    isSubmitting
+                  }
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Request"}
+                </PrimaryButton>
+              )}
+            </div>
+          )}
         </div>
       </form>
     </Modal>

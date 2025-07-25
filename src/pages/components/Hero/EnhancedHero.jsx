@@ -580,7 +580,7 @@ const EnhancedHeroSection = () => {
                   style={{
                     width: "100%",
                     height: window.innerWidth <= 768 ? "20rem" : "24rem",
-                    objectFit: "contain",
+                    // objectFit: "contain",
                     objectPosition: "center",
                     transition: "transform 0.7s ease",
                     backgroundColor: "rgba(255, 255, 255, 0.05)",
@@ -677,10 +677,37 @@ const EnhancedHeroSection = () => {
       </div>
       <style>
         {`
-          @media (max-width: 768px) {
+          /* iPad Pro specific styling (1024x1366) */
+          @media screen and (min-width: 1024px) and (max-width: 1366px) and (orientation: portrait),
+                 screen and (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+            .hero-image-container {
+              padding: 0.5rem !important;
+            }
+            .hero-image-container img {
+              height: 28rem !important;
+              // object-fit: contain !important;
+              object-position: center !important;
+              border-radius: 0.75rem !important;
+            }
+          }
+          
+          /* iPad specific styling (768x1024) */
+          @media screen and (min-width: 768px) and (max-width: 1023px) {
+            .hero-image-container {
+              padding: 0.5rem !important;
+            }
+            .hero-image-container img {
+              height: 24rem !important;
+              // object-fit: contain !important;
+              object-position: center !important;
+              border-radius: 0.75rem !important;
+            }
+          }
+          
+          @media (max-width: 767px) {
             .hero-image-container img {
               height: 18rem !important;
-              object-fit: contain !important;
+              // object-fit: contain !important;
               object-position: center !important;
             }
             .hero-main-container {
