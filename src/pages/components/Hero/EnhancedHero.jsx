@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ContactFormModal from "../../../components/ContactFormModal";
 import { toast } from "sonner";
+import { MdKeyboardArrowDown } from "react-icons/md";
 
 const EnhancedHeroSection = () => {
   const [selectedService, setSelectedService] = useState("");
@@ -274,15 +275,15 @@ const EnhancedHeroSection = () => {
                 </h3>
 
                 <div
-                  className="service-actions"
+                  className="service-actions responsive-service-container"
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "1rem",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
                   {/* Service Selection and Request Button */}
-                  <div style={{ position: "relative" }}>
+                  <div className="select-container" style={{ position: "relative", width: "58%" }}>
                     <select
                       value={selectedService}
                       onChange={(e) => setSelectedService(e.target.value)}
@@ -333,15 +334,16 @@ const EnhancedHeroSection = () => {
                         lineHeight: 1,
                       }}
                     >
-                      →
+                      <MdKeyboardArrowDown />
                     </span>
                   </div>
 
                   {/* Request Service Button */}
                   <button
+                    className="request-service-btn"
                     onClick={handleQuickBook}
                     style={{
-                      width: "100%",
+                      width: "40%",
                       background: "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)",
                       color: "white",
                       fontWeight: "600",
@@ -742,6 +744,23 @@ const EnhancedHeroSection = () => {
           @media (max-width: 480px) {
             .hero-image-container img {
               height: 14rem !important;
+            }
+          }
+          
+          /* Mobile responsive styles for service actions */
+          @media (max-width: 768px) {
+            .responsive-service-container {
+              flex-direction: column !important;
+              gap: 1rem !important;
+              align-items: stretch !important;
+            }
+            
+            .select-container {
+              width: 100% !important;
+            }
+            
+            .request-service-btn {
+              width: 100% !important;
             }
           }
         `}
