@@ -569,8 +569,8 @@ const Request = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
-        setImageError("Image size should not exceed 2MB.");
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        setImageError("Image size should not exceed 10MB.");
         e.target.value = "";
         return;
       }

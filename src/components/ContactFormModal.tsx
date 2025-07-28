@@ -496,8 +496,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
-        setImageError("Image size should not exceed 2MB.");
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        setImageError("Image size should not exceed 10MB.");
         // Optionally reset the file input
         e.target.value = "";
         return;
@@ -1076,34 +1076,34 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
           {/* Desktop: Next/Submit button */}
           {!isMobile && (
-            <div
+          <div
               className={`${step > 1 ? "ml-auto" : "ml-auto"}`}
-            >
-              {step < 3 ? (
-                <PrimaryButton
-                  type="button"
-                  onClick={nextStep}
-                  disabled={
-                    (step === 1 && (!formData.service || !formData.description)) ||
-                    (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
-                  }
-                >
-                  Next
-                </PrimaryButton>
-              ) : (
-                <PrimaryButton
-                  type="submit"
-                  disabled={
-                    !formData.address ||
-                    !formData.city ||
-                    !formData.zip ||
-                    isSubmitting
-                  }
-                >
-                  {isSubmitting ? "Submitting..." : "Submit Request"}
-                </PrimaryButton>
-              )}
-            </div>
+          >
+            {step < 3 ? (
+              <PrimaryButton
+                type="button"
+                onClick={nextStep}
+                disabled={
+                  (step === 1 && (!formData.service || !formData.description)) ||
+                  (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
+                }
+              >
+                Next
+              </PrimaryButton>
+            ) : (
+              <PrimaryButton
+                type="submit"
+                disabled={
+                  !formData.address ||
+                  !formData.city ||
+                  !formData.zip ||
+                  isSubmitting
+                }
+              >
+                {isSubmitting ? "Submitting..." : "Submit Request"}
+              </PrimaryButton>
+            )}
+          </div>
           )}
         </div>
       </form>
