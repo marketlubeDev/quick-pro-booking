@@ -192,15 +192,15 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-center">
+          <div className="service-areas-container">
             {serviceAreas.map((city, index) => (
               <div
                 key={index}
-                className="bg-muted/50 rounded-lg p-4 hover:bg-muted transition-colors cursor-pointer"
+                                  className="service-area-item bg-muted/50 rounded-lg p-8 hover:bg-muted transition-colors cursor-pointer"
               >
-                <div className="font-semibold text-primary flex items-center justify-center space-x-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>{city}</span>
+                <div className="font-semibold text-primary flex items-center justify-center space-x-3">
+                  <MapPin className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm text-center leading-tight">{city}</span>
                 </div>
               </div>
             ))}
@@ -331,6 +331,44 @@ const Index = () => {
         selectedService={selectedService}
         zipCode={zipCode}
       />
+      
+      {/* Service Areas Grid Styling */}
+      <style>{`
+        .service-areas-container {
+          display: grid;
+          grid-template-columns: repeat(1, 1fr);
+          gap: 1.5rem;
+          text-align: center;
+          justify-items: center;
+        }
+        
+        @media (min-width: 640px) {
+          .service-areas-container {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        
+        @media (min-width: 768px) {
+          .service-areas-container {
+            grid-template-columns: repeat(3, 1fr);
+          }
+        }
+        
+        @media (min-width: 1024px) {
+          .service-areas-container {
+            grid-template-columns: repeat(5, 1fr);
+          }
+        }
+        
+        .service-area-item {
+          width: 100%;
+          max-width: 300px;
+          min-height: 110px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      `}</style>
     </div>
   );
 };
