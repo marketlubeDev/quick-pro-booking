@@ -25,6 +25,7 @@ const createEmailTemplate = (data) => {
     email,
     address,
     city,
+    state,
     zip,
     fileData,
   } = data;
@@ -357,7 +358,7 @@ const createEmailTemplate = (data) => {
                     <div class="field">
                         <div class="field-value">
                             ${address}<br>
-                            ${city}, MD ${zip}
+                            ${city}${state ? ", " + state : ""} ${zip}
                         </div>
                     </div>
                 </div>
@@ -432,7 +433,7 @@ Customer: ${name}
 Phone: ${phone}
 ${email ? `Email: ${email}` : ""}
 
-Address: ${address}, ${city}, MD ${zip}
+Address: ${address}, ${city}${state ? ", " + state : ""} ${zip}
 
 Preferred Date: ${preferredDate || "Not specified"}
 Preferred Time: ${preferredTime || "Not specified"}

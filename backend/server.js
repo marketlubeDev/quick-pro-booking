@@ -61,7 +61,8 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });
 
-app.use("/", (req, res) => {
+// Root endpoint (GET only) so it doesn't swallow API routes
+app.get("/", (req, res) => {
   res.json({
     success: true,
     message: "Server is running",
@@ -81,6 +82,7 @@ app.post("/api/contact", upload.single("image"), async (req, res) => {
       email,
       address,
       city,
+      state,
       zip,
     } = req.body;
 
@@ -115,6 +117,7 @@ app.post("/api/contact", upload.single("image"), async (req, res) => {
       email,
       address,
       city,
+      state,
       zip,
       fileData,
     });
@@ -126,6 +129,61 @@ app.post("/api/contact", upload.single("image"), async (req, res) => {
     });
   } catch (error) {
     console.error("Error submitting contact form:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to submit service request. Please try again.",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
+
+// JSON-based service request endpoint (no file upload)
+app.post("/api/service-requests", async (req, res) => {
+  try {
+    const {
+      service,
+      description,
+      preferredDate,
+      preferredTime,
+      name,
+      phone,
+      email,
+      address,
+      city,
+      state,
+      zip,
+    } = req.body;
+
+    // Validate required fields
+    if (!service || !name || !phone || !address || !city || !zip) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    const emailResult = await sendEmail({
+      service,
+      description,
+      preferredDate,
+      preferredTime,
+      name,
+      phone,
+      email,
+      address,
+      city,
+      state,
+      zip,
+      fileData: null,
+    });
+
+    res.json({
+      success: true,
+      message: "Service request submitted successfully!",
+      data: emailResult,
+    });
+  } catch (error) {
+    console.error("Error submitting service request:", error);
     res.status(500).json({
       success: false,
       message: "Failed to submit service request. Please try again.",

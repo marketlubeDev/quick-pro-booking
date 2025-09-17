@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://skillhands-server.vercel.app";
+const API_BASE_URL = "http://localhost:5000";
 
 export interface ContactFormData {
   service: string;
@@ -19,6 +19,20 @@ export interface ApiResponse<T = unknown> {
   message: string;
   data?: T;
   error?: string;
+}
+
+export interface ServiceRequestData {
+  service: string;
+  description: string;
+  preferredDate: string;
+  preferredTime: string;
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  state?: string;
+  zip: string;
 }
 
 export const api = {
@@ -116,5 +130,11 @@ export const contactApi = {
 
   async checkHealth(): Promise<ApiResponse> {
     return api.get("/health");
+  },
+};
+
+export const serviceRequestApi = {
+  async submit(data: ServiceRequestData): Promise<ApiResponse> {
+    return api.post("/api/service-requests", data);
   },
 };

@@ -21,7 +21,7 @@ import {
   CommandEmpty,
 } from "./ui/command";
 import { useRef } from "react";
-import { contactApi } from "@/lib/api";
+import { serviceRequestApi } from "@/lib/api";
 import { toast } from "sonner";
 import {
   sanitizePhone,
@@ -75,24 +75,24 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
   function isValidUSPhoneNumber(phone: string) {
     // Remove all non-digit characters (only digits and parentheses allowed)
-    const digitsOnly = phone.replace(/[^\d]/g, '');
-    
+    const digitsOnly = phone.replace(/[^\d]/g, "");
+
     // US phone number patterns:
     // 1. 10 digits (standard US number without country code)
     // 2. 11 digits starting with 1 (US number with country code)
     // 3. 7 digits (local number, though less common for business)
-    
+
     if (digitsOnly.length === 10) {
       // Standard 10-digit US number
       return true;
-    } else if (digitsOnly.length === 11 && digitsOnly.startsWith('1')) {
+    } else if (digitsOnly.length === 11 && digitsOnly.startsWith("1")) {
       // 11-digit number starting with 1 (US country code)
       return true;
     } else if (digitsOnly.length === 7) {
       // 7-digit local number (less common but valid)
       return true;
     }
-    
+
     return false;
   }
 
@@ -363,21 +363,23 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       let mappedService = "";
       if (selectedService) {
         const serviceMap: { [key: string]: string } = {
-          "plumbing": "plumbing",
-          "electrical": "electrical", 
+          plumbing: "plumbing",
+          electrical: "electrical",
           "house cleaning": "house cleaning",
           "ac repair": "ac repair",
           "appliance repair": "appliance repair",
-          "painting": "painting",
-          "handyman": "handyman",
+          painting: "painting",
+          handyman: "handyman",
           "pest control": "pest control",
           "lawn care": "lawn care",
-          "moving": "moving",
-          "roofing": "roofing"
+          moving: "moving",
+          roofing: "roofing",
         };
-        mappedService = serviceMap[selectedService.toLowerCase()] || selectedService.toLowerCase();
+        mappedService =
+          serviceMap[selectedService.toLowerCase()] ||
+          selectedService.toLowerCase();
       }
-      
+
       setFormData((prev) => ({
         ...prev,
         service: sanitizeInputField(mappedService),
@@ -409,10 +411,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   // Effect to update service availability when ZIP changes
   useEffect(() => {
     if (formData.zip && formData.zip.length === 5) {
-      const found = marylandZipCodes.some((zipData) => zipData.zip === formData.zip);
+      const found = marylandZipCodes.some(
+        (zipData) => zipData.zip === formData.zip
+      );
       setServiceAvailable(found);
       if (!found) {
-        setFormData((prev) => ({ ...prev, city: '' }));
+        setFormData((prev) => ({ ...prev, city: "" }));
       }
     } else {
       setServiceAvailable(true); // Default to true for incomplete ZIPs
@@ -467,8 +471,14 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         case "zip":
           sanitizedValue = sanitizeZipCode(value);
           // ZIP code must start with '2'
-          if (sanitizedValue && sanitizedValue.length > 0 && sanitizedValue[0] !== '2') {
-            setZipError("Service not available in this area. We currently serve Maryland only.");
+          if (
+            sanitizedValue &&
+            sanitizedValue.length > 0 &&
+            sanitizedValue[0] !== "2"
+          ) {
+            setZipError(
+              "Service not available in this area. We currently serve Maryland only."
+            );
             setServiceAvailable(false);
           } else {
             setZipError("");
@@ -496,7 +506,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > 10 * 1024 * 1024) {
+        // 10MB limit
         setImageError("Image size should not exceed 10MB.");
         // Optionally reset the file input
         e.target.value = "";
@@ -510,9 +521,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const handleRemoveImage = () => {
     setFormData((prev) => ({ ...prev, image: null }));
     // Reset the file input
-    const fileInput = document.getElementById('image') as HTMLInputElement;
+    const fileInput = document.getElementById("image") as HTMLInputElement;
     if (fileInput) {
-      fileInput.value = '';
+      fileInput.value = "";
     }
   };
 
@@ -557,13 +568,15 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     }
 
     if (!isValidUSPhoneNumber(formData.phone)) {
-      setSubmitError("Please enter a valid US phone number (e.g., 555-123-4567 or 1-555-123-4567).");
+      setSubmitError(
+        "Please enter a valid US phone number (e.g., 555-123-4567 or 1-555-123-4567)."
+      );
       setIsSubmitting(false);
       return;
     }
 
     try {
-      const result = await contactApi.submitForm({
+      const result = await serviceRequestApi.submit({
         service: formData.service,
         description: formData.description,
         preferredDate: formData.preferredDate,
@@ -573,8 +586,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         email: formData.email,
         address: formData.address,
         city: formData.city,
+        state: "MD",
         zip: formData.zip,
-        image: formData.image,
       });
 
       console.log(result);
@@ -706,24 +719,20 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
               <Label htmlFor="image">Upload a photo (optional)</Label>
               {!formData.image ? (
                 <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors">
-                <input
-                  type="file"
-                  id="image"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
+                  <input
+                    type="file"
+                    id="image"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
                     // required={true}
-                />
-                <label
-                  htmlFor="image"
-                    className="cursor-pointer block"
-                   
-                >
+                  />
+                  <label htmlFor="image" className="cursor-pointer block">
                     <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground hover:text-primary transition-colors" />
                     <span className="text-primary hover:underline">
-                  Click to upload an image
+                      Click to upload an image
                     </span>
-                </label>
+                  </label>
                 </div>
               ) : (
                 <div className="relative">
@@ -746,8 +755,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     {formData.image.name}
                   </p>
                 </div>
-                )}
-              </div>
+              )}
+            </div>
             {imageError && (
               <p className="text-red-500 text-sm mt-1">{imageError}</p>
             )}
@@ -822,7 +831,10 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 inputMode="tel"
                 maxLength={15}
                 onChange={(e) => {
-                  const sanitizedValue = e.target.value.replace(/[^\d\(\)]/g, '');
+                  const sanitizedValue = e.target.value.replace(
+                    /[^\d\(\)]/g,
+                    ""
+                  );
                   handleInputChange("phone", sanitizedValue);
                   // Real-time validation
                   if (sanitizedValue && isValidUSPhoneNumber(sanitizedValue)) {
@@ -1015,14 +1027,17 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       }
       centered
     >
-      <form onSubmit={(e) => {
-        // Only allow form submission when in step 3
-        if (step !== 3) {
-          e.preventDefault();
-          return;
-        }
-        handleSubmit(e);
-      }} className="space-y-6">
+      <form
+        onSubmit={(e) => {
+          // Only allow form submission when in step 3
+          if (step !== 3) {
+            e.preventDefault();
+            return;
+          }
+          handleSubmit(e);
+        }}
+        className="space-y-6"
+      >
         {renderStepIndicator()}
         <div className="w-full mx-auto px-2">{renderStepContent()}</div>
 
@@ -1039,8 +1054,14 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   type="button"
                   onClick={nextStep}
                   disabled={
-                    (step === 1 && (!formData.service || !formData.description)) ||
-                    (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
+                    (step === 1 &&
+                      (!formData.service || !formData.description)) ||
+                    (step === 2 &&
+                      (!formData.preferredDate ||
+                        !formData.preferredTime ||
+                        !formData.name ||
+                        !formData.phone ||
+                        !formData.email))
                   }
                   className="w-full h-12 text-base font-medium"
                 >
@@ -1076,34 +1097,38 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
           {/* Desktop: Next/Submit button */}
           {!isMobile && (
-          <div
-              className={`${step > 1 ? "ml-auto" : "ml-auto"}`}
-          >
-            {step < 3 ? (
-              <PrimaryButton
-                type="button"
-                onClick={nextStep}
-                disabled={
-                  (step === 1 && (!formData.service || !formData.description)) ||
-                  (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
-                }
-              >
-                Next
-              </PrimaryButton>
-            ) : (
-              <PrimaryButton
-                type="submit"
-                disabled={
-                  !formData.address ||
-                  !formData.city ||
-                  !formData.zip ||
-                  isSubmitting
-                }
-              >
-                {isSubmitting ? "Submitting..." : "Submit Request"}
-              </PrimaryButton>
-            )}
-          </div>
+            <div className={`${step > 1 ? "ml-auto" : "ml-auto"}`}>
+              {step < 3 ? (
+                <PrimaryButton
+                  type="button"
+                  onClick={nextStep}
+                  disabled={
+                    (step === 1 &&
+                      (!formData.service || !formData.description)) ||
+                    (step === 2 &&
+                      (!formData.preferredDate ||
+                        !formData.preferredTime ||
+                        !formData.name ||
+                        !formData.phone ||
+                        !formData.email))
+                  }
+                >
+                  Next
+                </PrimaryButton>
+              ) : (
+                <PrimaryButton
+                  type="submit"
+                  disabled={
+                    !formData.address ||
+                    !formData.city ||
+                    !formData.zip ||
+                    isSubmitting
+                  }
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Request"}
+                </PrimaryButton>
+              )}
+            </div>
           )}
         </div>
       </form>
