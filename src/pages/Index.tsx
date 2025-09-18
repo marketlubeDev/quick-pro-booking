@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import ServiceCard from "@/components/ServiceCard";
 import TestimonialCard from "@/components/TestimonialCard";
@@ -86,8 +84,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-
       {/* Hero Section */}
       <EnhancedHero />
 
@@ -196,11 +192,13 @@ const Index = () => {
             {serviceAreas.map((city, index) => (
               <div
                 key={index}
-                                  className="service-area-item bg-muted/50 rounded-lg p-8 hover:bg-muted transition-colors cursor-pointer"
+                className="service-area-item bg-muted/50 rounded-lg p-8 hover:bg-muted transition-colors cursor-pointer"
               >
                 <div className="font-semibold text-primary flex items-center justify-center space-x-3">
                   <MapPin className="w-5 h-5 flex-shrink-0" />
-                  <span className="text-sm text-center leading-tight">{city}</span>
+                  <span className="text-sm text-center leading-tight">
+                    {city}
+                  </span>
                 </div>
               </div>
             ))}
@@ -322,7 +320,6 @@ const Index = () => {
         </div>
       </section>
 
-      <Footer />
       <FloatingWhatsApp />
 
       <ContactFormModal
@@ -331,7 +328,7 @@ const Index = () => {
         selectedService={selectedService}
         zipCode={zipCode}
       />
-      
+
       {/* Service Areas Grid Styling */}
       <style>{`
         .service-areas-container {
@@ -341,25 +338,25 @@ const Index = () => {
           text-align: center;
           justify-items: center;
         }
-        
+
         @media (min-width: 640px) {
           .service-areas-container {
             grid-template-columns: repeat(2, 1fr);
           }
         }
-        
+
         @media (min-width: 768px) {
           .service-areas-container {
             grid-template-columns: repeat(3, 1fr);
           }
         }
-        
+
         @media (min-width: 1024px) {
           .service-areas-container {
             grid-template-columns: repeat(5, 1fr);
           }
         }
-        
+
         .service-area-item {
           width: 100%;
           max-width: 300px;

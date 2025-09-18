@@ -25,6 +25,8 @@ const Login = () => {
     // TODO: Integrate real auth here. For now, redirect based on role.
     if (role === "employee") {
       navigate("/employee");
+    } else if (role === "admin") {
+      navigate("/admin");
     } else {
       navigate("/");
     }
