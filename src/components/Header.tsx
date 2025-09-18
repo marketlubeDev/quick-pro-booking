@@ -22,6 +22,8 @@ const Header = () => {
     { name: "Projects", href: "/projects" },
     { name: "About Us", href: "/about" },
     { name: "FAQ", href: "/faq" },
+    { name: "Login", href: "/login" },
+
     // { name: "Contact", href: "/contact", icon: Phone },
   ];
 
@@ -259,7 +261,7 @@ const Header = () => {
             transform: translateX(0);
           }
         }
-        
+
         /* Mobile close button styling */
         @media screen and (max-width: 768px) {
           /* Sheet close button selectors */
@@ -309,7 +311,7 @@ const Header = () => {
             stroke-width: 2.5 !important;
           }
         }
-        
+
         /* iPad Mini specific styles */
         @media screen and (min-width: 768px) and (max-width: 834px) {
           .ipad-mini-container {

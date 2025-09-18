@@ -151,3 +151,58 @@ export const serviceRequestApi = {
     return api.post(`/api/service-requests/${id}/status`, { status });
   },
 };
+
+// Employee profile types and API
+export interface EmployeeProfileData {
+  id?: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  city?: string;
+  level?: "Beginner" | "Intermediate" | "Expert";
+  status?: "pending" | "approved" | "rejected";
+  rating?: number;
+  totalJobs?: number;
+  skills?: string[];
+  certifications?: string[];
+  expectedSalary?: number;
+  appliedDate?: string; // ISO string
+}
+
+export const employeeApi = {
+  async getProfile(): Promise<ApiResponse<EmployeeProfileData>> {
+    return api.get<EmployeeProfileData>("/api/employees/me");
+  },
+
+  async updateProfile(
+    data: Partial<EmployeeProfileData>
+  ): Promise<ApiResponse<EmployeeProfileData>> {
+    return api.post<EmployeeProfileData>("/api/employees/me", data);
+  },
+
+  async uploadCertificates(
+    files: File[]
+  ): Promise<ApiResponse<{ certifications: string[] }>> {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("certificates", file));
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/employees/me/certificates`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          result.message || `HTTP error! status: ${response.status}`
+        );
+      }
+      return result;
+    } catch (error) {
+      console.error("API Error:", error);
+      throw error;
+    }
+  },
+};
