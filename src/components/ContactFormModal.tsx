@@ -588,6 +588,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         city: formData.city,
         state: "MD",
         zip: formData.zip,
+        status: "pending",
       });
 
       console.log(result);

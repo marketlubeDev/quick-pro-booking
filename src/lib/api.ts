@@ -33,6 +33,7 @@ export interface ServiceRequestData {
   city: string;
   state?: string;
   zip: string;
+  status?: string;
 }
 
 export const api = {
@@ -136,5 +137,17 @@ export const contactApi = {
 export const serviceRequestApi = {
   async submit(data: ServiceRequestData): Promise<ApiResponse> {
     return api.post("/api/service-requests", data);
+  },
+
+  async getAll(): Promise<ApiResponse> {
+    return api.get("/api/service-requests");
+  },
+
+  async getById(id: string): Promise<ApiResponse> {
+    return api.get(`/api/service-requests/${id}`);
+  },
+
+  async updateStatus(id: string, status: string): Promise<ApiResponse> {
+    return api.post(`/api/service-requests/${id}/status`, { status });
   },
 };
