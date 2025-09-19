@@ -31,6 +31,10 @@ export function ServiceRequests() {
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(
     null
   );
+
+
+  console.log("selectedRequest", selectedRequest);
+
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
 
   const {
@@ -183,7 +187,8 @@ export function ServiceRequests() {
   };
 
   const handleAccept = (requestId: string) => {
-    const req = serviceRequests.find((r) => r.id === requestId) || null;
+    const req = serviceRequests.find((r) => r._id === requestId || r._id === requestId) || null;
+    console.log("rqwqwqwqwqeq", req);
     setSelectedRequest(req);
     setIsScheduleOpen(true);
   };
@@ -362,7 +367,7 @@ export function ServiceRequests() {
         onConfirm={(scheduledDateISO) => {
           console.log("onConfirm called with:", scheduledDateISO);
           console.log("selectedRequest:", selectedRequest);
-          const id = selectedRequest?.id;
+          const id = selectedRequest?._id || selectedRequest?.id;
           console.log("selectedRequest id:", id);
           if (!id) {
             console.log("No id found, returning early");
