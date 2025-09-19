@@ -61,6 +61,18 @@ export interface EmployeeApplication {
   status: "pending" | "approved" | "rejected";
   appliedDate: string;
   location: string;
+  // Additional fields from API
+  avatarUrl?: string;
+  bio?: string;
+  verified?: boolean;
+  verificationNotes?: string;
+  user?: {
+    name: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+    createdAt: string;
+  };
 }
 
 export interface DashboardStats {

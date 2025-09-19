@@ -1,3 +1,5 @@
+import { EmployeeApplication } from "@/types";
+
 const API_BASE_URL = "http://localhost:5000";
 
 function getAuthToken(): string | null {
@@ -413,5 +415,28 @@ export const employeeApi = {
       console.error("API Error:", error);
       throw error;
     }
+  },
+};
+
+// Admin API for employee applications
+export const adminApi = {
+  async getAllEmployeeApplications(): Promise<
+    ApiResponse<EmployeeApplication[]>
+  > {
+    return api.get<EmployeeApplication[]>("/api/profile/all");
+  },
+
+  async updateEmployeeStatus(
+    profileId: string,
+    status: "pending" | "approved" | "rejected",
+    verificationNotes?: string
+  ): Promise<ApiResponse<EmployeeProfileData>> {
+    return apiFetch<ApiResponse<EmployeeProfileData>>(
+      `/api/profile/${profileId}/status`,
+      {
+        method: "PATCH",
+        body: { status, verificationNotes },
+      }
+    );
   },
 };

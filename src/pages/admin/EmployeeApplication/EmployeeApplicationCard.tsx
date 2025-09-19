@@ -94,6 +94,13 @@ export function EmployeeApplicationCard({
                 {application.name}
               </h3>
               <p className="text-sm text-muted-foreground">#{application.id}</p>
+              {application.user?.role && (
+                <div className="mt-1">
+                  <Badge variant="outline" className="text-xs capitalize">
+                    {application.user.role}
+                  </Badge>
+                </div>
+              )}
               <div className="flex items-center space-x-1 mt-1">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 <span className="text-sm font-medium">
