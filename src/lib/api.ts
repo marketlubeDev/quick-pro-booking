@@ -1,5 +1,45 @@
 const API_BASE_URL = "http://localhost:5000";
 
+// Generic fetch function for API calls
+export async function apiFetch<T = unknown>(
+  endpoint: string,
+  options: {
+    method?: string;
+    body?: unknown;
+    signal?: AbortSignal;
+  } = {}
+): Promise<T> {
+  const { method = "GET", body, signal } = options;
+
+  try {
+    const config: RequestInit = {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      signal,
+    };
+
+    if (body && method !== "GET") {
+      config.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.message || `HTTP error! status: ${response.status}`
+      );
+    }
+
+    return result;
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+}
+
 export interface ContactFormData {
   service: string;
   description: string;
@@ -130,7 +170,7 @@ export const contactApi = {
   },
 
   async checkHealth(): Promise<ApiResponse> {
-    return api.get("/health");
+    return api.get("/api/health");
   },
 };
 

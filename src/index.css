@@ -33,6 +33,15 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
+    --warning: 43 96% 64%;
+    --warning-foreground: 210 75% 20%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --info: 210 75% 20%;
+    --info-foreground: 0 0% 100%;
+
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 210 75% 20%;
@@ -64,6 +73,15 @@
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
+
+    --warning: 43 96% 64%;
+    --warning-foreground: 210 75% 20%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --info: 210 75% 20%;
+    --info-foreground: 0 0% 100%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
@@ -160,4 +178,42 @@
 .ripple-effect:active::before {
   width: 300px;
   height: 300px;
+}
+
+@layer components {
+  .stat-card {
+    @apply bg-card text-card-foreground rounded-xl p-6 border border-border/50 shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors;
+  }
+
+  .status-pending {
+    @apply bg-warning text-warning-foreground;
+  }
+
+  .status-active {
+    @apply bg-info text-info-foreground;
+  }
+
+  .status-completed {
+    @apply bg-success text-success-foreground;
+  }
+
+  .status-cancelled {
+    @apply bg-destructive text-destructive-foreground;
+  }
+
+  .priority-high {
+    @apply text-destructive;
+  }
+
+  .priority-medium {
+    @apply text-warning;
+  }
+
+  .priority-low {
+    @apply text-muted-foreground;
+  }
 }

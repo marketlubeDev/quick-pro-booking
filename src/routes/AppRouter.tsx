@@ -1,6 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import RootLayout from "@/layouts/RootLayout";
-
 import Index from "@/pages/Index";
 import Services from "@/pages/Services";
 import ServiceDetail from "@/pages/ServiceDetail";
@@ -16,17 +15,15 @@ import Terms from "@/pages/Terms";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
 import SignUp from "@/pages/SignUp";
-
 import Employee from "@/pages/Employee";
 import EmployeeProfile from "@/pages/employee/Profile";
 import EmployeeJobs from "@/pages/employee/Jobs";
-
 import Admin from "@/pages/admin/Admin";
-import AdminDashboard from "@/pages/admin/Dashboard";
-import AdminBookings from "@/pages/admin/Bookings";
-import AdminServices from "@/pages/admin/Services";
-import AdminUsers from "@/pages/admin/Users";
-import AdminSettings from "@/pages/admin/Settings";
+import { Dashboard } from "@/pages/admin/Dashboard";
+import { ServiceRequests } from "@/pages/admin/ServiceRequests";
+import { EmployeeApplications } from "@/pages/admin/EmployeeApplications";
+import { Reports } from "@/pages/admin/Reports";
+import { Settings } from "@/pages/admin/Settings";
 
 export const router = createBrowserRouter([
   {
@@ -61,11 +58,11 @@ export const router = createBrowserRouter([
     path: "/admin",
     element: <Admin />,
     children: [
-      { index: true, element: <AdminDashboard /> },
-      { path: "bookings", element: <AdminBookings /> },
-      { path: "services", element: <AdminServices /> },
-      { path: "users", element: <AdminUsers /> },
-      { path: "settings", element: <AdminSettings /> },
+      { index: true, element: <Dashboard /> },
+      { path: "service-requests", element: <ServiceRequests /> },
+      { path: "employee-applications", element: <EmployeeApplications /> },
+      { path: "reports", element: <Reports /> },
+      { path: "settings", element: <Settings /> },
     ],
   },
   { path: "*", element: <NotFound /> },
