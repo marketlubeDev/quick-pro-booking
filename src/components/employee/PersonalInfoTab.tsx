@@ -4,6 +4,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Card,
   CardContent,
   CardHeader,
@@ -20,6 +27,8 @@ import {
   X,
   CheckCircle,
   Shield,
+  DollarSign,
+  Star,
 } from "lucide-react";
 import { employeeApi, type EmployeeProfileData } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -246,6 +255,56 @@ const PersonalInfoTab = ({
                 />
               </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="level" className="text-sm font-medium">
+                Experience Level *
+              </Label>
+              <div className="relative">
+                <Star className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Select
+                  value={form.level || "Intermediate"}
+                  onValueChange={(value) => onFormChange("level", value)}
+                >
+                  <SelectTrigger className="h-11 pl-10">
+                    <SelectValue placeholder="Select your experience level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Beginner">Beginner</SelectItem>
+                    <SelectItem value="Intermediate">Intermediate</SelectItem>
+                    <SelectItem value="Expert">Expert</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Select your professional experience level
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="expectedSalary" className="text-sm font-medium">
+                Expected Salary
+              </Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="expectedSalary"
+                  type="number"
+                  value={form.expectedSalary || ""}
+                  onChange={(e) =>
+                    onFormChange(
+                      "expectedSalary",
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
+                  placeholder="Enter your expected salary"
+                  className="h-11 pl-10"
+                  min="0"
+                  step="100"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Your expected annual salary in USD
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -321,7 +380,7 @@ const PersonalInfoTab = ({
                       </div>
                       <div className="flex items-center gap-2 text-sm text-blue-700">
                         <CheckCircle className="h-4 w-4" />
-                        <span>Upload valid ID documents</span>
+                        <span>Add your skills</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-blue-700">
                         <CheckCircle className="h-4 w-4" />

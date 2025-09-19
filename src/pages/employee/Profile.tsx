@@ -19,7 +19,6 @@ import {
   CheckCircle,
 } from "lucide-react";
 import PersonalInfoTab from "@/components/employee/PersonalInfoTab";
-import ProfessionalInfoTab from "@/components/employee/ProfessionalInfoTab";
 import SkillsCertificationsTab from "@/components/employee/SkillsCertificationsTab";
 
 const EmployeeProfile = () => {
@@ -50,8 +49,8 @@ const EmployeeProfile = () => {
   React.useEffect(() => {
     if (profile) {
       setForm({
-        fullName: profile.user.name || "",
-        email: profile.user.email || "",
+        fullName: profile.fullName || profile.user?.name || "",
+        email: profile.email || profile.user?.email || "",
         phone: profile.phone || "",
         city: profile.city || "",
         level: profile.level || "Intermediate",
@@ -70,6 +69,21 @@ const EmployeeProfile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Basic validation for required fields
+    if (!form.fullName.trim()) {
+      alert("Please enter your full name");
+      return;
+    }
+    if (!form.email.trim()) {
+      alert("Please enter your email address");
+      return;
+    }
+    if (!form.phone.trim()) {
+      alert("Please enter your phone number");
+      return;
+    }
+
     await updateProfile(form);
   };
 
@@ -181,19 +195,19 @@ const EmployeeProfile = () => {
 
         {/* Tabbed Content */}
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm">
-            <TabsTrigger value="personal" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm">
+            <TabsTrigger
+              value="personal"
+              className="w-full flex items-center justify-center gap-2"
+            >
               <User className="h-4 w-4" />
               Personal Info
             </TabsTrigger>
+
             <TabsTrigger
-              value="professional"
-              className="flex items-center gap-2"
+              value="skills"
+              className="w-full flex items-center justify-center gap-2"
             >
-              <Briefcase className="h-4 w-4" />
-              Professional
-            </TabsTrigger>
-            <TabsTrigger value="skills" className="flex items-center gap-2">
               <Award className="h-4 w-4" />
               Skills & Certifications
             </TabsTrigger>
@@ -209,12 +223,6 @@ const EmployeeProfile = () => {
                 // onUploadImage={uploadProfileImage}
               />
             </TabsContent>
-
-            {/* Professional Information Tab */}
-            <TabsContent value="professional">
-              <ProfessionalInfoTab form={form} onFormChange={handleChange} />
-            </TabsContent>
-
             {/* Skills & Certifications Tab */}
             <TabsContent value="skills">
               <SkillsCertificationsTab

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import {
   employeeApi,
   type EmployeeProfileData,
   type WorkExperience,
+  type Certification,
 } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
@@ -41,6 +42,14 @@ const SkillsCertificationsTab = ({
   const [uploading, setUploading] = useState(false);
   const [newCertInput, setNewCertInput] = useState("");
   const [newCertFile, setNewCertFile] = useState<File | null>(null);
+  const [skillsInput, setSkillsInput] = useState("");
+
+  // Initialize skillsInput when form.skills changes
+  useEffect(() => {
+    if (form.skills && form.skills.length > 0) {
+      setSkillsInput(form.skills.join(", "));
+    }
+  }, [form.skills]);
 
   // Work experience form state
   const [newWorkExp, setNewWorkExp] = useState<Partial<WorkExperience>>({
@@ -68,11 +77,17 @@ const SkillsCertificationsTab = ({
     try {
       setUploading(true);
       const res = await employeeApi.uploadCertificates([newCertFile]);
-      if (res.success) {
-        onFormChange(
-          "certifications",
-          Array.from(new Set([...(form.certifications || []), name]))
-        );
+      if (res.success && res.data) {
+        // Prefer server's authoritative list
+        let updatedCerts = res.data.certifications || [];
+        // If user typed a name, apply it to the most recently added item
+        if (name && updatedCerts.length > 0) {
+          const lastIndex = updatedCerts.length - 1;
+          updatedCerts = updatedCerts.map((c, idx) =>
+            idx === lastIndex ? { ...c, name } : c
+          );
+        }
+        onFormChange("certifications", updatedCerts);
         setNewCertInput("");
         setNewCertFile(null);
         const fileInput = document.getElementById(
@@ -90,10 +105,10 @@ const SkillsCertificationsTab = ({
     }
   };
 
-  const handleRemoveCertification = (value: string) => {
+  const handleRemoveCertification = (cert: Certification) => {
     onFormChange(
       "certifications",
-      (form.certifications || []).filter((c) => c !== value)
+      (form.certifications || []).filter((c) => c.name !== cert.name)
     );
   };
 
@@ -167,20 +182,35 @@ const SkillsCertificationsTab = ({
               <Input
                 id="skills"
                 placeholder="e.g., Plumbing, Pipe Installation, Electrical Work"
-                value={(form.skills || []).join(", ")}
-                onChange={(e) =>
-                  onFormChange(
-                    "skills",
-                    e.target.value
+                value={skillsInput}
+                onChange={(e) => {
+                  setSkillsInput(e.target.value);
+                }}
+                onBlur={() => {
+                  // Process skills when user leaves the input field
+                  const skills = skillsInput
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+                  onFormChange("skills", skills);
+                }}
+                onKeyDown={(e) => {
+                  // Process skills when user presses Enter
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const skills = skillsInput
                       .split(",")
                       .map((s) => s.trim())
-                      .filter(Boolean)
-                  )
-                }
+                      .filter(Boolean);
+                    onFormChange("skills", skills);
+                    setSkillsInput("");
+                  }
+                }}
                 className="h-11"
               />
               <p className="text-xs text-muted-foreground">
-                Separate multiple skills with commas
+                Separate multiple skills with commas, then press Enter or click
+                outside to add them
               </p>
             </div>
 
@@ -188,13 +218,24 @@ const SkillsCertificationsTab = ({
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Your Skills</Label>
                 <div className="flex flex-wrap gap-2">
-                  {skillsDisplay.map((skill) => (
+                  {skillsDisplay.map((skill, index) => (
                     <Badge
-                      key={skill}
+                      key={index}
                       variant="secondary"
-                      className="px-3 py-1 bg-blue-100 text-blue-800 hover:bg-blue-200"
+                      className="px-3 py-1 bg-blue-100 text-blue-800 hover:bg-blue-200 flex items-center gap-1"
                     >
                       {skill}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedSkills =
+                            form.skills?.filter((_, i) => i !== index) || [];
+                          onFormChange("skills", updatedSkills);
+                        }}
+                        className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   ))}
                 </div>
@@ -278,13 +319,13 @@ const SkillsCertificationsTab = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {form.certifications.map((cert) => (
                     <div
-                      key={cert}
+                      key={cert.name}
                       className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
                     >
                       <div className="flex items-center gap-2">
                         <Award className="h-4 w-4 text-green-600" />
                         <span className="text-sm font-medium text-green-800">
-                          {cert}
+                          {cert.name}
                         </span>
                       </div>
                       <Button
