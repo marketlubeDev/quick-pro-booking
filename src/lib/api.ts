@@ -283,6 +283,17 @@ export const authApi = {
 };
 
 // Employee profile types and API
+export interface WorkExperience {
+  id?: string;
+  company: string;
+  position: string;
+  startDate: string;
+  endDate?: string;
+  current: boolean;
+  description: string;
+  location?: string;
+}
+
 export interface EmployeeProfileData {
   id?: string;
   fullName: string;
@@ -296,6 +307,7 @@ export interface EmployeeProfileData {
   totalJobs?: number;
   skills?: string[];
   certifications?: string[];
+  workExperience?: WorkExperience[];
   expectedSalary?: number;
   appliedDate?: string; // ISO string
 }
