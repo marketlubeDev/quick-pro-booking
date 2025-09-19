@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { employeeApi, type EmployeeProfileData } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
+import { type EmployeeProfileData } from "@/lib/api";
+import { useProfile } from "@/hooks/useProfile";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,9 +23,16 @@ import ProfessionalInfoTab from "@/components/employee/ProfessionalInfoTab";
 import SkillsCertificationsTab from "@/components/employee/SkillsCertificationsTab";
 
 const EmployeeProfile = () => {
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [profile, setProfile] = useState<EmployeeProfileData | null>(null);
+  const {
+    profile,
+    profileCompletion,
+    loading,
+    error,
+    updateProfile,
+    uploadProfileImage,
+    uploadCertificates,
+  } = useProfile();
+
   const [form, setForm] = useState<EmployeeProfileData>({
     fullName: "",
     email: "",
@@ -39,43 +46,23 @@ const EmployeeProfile = () => {
     verified: false,
   });
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        setLoading(true);
-        // Replace with real API; if backend not ready, keep mock defaults
-        const res = await employeeApi.getProfile();
-        if (res?.success && res.data && mounted) {
-          setProfile(res.data);
-          setForm({
-            fullName: res.data.fullName,
-            email: res.data.email,
-            phone: res.data.phone,
-            city: res.data.city || "",
-            level: res.data.level || "Intermediate",
-            skills: res.data.skills || [],
-            certifications: res.data.certifications || [],
-            workExperience: res.data.workExperience || [],
-            expectedSalary: res.data.expectedSalary,
-            verified: res.data.verified || false,
-          });
-        }
-      } catch (e) {
-        // Silent fallback to empty form; show informational toast
-        toast({
-          title: "Using local profile",
-          description:
-            "Backend not reachable. Edit and save to update when online.",
-        });
-      } finally {
-        setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [toast]);
+  // Update form when profile data is loaded
+  React.useEffect(() => {
+    if (profile) {
+      setForm({
+        fullName: profile.user.name || "",
+        email: profile.user.email || "",
+        phone: profile.phone || "",
+        city: profile.city || "",
+        level: profile.level || "Intermediate",
+        skills: profile.skills || [],
+        certifications: profile.certifications || [],
+        workExperience: profile.workExperience || [],
+        expectedSalary: profile.expectedSalary,
+        verified: profile.verified || false,
+      });
+    }
+  }, [profile]);
 
   const handleChange = (field: keyof EmployeeProfileData, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -83,21 +70,27 @@ const EmployeeProfile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-      const res = await employeeApi.updateProfile(form);
-      if (res.success) {
-        setProfile(res.data!);
-        toast({ title: "Profile updated" });
-      } else {
-        toast({ title: "Update failed", description: res.message });
-      }
-    } catch (err) {
-      toast({ title: "Network error", description: "Could not save profile" });
-    } finally {
-      setLoading(false);
-    }
+    await updateProfile(form);
   };
+
+  if (error && !profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 flex items-center justify-center">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-6 text-center">
+            <div className="text-red-500 mb-4">
+              <CheckCircle className="h-12 w-12 mx-auto" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">
+              Error Loading Profile
+            </h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
@@ -108,7 +101,10 @@ const EmployeeProfile = () => {
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
               <div className="relative">
                 <Avatar className="h-24 w-24 border-4 border-white/20">
-                  <AvatarImage alt={form.fullName} src="" />
+                  <AvatarImage
+                    alt={form.fullName}
+                    src={profile?.avatarUrl || ""}
+                  />
                   <AvatarFallback className="text-2xl font-bold bg-white/20 text-white">
                     {form.fullName
                       ? form.fullName
@@ -119,6 +115,13 @@ const EmployeeProfile = () => {
                       : "EP"}
                   </AvatarFallback>
                 </Avatar>
+                {profileCompletion && (
+                  <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-2 shadow-lg">
+                    <div className="text-xs font-semibold text-gray-700">
+                      {profileCompletion.completion}%
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex-1 text-center md:text-left">
@@ -203,6 +206,7 @@ const EmployeeProfile = () => {
                 form={form}
                 onFormChange={handleChange}
                 loading={loading}
+                // onUploadImage={uploadProfileImage}
               />
             </TabsContent>
 
@@ -216,6 +220,8 @@ const EmployeeProfile = () => {
               <SkillsCertificationsTab
                 form={form}
                 onFormChange={handleChange}
+
+                // onUploadCertificates={uploadCertificates}
               />
             </TabsContent>
 

@@ -294,48 +294,85 @@ export interface WorkExperience {
   location?: string;
 }
 
+export interface Certification {
+  name: string;
+  fileUrl: string;
+  uploadedAt: string;
+}
+
 export interface EmployeeProfileData {
   id?: string;
   fullName: string;
   email: string;
   phone: string;
   city?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  avatarUrl?: string;
+  bio?: string;
   level?: "Beginner" | "Intermediate" | "Expert";
   status?: "pending" | "approved" | "rejected";
   verified?: boolean;
+  verificationStatus?: "pending" | "verified" | "rejected";
+  verificationNotes?: string;
   rating?: number;
   totalJobs?: number;
   skills?: string[];
-  certifications?: string[];
+  certifications?: Certification[];
   workExperience?: WorkExperience[];
   expectedSalary?: number;
+  profileComplete?: boolean;
+  lastUpdated?: string;
   appliedDate?: string; // ISO string
+  user?: {
+    name: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+    createdAt: string;
+  };
+}
+
+export interface ProfileCompletionData {
+  completion: number;
+  missingFields: string[];
+  profileComplete: boolean;
 }
 
 export const employeeApi = {
   async getProfile(): Promise<ApiResponse<EmployeeProfileData>> {
-    return api.get<EmployeeProfileData>("/api/employees/me");
+    return api.get<EmployeeProfileData>("/api/profile/");
   },
 
   async updateProfile(
     data: Partial<EmployeeProfileData>
   ): Promise<ApiResponse<EmployeeProfileData>> {
-    return api.post<EmployeeProfileData>("/api/employees/me", data);
+    return apiFetch<ApiResponse<EmployeeProfileData>>("/api/profile/", {
+      method: "PATCH",
+      body: data,
+    });
   },
 
-  async uploadCertificates(
-    files: File[]
-  ): Promise<ApiResponse<{ certifications: string[] }>> {
+  async getProfileCompletion(): Promise<ApiResponse<ProfileCompletionData>> {
+    return api.get<ProfileCompletionData>("/api/profile/completion");
+  },
+
+  async uploadProfileImage(
+    file: File
+  ): Promise<ApiResponse<{ avatarUrl: string }>> {
     const formData = new FormData();
-    files.forEach((file) => formData.append("certificates", file));
+    formData.append("profileImage", file);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/employees/me/certificates`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/profile/upload-image`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: formData,
+      });
       const result = await response.json();
       if (!response.ok) {
         throw new Error(
@@ -349,14 +386,14 @@ export const employeeApi = {
     }
   },
 
-  async uploadProfileImage(
-    file: File
-  ): Promise<ApiResponse<{ profileImageUrl: string }>> {
+  async uploadCertificates(
+    files: File[]
+  ): Promise<ApiResponse<{ certifications: Certification[] }>> {
     const formData = new FormData();
-    formData.append("profileImage", file);
+    files.forEach((file) => formData.append("certificates", file));
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/employees/me/profile-image`,
+        `${API_BASE_URL}/api/profile/upload-certificates`,
         {
           method: "POST",
           headers: {
