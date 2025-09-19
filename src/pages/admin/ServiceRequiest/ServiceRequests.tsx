@@ -105,7 +105,7 @@ export function ServiceRequests() {
     if (allForCounts) {
       return {
         pending: Number(allForCounts.countsByStatus.pending) || 0,
-        inProcess: Number(allForCounts.countsByStatus.inProcess) || 0,
+        inProcess: Number(allForCounts.countsByStatus["in-process"]) || 0,
         completed: Number(allForCounts.countsByStatus.completed) || 0,
         cancelled: Number(allForCounts.countsByStatus.cancelled) || 0,
       };

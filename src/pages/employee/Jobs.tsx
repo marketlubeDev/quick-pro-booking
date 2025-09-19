@@ -120,7 +120,7 @@ const EmployeeJobs = () => {
       case "pending":
         return allJobs.filter(job => job.status === "pending" && !job.employeeAccepted);
       case "accepted":
-        return allJobs.filter(job => job.employeeAccepted && job.status === "in-progress");
+        return allJobs.filter(job => job.employeeAccepted && (job.status === "in-process" || job.status === "in-progress"));
       case "completed":
         return allJobs.filter(job => job.status === "completed");
       default:
@@ -134,8 +134,8 @@ const EmployeeJobs = () => {
     if (job.status === "completed") {
       return { icon: CheckCircle, text: "Completed", color: "text-green-600" };
     }
-    if (job.employeeAccepted && job.status === "in-progress") {
-      return { icon: Clock, text: "In Progress", color: "text-blue-600" };
+    if (job.employeeAccepted && (job.status === "in-process" || job.status === "in-progress")) {
+      return { icon: Clock, text: "In Process", color: "text-blue-600" };
     }
     if (job.status === "pending" && !job.employeeAccepted) {
       return { icon: AlertCircle, text: "Pending Acceptance", color: "text-orange-600" };
@@ -171,21 +171,251 @@ const EmployeeJobs = () => {
             Pending ({allJobs.filter(job => job.status === "pending" && !job.employeeAccepted).length})
           </TabsTrigger>
           <TabsTrigger value="accepted">
-            In Progress ({allJobs.filter(job => job.employeeAccepted && job.status === "in-progress").length})
+            In Process ({allJobs.filter(job => job.employeeAccepted && (job.status === "in-process" || job.status === "in-progress")).length})
           </TabsTrigger>
           <TabsTrigger value="completed">
             Completed ({allJobs.filter(job => job.status === "completed").length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab} className="space-y-4">
+        <TabsContent value="all" className="space-y-4">
+          {activeTab === "all" && (
+            <>
+              {filteredJobs.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-sm text-muted-foreground">
+                    No jobs assigned yet.
+                  </div>
+                </div>
+              ) : (
+                filteredJobs.map((job) => {
+                  const statusInfo = getJobStatusInfo(job);
+                  const StatusIcon = statusInfo.icon;
+                  
+                  return (
+                    <UICard key={job._id || job._id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                        <div className="space-y-1">
+                          <CardTitle className="text-base">
+                            {job.service || job.serviceType}
+                          </CardTitle>
+                          <CardDescription className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {job.address}
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={statusToVariant[job.status] || "secondary"}>
+                            {statusLabels[job.status] || job.status}
+                          </Badge>
+                          <div className={`flex items-center gap-1 text-xs ${statusInfo.color}`}>
+                            <StatusIcon className="h-3 w-3" />
+                            {statusInfo.text}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <div className="flex items-center gap-4">
+                            {(job.scheduledDate && (job as any).scheduledTime) && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>
+                                  {new Date(job.scheduledDate).toLocaleDateString()} at {(job as any).scheduledTime}
+                                </span>
+                              </div>
+                            )}
+                            {job.estimatedCost && job.estimatedCost > 0 && (
+                              <div className="flex items-center gap-1">
+                                <span>${job.estimatedCost}</span>
+                              </div>
+                            )}
+                          </div>
+                          <Button
+                            onClick={() => handleViewJob(job)}
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            View Details
+                          </Button>
+                        </div>
+                        {job.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {job.description}
+                          </p>
+                        )}
+                      </CardContent>
+                    </UICard>
+                  );
+                })
+              )}
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="pending" className="space-y-4">
+          {activeTab === "pending" && (
+            <>
+              {filteredJobs.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-sm text-muted-foreground">
+                    No pending jobs found.
+                  </div>
+                </div>
+              ) : (
+                filteredJobs.map((job) => {
+                  const statusInfo = getJobStatusInfo(job);
+                  const StatusIcon = statusInfo.icon;
+                  
+                  return (
+                    <UICard key={job._id || job._id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                        <div className="space-y-1">
+                          <CardTitle className="text-base">
+                            {job.service || job.serviceType}
+                          </CardTitle>
+                          <CardDescription className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {job.address}
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={statusToVariant[job.status] || "secondary"}>
+                            {statusLabels[job.status] || job.status}
+                          </Badge>
+                          <div className={`flex items-center gap-1 text-xs ${statusInfo.color}`}>
+                            <StatusIcon className="h-3 w-3" />
+                            {statusInfo.text}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <div className="flex items-center gap-4">
+                            {(job.scheduledDate && (job as any).scheduledTime) && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>
+                                  {new Date(job.scheduledDate).toLocaleDateString()} at {(job as any).scheduledTime}
+                                </span>
+                              </div>
+                            )}
+                            {job.estimatedCost && job.estimatedCost > 0 && (
+                              <div className="flex items-center gap-1">
+                                <span>${job.estimatedCost}</span>
+                              </div>
+                            )}
+                          </div>
+                          <Button
+                            onClick={() => handleViewJob(job)}
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            View Details
+                          </Button>
+                        </div>
+                        {job.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {job.description}
+                          </p>
+                        )}
+                      </CardContent>
+                    </UICard>
+                  );
+                })
+              )}
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="accepted" className="space-y-4">
+          {activeTab === "accepted" && (
+            <>
+              {filteredJobs.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-sm text-muted-foreground">
+                    No in process jobs found.
+                  </div>
+                </div>
+              ) : (
+                filteredJobs.map((job) => {
+                  const statusInfo = getJobStatusInfo(job);
+                  const StatusIcon = statusInfo.icon;
+                  
+                  return (
+                    <UICard key={job._id || job._id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                        <div className="space-y-1">
+                          <CardTitle className="text-base">
+                            {job.service || job.serviceType}
+                          </CardTitle>
+                          <CardDescription className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {job.address}
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={statusToVariant[job.status] || "secondary"}>
+                            {statusLabels[job.status] || job.status}
+                          </Badge>
+                          <div className={`flex items-center gap-1 text-xs ${statusInfo.color}`}>
+                            <StatusIcon className="h-3 w-3" />
+                            {statusInfo.text}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <div className="flex items-center gap-4">
+                            {(job.scheduledDate && (job as any).scheduledTime) && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>
+                                  {new Date(job.scheduledDate).toLocaleDateString()} at {(job as any).scheduledTime}
+                                </span>
+                              </div>
+                            )}
+                            {job.estimatedCost && job.estimatedCost > 0 && (
+                              <div className="flex items-center gap-1">
+                                <span>${job.estimatedCost}</span>
+                              </div>
+                            )}
+                          </div>
+                          <Button
+                            onClick={() => handleViewJob(job)}
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            View Details
+                          </Button>
+                        </div>
+                        {job.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {job.description}
+                          </p>
+                        )}
+                      </CardContent>
+                    </UICard>
+                  );
+                })
+              )}
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="completed" className="space-y-4">
+          {activeTab === "completed" && (
+            <>
           {filteredJobs.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-sm text-muted-foreground">
-                {activeTab === "all" 
-                  ? "No jobs assigned yet." 
-                  : `No ${activeTab} jobs found.`
-                }
+                    No completed jobs found.
               </div>
             </div>
           ) : (
@@ -194,7 +424,7 @@ const EmployeeJobs = () => {
               const StatusIcon = statusInfo.icon;
               
               return (
-                <UICard key={job.id || job._id} className="hover:shadow-md transition-shadow">
+                <UICard key={job._id || job._id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="flex flex-row items-start justify-between space-y-0">
                     <div className="space-y-1">
                       <CardTitle className="text-base">
@@ -251,6 +481,8 @@ const EmployeeJobs = () => {
                 </UICard>
               );
             })
+              )}
+            </>
           )}
         </TabsContent>
       </Tabs>

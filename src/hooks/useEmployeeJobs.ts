@@ -28,7 +28,7 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchJobs = useCallback(async () => {
-    if (!user?.id) {
+    if (!user?._id) {
       setLoading(false);
       return;
     }
@@ -37,7 +37,7 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
       setLoading(true);
       setError(null);
       
-      const employeeJobs = await fetchEmployeeJobs(user.id, status);
+      const employeeJobs = await fetchEmployeeJobs(user._id, status);
       setJobs(employeeJobs);
     } catch (err) {
       console.error("Error fetching employee jobs:", err);
@@ -45,17 +45,17 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, status]);
+  }, [user?._id, status]);
 
   const acceptJobAction = useCallback(async (jobId: string) => {
-    if (!user?.id) {
+    if (!user?._id) {
       throw new Error("User not authenticated");
     }
 
     try {
       const input: AcceptJobInput = {
         jobId,
-        employeeId: user.id,
+        employeeId: user._id,
       };
 
       const response = await acceptJob(input);
@@ -65,7 +65,7 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
         setJobs(prevJobs => 
           prevJobs.map(job => 
             job.id === jobId || job._id === jobId
-              ? { ...job, employeeAccepted: true, employeeAcceptedAt: new Date().toISOString(), status: 'in-progress' }
+              ? { ...job, employeeAccepted: true, employeeAcceptedAt: new Date().toISOString(), status: 'in-process' }
               : job
           )
         );
@@ -76,17 +76,17 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
       console.error("Error accepting job:", err);
       throw err;
     }
-  }, [user?.id]);
+  }, [user?._id]);
 
   const completeJobAction = useCallback(async (jobId: string, completionNotes?: string) => {
-    if (!user?.id) {
+    if (!user?._id) {
       throw new Error("User not authenticated");
     }
 
     try {
       const input: CompleteJobInput = {
         jobId,
-        employeeId: user.id,
+        employeeId: user._id,
         completionNotes,
       };
 
@@ -113,17 +113,17 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
       console.error("Error completing job:", err);
       throw err;
     }
-  }, [user?.id]);
+  }, [user?._id]);
 
   const addRemarksAction = useCallback(async (jobId: string, remarks: string) => {
-    if (!user?.id) {
+    if (!user?._id) {
       throw new Error("User not authenticated");
     }
 
     try {
       const input: AddRemarksInput = {
         jobId,
-        employeeId: user.id,
+        employeeId: user._id,
         remarks,
       };
 
@@ -145,7 +145,7 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
       console.error("Error adding remarks:", err);
       throw err;
     }
-  }, [user?.id]);
+  }, [user?._id]);
 
   useEffect(() => {
     fetchJobs();
