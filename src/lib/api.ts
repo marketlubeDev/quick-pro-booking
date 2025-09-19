@@ -1,4 +1,4 @@
-import { EmployeeApplication } from "@/types";
+import { EmployeeApplication, ServiceRequest } from "@/types";
 
 const API_BASE_URL = "http://localhost:5000";
 
@@ -87,6 +87,7 @@ export interface ServiceRequestData {
   state?: string;
   zip: string;
   status?: string;
+  assignedEmployee?: string;
 }
 
 export const api = {
@@ -209,7 +210,20 @@ export const serviceRequestApi = {
   async updateStatus(id: string, status: string): Promise<ApiResponse> {
     return api.post(`/api/service-requests/${id}/status`, { status });
   },
+
+  async updateAssignedEmployee(id: string, assignedEmployee: string | null): Promise<ApiResponse> {
+    return apiFetch<ApiResponse>(`/api/service-requests/${id}/assigned-employee`, {
+      method: "PATCH",
+      body: { assignedEmployee },
+    });
+  },
 };
+
+export interface Employee {
+  _id: string;
+  name: string;
+  email: string;
+}
 
 // Auth types and API
 export interface AuthUser {
@@ -346,6 +360,10 @@ export interface ProfileCompletionData {
 }
 
 export const employeeApi = {
+  async getEmployees(): Promise<ApiResponse<Employee[]>> {
+    return api.get<Employee[]>("/api/users/employees");
+  },
+
   async getProfile(): Promise<ApiResponse<EmployeeProfileData>> {
     return api.get<EmployeeProfileData>("/api/profile/");
   },
@@ -439,5 +457,51 @@ export const adminApi = {
         body: { status, verificationNotes },
       }
     );
+  },
+};
+
+// Dashboard API
+export interface DashboardStats {
+  totalServiceRequests: number;
+  urgentRequests: number;
+  completedToday: number;
+  pendingRequests: number;
+  employeeApplications: number;
+  activeEmployees: number;
+}
+
+export interface EmployeeDashboardStats {
+  profileCompletion: number;
+  activeJobs: number;
+  successRate: number;
+  totalCompletedJobs: number;
+  missingFields: string[];
+}
+
+export interface DashboardOverview {
+  stats: DashboardStats;
+  recentRequests: ServiceRequest[];
+  recentApplications: EmployeeApplication[];
+}
+
+export const dashboardApi = {
+  async getStats(): Promise<ApiResponse<DashboardStats>> {
+    return api.get<DashboardStats>("/api/dashboard/stats");
+  },
+
+  async getRecentRequests(limit: number = 4): Promise<ApiResponse<ServiceRequest[]>> {
+    return api.get<ServiceRequest[]>(`/api/dashboard/recent-requests?limit=${limit}`);
+  },
+
+  async getRecentApplications(limit: number = 3): Promise<ApiResponse<EmployeeApplication[]>> {
+    return api.get<EmployeeApplication[]>(`/api/dashboard/recent-applications?limit=${limit}`);
+  },
+
+  async getOverview(): Promise<ApiResponse<DashboardOverview>> {
+    return api.get<DashboardOverview>("/api/dashboard/overview");
+  },
+
+  async getEmployeeStats(): Promise<ApiResponse<EmployeeDashboardStats>> {
+    return api.get<EmployeeDashboardStats>("/api/dashboard/employee-stats");
   },
 };

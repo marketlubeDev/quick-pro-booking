@@ -27,6 +27,7 @@ export interface ServiceRequest {
   priority: "low" | "medium" | "high";
   createdAt: string;
   scheduledDate?: string;
+  scheduledTime?: string;
   estimatedCost?: number;
 
   // Address variants
@@ -45,6 +46,19 @@ export interface ServiceRequest {
   customerPhone?: string;
   serviceType?: string;
   completedDate?: string;
+  
+  // Employee job management fields
+  assignedEmployee?: string;
+  assignedEmployeeDetails?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  employeeAccepted?: boolean;
+  employeeAcceptedAt?: string;
+  employeeRemarks?: string;
+  completedAt?: string;
+  completionNotes?: string;
 }
 
 export interface EmployeeApplication {
@@ -67,12 +81,19 @@ export interface EmployeeApplication {
   verified?: boolean;
   verificationNotes?: string;
   user?: {
+    _id: string;
     name: string;
     email: string;
     role: string;
     isActive: boolean;
     createdAt: string;
   };
+}
+
+export interface Employee {
+  _id: string;
+  name: string;
+  email: string;
 }
 
 export interface DashboardStats {

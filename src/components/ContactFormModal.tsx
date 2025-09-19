@@ -21,7 +21,7 @@ import {
   CommandEmpty,
 } from "./ui/command";
 import { useRef } from "react";
-import { serviceRequestApi } from "@/lib/api";
+import { serviceRequestApi, employeeApi, Employee } from "@/lib/api";
 import { toast } from "sonner";
 import {
   sanitizePhone,
@@ -58,6 +58,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     address: "",
     city: "",
     zip: "",
+    assignedEmployee: "",
   });
   const [zipError, setZipError] = useState("");
   const [serviceAvailable, setServiceAvailable] = useState(true);
@@ -68,6 +69,24 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const [step2Error, setStep2Error] = useState("");
   const [step2PhoneError, setStep2PhoneError] = useState("");
   const [step2EmailError, setStep2EmailError] = useState("");
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+
+  // Function to fetch employees
+  const fetchEmployees = async () => {
+    try {
+      setLoadingEmployees(true);
+      const response = await employeeApi.getEmployees();
+      if (response.success && response.data) {
+        setEmployees(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      toast.error("Failed to load employees");
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
 
   function isValidEmail(email: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -385,6 +404,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         service: sanitizeInputField(mappedService),
         zip: sanitizeZipCode(zipCode || ""),
       }));
+
+      // Fetch employees when modal opens
+      fetchEmployees();
     }
   }, [isOpen, selectedService, zipCode]);
 
@@ -404,6 +426,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         address: "",
         city: "",
         zip: "",
+        assignedEmployee: "",
       });
     }
   }, [isOpen]);
@@ -589,6 +612,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         state: "MD",
         zip: formData.zip,
         status: "pending",
+        assignedEmployee: formData.assignedEmployee || undefined,
       });
 
       console.log(result);
@@ -614,6 +638,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           address: "",
           city: "",
           zip: "",
+          assignedEmployee: "",
         });
       } else {
         setSubmitError(
@@ -696,6 +721,25 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   {services.map((service) => (
                     <SelectItem key={service} value={service.toLowerCase()}>
                       {service}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="assignedEmployee">Assign to Employee (Optional)</Label>
+              <Select
+                value={formData.assignedEmployee || undefined}
+                onValueChange={(value) => handleInputChange("assignedEmployee", value || "")}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={loadingEmployees ? "Loading employees..." : "Select an employee (optional)"} />
+                </SelectTrigger>
+                <SelectContent className="z-[1000]">
+                  {employees.map((employee) => (
+                    <SelectItem key={employee._id} value={employee._id}>
+                      {employee.name} ({employee.email})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -980,6 +1024,13 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 {formData.email && (
                   <li>
                     <strong>Email:</strong> {formData.email}
+                  </li>
+                )}
+                {formData.assignedEmployee && (
+                  <li>
+                    <strong>Assigned Employee:</strong> {
+                      employees.find(emp => emp._id === formData.assignedEmployee)?.name || "Unknown"
+                    }
                   </li>
                 )}
               </ul>

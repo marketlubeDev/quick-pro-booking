@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Search, Filter, Plus, Users, Loader2 } from "lucide-react";
 import { EmployeeApplicationCard } from "./EmployeeApplicationCard";
+import { EmployeeDetailModal } from "./EmployeeDetailModal";
 import { EmployeeApplication } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,8 @@ export function EmployeeApplications() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [experienceFilter, setExperienceFilter] = useState<string>("all");
+  const [selectedApplication, setSelectedApplication] = useState<EmployeeApplication | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const { applications, loading, error, updateStatus } =
     useEmployeeApplications();
@@ -48,8 +51,13 @@ export function EmployeeApplications() {
   });
 
   const handleViewDetails = (application: EmployeeApplication) => {
-    console.log("View details for:", application);
-    // In a real app, this would open a detailed view modal or navigate to a detail page
+    setSelectedApplication(application);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedApplication(null);
   };
 
   const handleApprove = async (applicationId: string) => {
@@ -208,6 +216,13 @@ export function EmployeeApplications() {
           </div>
         </div>
       )}
+
+      {/* Employee Detail Modal */}
+      <EmployeeDetailModal
+        application={selectedApplication}
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+      />
     </div>
   );
 }

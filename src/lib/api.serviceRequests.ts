@@ -249,6 +249,7 @@ export type UpdateServiceRequestInput = {
   id: string;
   status?: ServiceRequest["status"];
   scheduledDate?: string;
+  assignedEmployee?: string | null;
 };
 
 export async function updateServiceRequest(

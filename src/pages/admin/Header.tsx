@@ -31,26 +31,26 @@ export function Header({ title, subtitle }: HeaderProps) {
   };
 
   // Define action buttons for specific pages
-  const getActionButton = () => {
-    switch (location.pathname) {
-      case "/admin/service-requests":
-        return (
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Request
-          </Button>
-        );
-      case "/admin/employee-applications":
-        return (
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Invite Employee
-          </Button>
-        );
-      default:
-        return null;
-    }
-  };
+  // const getActionButton = () => {
+  //   switch (location.pathname) {
+  //     case "/admin/service-requests":
+  //       return (
+  //         <Button>
+  //           <Plus className="h-4 w-4 mr-2" />
+  //           Add Request
+  //         </Button>
+  //       );
+  //     case "/admin/employee-applications":
+  //       return (
+  //         <Button>
+  //           <Plus className="h-4 w-4 mr-2" />
+  //           Invite Employee
+  //         </Button>
+  //       );
+  //     default:
+  //       return null;
+  //   }
+  // };
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center gap-4 px-6">
@@ -67,10 +67,10 @@ export function Header({ title, subtitle }: HeaderProps) {
         </div>
 
         {/* Action Button */}
-        {getActionButton()}
+        {/* {getActionButton()} */}
 
         {/* Notifications */}
-        <Button variant="ghost" size="sm" className="relative">
+        {/* <Button variant="ghost" size="sm" className="relative">
           <Bell className="h-5 w-5" />
           <Badge
             variant="destructive"
@@ -78,7 +78,7 @@ export function Header({ title, subtitle }: HeaderProps) {
           >
             3
           </Badge>
-        </Button>
+        </Button> */}
 
         {/* User Profile Dropdown */}
         <DropdownMenu>

@@ -8,12 +8,17 @@ import {
   XCircle,
   AlertTriangle,
   Eye,
+  User,
 } from "lucide-react";
-import { ServiceRequest } from "@/types";
+import { ServiceRequest, Employee } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { employeeApi, serviceRequestApi } from "@/lib/api";
+import { toast } from "sonner";
 
 interface ServiceRequestCardProps {
   request: ServiceRequest;
@@ -21,6 +26,7 @@ interface ServiceRequestCardProps {
   onAccept?: (requestId: string) => void;
   onComplete?: (requestId: string) => void;
   onReject?: (requestId: string) => void;
+  onEmployeeChange?: (requestId: string, employeeId: string | null) => void;
 }
 
 function getStatusBadgeVariant(
@@ -78,7 +84,64 @@ export function ServiceRequestCard({
   onAccept,
   onComplete,
   onReject,
+  onEmployeeChange,
 }: ServiceRequestCardProps) {
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+  const [updatingEmployee, setUpdatingEmployee] = useState(false);
+
+  // Fetch employees on component mount
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        setLoadingEmployees(true);
+        const response = await employeeApi.getEmployees();
+        if (response.success && response.data) {
+          setEmployees(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching employees:", error);
+        toast.error("Failed to load employees");
+      } finally {
+        setLoadingEmployees(false);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
+
+  const handleEmployeeChange = async (employeeId: string | null) => {
+    try {
+      setUpdatingEmployee(true);
+      const response = await serviceRequestApi.updateAssignedEmployee(
+        (request._id || request.id) as string,
+        employeeId
+      );
+      
+      if (response.success) {
+        toast.success("Employee assignment updated successfully");
+        onEmployeeChange?.((request._id || request.id) as string, employeeId);
+      } else {
+        toast.error("Failed to update employee assignment");
+      }
+    } catch (error) {
+      console.error("Error updating assigned employee:", error);
+      toast.error("Failed to update employee assignment");
+    } finally {
+      setUpdatingEmployee(false);
+    }
+  };
+
+  const getAssignedEmployeeName = () => {
+    if (request.assignedEmployeeDetails) {
+      return request.assignedEmployeeDetails.name;
+    }
+    if (request.assignedEmployee) {
+      const employee = employees.find(emp => emp._id === request.assignedEmployee);
+      return employee?.name || "Unknown Employee";
+    }
+    return null;
+  };
   return (
     <Card className="hover:shadow-md transition-all duration-200 border-border/50">
       <CardHeader className="pb-3">
@@ -121,6 +184,56 @@ export function ServiceRequestCard({
               {request.address} {request.city} {request.state} {request.zip}
             </span>
           </div>
+        </div>
+
+        {/* Assigned Employee */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-sm">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Assigned Employee:</span>
+            </div>
+            {request.assignedEmployee && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleEmployeeChange(null)}
+                disabled={updatingEmployee}
+                className="h-6 px-2 text-xs"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+          <Select
+            value={request.assignedEmployee || undefined}
+            onValueChange={(value) => handleEmployeeChange(value)}
+            disabled={updatingEmployee || loadingEmployees}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue 
+                placeholder={
+                  loadingEmployees 
+                    ? "Loading employees..." 
+                    : updatingEmployee 
+                    ? "Updating..." 
+                    : "Select an employee"
+                } 
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {employees.map((employee) => (
+                <SelectItem key={employee._id} value={employee._id}>
+                  {employee.name} ({employee.email})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {getAssignedEmployeeName() && (
+            <p className="text-xs text-muted-foreground">
+              Currently assigned to: <span className="font-medium">{getAssignedEmployeeName()}</span>
+            </p>
+          )}
         </div>
 
         {/* Dates and Cost */}

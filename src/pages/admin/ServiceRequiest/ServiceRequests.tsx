@@ -19,6 +19,7 @@ import {
   updateServiceRequest,
   fetchServiceRequestsSummary,
   fetchServiceRequests,
+  UpdateServiceRequestInput,
 } from "@/lib/api.serviceRequests";
 import { ScheduleServiceDialog } from "./ScheduleServiceDialog";
 
@@ -201,6 +202,14 @@ export function ServiceRequests() {
     });
   };
 
+  const handleEmployeeChange = (requestId: string, employeeId: string | null) => {
+    const updateData: UpdateServiceRequestInput = {
+      id: requestId,
+      assignedEmployee: employeeId,
+    };
+    updateMutation.mutate(updateData);
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Search and Filters */}
@@ -297,6 +306,7 @@ export function ServiceRequests() {
             onAccept={handleAccept}
             onComplete={handleComplete}
             onReject={handleReject}
+            onEmployeeChange={handleEmployeeChange}
           />
         ))}
       </div>
