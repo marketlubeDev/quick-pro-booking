@@ -7,18 +7,44 @@ export interface NavigationItem {
 }
 
 export interface ServiceRequest {
+  // Support both Mongo-style and app-local ids
   id: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  serviceType: string;
+  _id?: string;
+
+  // Common fields used across components (frontend naming)
+  name?: string;
+  email?: string;
+  phone?: string;
+  service?: string;
   description: string;
-  status: "pending" | "in-process" | "completed" | "cancelled";
+  status:
+    | "pending"
+    | "in-process"
+    | "in-progress"
+    | "completed"
+    | "cancelled"
+    | "rejected";
   priority: "low" | "medium" | "high";
   createdAt: string;
   scheduledDate?: string;
   estimatedCost?: number;
+
+  // Address variants
   address: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+
+  // Preferred scheduling (used in UI)
+  preferredDate?: string;
+  preferredTime?: string;
+
+  // Alternative backend naming (for compatibility with older data)
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  serviceType?: string;
+  completedDate?: string;
 }
 
 export interface EmployeeApplication {

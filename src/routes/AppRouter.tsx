@@ -19,9 +19,9 @@ import Employee from "@/pages/Employee";
 import EmployeeProfile from "@/pages/employee/Profile";
 import EmployeeJobs from "@/pages/employee/Jobs";
 import Admin from "@/pages/admin/Admin";
-import { Dashboard } from "@/pages/admin/Dashboard";
-import { ServiceRequests } from "@/pages/admin/ServiceRequests";
-import { EmployeeApplications } from "@/pages/admin/EmployeeApplications";
+import { Dashboard } from "@/pages/admin/Dashboard/Dashboard";
+import { ServiceRequests } from "@/pages/admin/ServiceRequiest/ServiceRequests";
+import { EmployeeApplications } from "@/pages/admin/EmployeeApplication/EmployeeApplications";
 import { Reports } from "@/pages/admin/Reports";
 import { Settings } from "@/pages/admin/Settings";
 

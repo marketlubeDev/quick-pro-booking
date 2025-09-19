@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useInfiniteServiceRequests } from "../../hooks/useInfiniteServiceRequests";
+import { useInfiniteServiceRequests } from "../../../hooks/useInfiniteServiceRequests";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import {
   updateServiceRequest,

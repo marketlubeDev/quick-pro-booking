@@ -44,8 +44,6 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
         <div className="container mx-auto px-4 text-center">
@@ -90,15 +88,13 @@ const FAQ = () => {
                 <div>
                   <strong>Chat with us on WhatsApp:</strong>
                   <br />
-                  <span className="text-muted-foreground">
-                  +1 240-360-8332
-                  </span>
+                  <span className="text-muted-foreground">+1 240-360-8332</span>
                 </div>
                 <div>
                   <strong>Email us:</strong>
                   <br />
                   <span className="text-muted-foreground">
-                  kasiedu@expedite-consults.com
+                    kasiedu@expedite-consults.com
                   </span>
                 </div>
               </div>
@@ -107,7 +103,6 @@ const FAQ = () => {
         </div>
       </section>
 
-      <Footer />
       <FloatingWhatsApp />
     </div>
   );

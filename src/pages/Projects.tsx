@@ -36,8 +36,7 @@ const Projects = () => {
       title: "Electrical System Upgrade",
       image:
         "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=600&h=400&fit=crop",
-      description:
-        "Complete home electrical system modernization and upgrade",
+      description: "Complete home electrical system modernization and upgrade",
       category: "Electrical",
       duration: "3 days",
       location: "Miami, FL",
@@ -84,8 +83,6 @@ const Projects = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16 lg:py-24">
         <div className="container mx-auto px-4 text-center">
@@ -148,8 +145,6 @@ const Projects = () => {
           </div>
         </div>
       </section>
-
-      <Footer />
       <FloatingWhatsApp />
     </div>
   );
