@@ -231,6 +231,19 @@ export const authApi = {
     }) as unknown as AuthResponse;
   },
 
+  async register(
+    name: string,
+    email: string,
+    password: string
+  ): Promise<AuthResponse> {
+    return api.post<AuthResponse>("/api/auth/register", {
+      name,
+      email,
+      password,
+      role: "employee",
+    }) as unknown as AuthResponse;
+  },
+
   async me(): Promise<{ success: boolean; user: AuthUser }> {
     return api.get("/api/auth/me") as unknown as {
       success: boolean;

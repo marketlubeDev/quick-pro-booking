@@ -12,6 +12,11 @@ type AuthContextValue = {
   token: string | null;
   initializing: boolean;
   login: (email: string, password: string) => Promise<AuthResponse>;
+  register: (
+    name: string,
+    email: string,
+    password: string
+  ) => Promise<AuthResponse>;
   logout: () => void;
   setUser: (u: AuthUser | null) => void;
 };
@@ -50,6 +55,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return resp;
   }, []);
 
+  const register = useCallback(
+    async (name: string, email: string, password: string) => {
+      const resp = await authApi.register(name, email, password);
+      localStorage.setItem("auth_token", resp.token);
+      localStorage.setItem("auth_user", JSON.stringify(resp.user));
+      setToken(resp.token);
+      setUser(resp.user);
+      return resp;
+    },
+    []
+  );
+
   const logout = useCallback(() => {
     try {
       localStorage.removeItem("auth_token");
@@ -62,8 +79,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const value = useMemo(
-    () => ({ user, token, initializing, login, logout, setUser }),
-    [user, token, initializing, login, logout]
+    () => ({ user, token, initializing, login, register, logout, setUser }),
+    [user, token, initializing, login, register, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

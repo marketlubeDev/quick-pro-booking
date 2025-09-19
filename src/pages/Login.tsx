@@ -56,29 +56,6 @@ const Login = () => {
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={handleSubmit}>
-              {/* <div className="space-y-2">
-                <FieldLabel className="text-sm font-medium">
-                  Login as
-                </FieldLabel>
-                <RadioGroup
-                  defaultValue="employee"
-                  className="grid grid-cols-2 gap-3"
-                  name="role"
-                >
-                  <div className="flex items-center space-x-2 rounded-md border p-3">
-                    <RadioGroupItem id="role-employee" value="employee" />
-                    <label htmlFor="role-employee" className="text-sm">
-                      Employee
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2 rounded-md border p-3">
-                    <RadioGroupItem id="role-admin" value="admin" />
-                    <label htmlFor="role-admin" className="text-sm">
-                      Admin
-                    </label>
-                  </div>
-                </RadioGroup>
-              </div> */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
