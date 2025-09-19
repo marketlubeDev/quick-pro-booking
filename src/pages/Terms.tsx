@@ -8,8 +8,6 @@ import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 const Terms = () => {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
         <div className="container mx-auto px-4 text-center">
@@ -200,7 +198,6 @@ const Terms = () => {
         </div>
       </section>
 
-      <Footer />
       <FloatingWhatsApp />
     </div>
   );

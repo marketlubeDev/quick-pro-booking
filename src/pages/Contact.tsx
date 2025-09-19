@@ -32,7 +32,12 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Validate required fields
-    if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.subject.trim() ||
+      !formData.message.trim()
+    ) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -47,7 +52,9 @@ const Contact = () => {
         toast.success("Message sent successfully! We'll get back to you soon.");
         setFormData({ name: "", email: "", subject: "", message: "" });
       } else {
-        toast.error(result.message || "Failed to send message. Please try again.");
+        toast.error(
+          result.message || "Failed to send message. Please try again."
+        );
       }
     } catch (error) {
       toast.error("Network error. Please check your connection and try again.");
@@ -56,8 +63,6 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
         <div className="container mx-auto px-4 text-center">
@@ -146,7 +151,9 @@ const Contact = () => {
                         <Mail className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="font-heading font-semibold mb-2 text-[22px]">Email</h3>
+                        <h3 className="font-heading font-semibold mb-2 text-[22px]">
+                          Email
+                        </h3>
                         <p className="text-muted-foreground mb-2">
                           For detailed inquiries
                         </p>
@@ -281,7 +288,6 @@ const Contact = () => {
         </div>
       </section>
 
-      <Footer />
       <FloatingWhatsApp />
     </div>
   );
