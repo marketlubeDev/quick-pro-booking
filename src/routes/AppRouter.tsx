@@ -15,6 +15,7 @@ import Terms from "@/pages/Terms";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
 import SignUp from "@/pages/SignUp";
+import ForgotPassword from "@/pages/ForgotPassword";
 import Employee from "@/pages/Employee";
 import EmployeeProfile from "@/pages/employee/Profile";
 import EmployeeJobs from "@/pages/employee/Jobs";
@@ -44,6 +45,7 @@ export const router = createBrowserRouter([
     ],
   },
   { path: "/login", element: <Login /> },
+  { path: "/forgot", element: <ForgotPassword /> },
   { path: "/signup", element: <SignUp /> },
   {
     path: "/employee",

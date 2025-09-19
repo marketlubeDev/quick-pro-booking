@@ -80,7 +80,10 @@ const Login = () => {
                 <Link to="/signup" className="text-primary hover:underline">
                   Create account
                 </Link>
-                <Link to="#" className="text-muted-foreground hover:underline">
+                <Link
+                  to="/forgot"
+                  className="text-muted-foreground hover:underline"
+                >
                   Forgot password?
                 </Link>
               </div>

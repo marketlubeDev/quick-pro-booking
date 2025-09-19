@@ -231,6 +231,36 @@ export const authApi = {
     }) as unknown as AuthResponse;
   },
 
+  async forgotPassword(
+    email: string
+  ): Promise<{ success: boolean; message?: string }> {
+    return api.post("/api/auth/forgot-password", { email }) as unknown as {
+      success: boolean;
+      message?: string;
+    };
+  },
+
+  async requestPasswordOtp(
+    email: string
+  ): Promise<{ success: boolean; message?: string }> {
+    return api.post("/api/auth/password-otp", { email }) as unknown as {
+      success: boolean;
+      message?: string;
+    };
+  },
+
+  async resetPasswordWithOtp(
+    email: string,
+    otp: string,
+    newPassword: string
+  ): Promise<{ success: boolean; message?: string }> {
+    return api.post("/api/auth/reset-with-otp", {
+      email,
+      otp,
+      password: newPassword,
+    }) as unknown as { success: boolean; message?: string };
+  },
+
   async register(
     name: string,
     email: string,
@@ -261,6 +291,7 @@ export interface EmployeeProfileData {
   city?: string;
   level?: "Beginner" | "Intermediate" | "Expert";
   status?: "pending" | "approved" | "rejected";
+  verified?: boolean;
   rating?: number;
   totalJobs?: number;
   skills?: string[];
@@ -290,6 +321,35 @@ export const employeeApi = {
         `${API_BASE_URL}/api/employees/me/certificates`,
         {
           method: "POST",
+          body: formData,
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          result.message || `HTTP error! status: ${response.status}`
+        );
+      }
+      return result;
+    } catch (error) {
+      console.error("API Error:", error);
+      throw error;
+    }
+  },
+
+  async uploadProfileImage(
+    file: File
+  ): Promise<ApiResponse<{ profileImageUrl: string }>> {
+    const formData = new FormData();
+    formData.append("profileImage", file);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/employees/me/profile-image`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
           body: formData,
         }
       );
