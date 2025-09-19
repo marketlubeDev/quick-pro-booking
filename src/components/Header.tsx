@@ -22,7 +22,6 @@ const Header = () => {
     { name: "Projects", href: "/projects" },
     { name: "About Us", href: "/about" },
     { name: "FAQ", href: "/faq" },
-    { name: "Login", href: "/login" },
 
     // { name: "Contact", href: "/contact", icon: Phone },
   ];
@@ -122,8 +121,29 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Enhanced CTA Button */}
-          <div className="hidden md:block">
+          {/* Enhanced CTA Buttons */}
+          <div className="hidden md:flex items-center space-x-3">
+            {/* Employee Login Button */}
+            <div className="relative group">
+              <Link to="/login">
+                <PrimaryButton
+                  className="ipad-mini-cta relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30 border-0 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold"
+                >
+                  <span className="relative z-10 flex items-center space-x-2">
+                    <span>Employee Login</span>
+                    <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-white/80 animate-pulse" />
+                    </div>
+                  </span>
+                  {/* Animated background */}
+                  <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12" />
+                  {/* Glow effect - reduced blur and contained */}
+                  <span className="absolute inset-0 bg-primary/30 rounded-lg blur-sm scale-0 group-hover:scale-105 opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                </PrimaryButton>
+              </Link>
+            </div>
+
+            {/* Book a Pro Button */}
             <div className="relative group">
               <PrimaryButton
                 onClick={() => setIsModalOpen(true)}
@@ -231,7 +251,18 @@ const Header = () => {
                   </Link>
                 ))}
 
-                <div className="pt-6 mt-4 border-t border-primary/20">
+                <div className="pt-6 mt-4 border-t border-primary/20 space-y-3">
+                  {/* Employee Login Button */}
+                  <Link to="/login" onClick={() => setIsOpen(false)}>
+                    <PrimaryButton
+                      className="w-full transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold relative overflow-hidden group"
+                    >
+                      <span className="relative z-10">Employee Login</span>
+                      <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12" />
+                    </PrimaryButton>
+                  </Link>
+
+                  {/* Book a Pro Button */}
                   <PrimaryButton
                     className="w-full transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/30 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-semibold relative overflow-hidden group"
                     onClick={() => {

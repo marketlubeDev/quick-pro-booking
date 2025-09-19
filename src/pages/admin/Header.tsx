@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface HeaderProps {
   title?: string;
@@ -21,21 +22,11 @@ interface HeaderProps {
 export function Header({ title, subtitle }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  // Static user data
-  const user = {
-    id: "admin-001",
-    name: "Admin User",
-    email: "admin@skillhand.com",
-    role: "Administrator",
-    avatar: "/placeholder-avatar.jpg",
-  };
-
-  // Static logout function
-  const logout = () => {
-    // Clear any stored auth data
-    localStorage.removeItem("adminUser");
-    // Navigate to login page
+  // Handle logout with proper cleanup
+  const handleLogout = () => {
+    logout();
     navigate("/login");
   };
 
@@ -134,7 +125,7 @@ export function Header({ title, subtitle }: HeaderProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive cursor-pointer"
-              onClick={logout}
+              onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>

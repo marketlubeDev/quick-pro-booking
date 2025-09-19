@@ -25,6 +25,7 @@ import { ServiceRequests } from "@/pages/admin/ServiceRequiest/ServiceRequests";
 import { EmployeeApplications } from "@/pages/admin/EmployeeApplication/EmployeeApplications";
 import { Reports } from "@/pages/admin/Reports";
 import { Settings } from "@/pages/admin/Settings";
+ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
@@ -49,7 +50,11 @@ export const router = createBrowserRouter([
   { path: "/signup", element: <SignUp /> },
   {
     path: "/employee",
-    element: <Employee />,
+    element: (
+      <ProtectedRoute>
+        <Employee />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <Navigate to="profile" replace /> },
       { path: "profile", element: <EmployeeProfile /> },
@@ -58,7 +63,11 @@ export const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <Admin />,
+    element: (
+      <ProtectedRoute>
+        <Admin />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <Dashboard /> },
       { path: "service-requests", element: <ServiceRequests /> },

@@ -6,19 +6,36 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Briefcase, TrendingUp, ShieldCheck } from "lucide-react";
+import { Briefcase, TrendingUp, ShieldCheck, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Employee = () => {
+  const { logout } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
         <Card className="shadow-sm mb-6">
           <CardHeader>
-            <CardTitle className="text-2xl">Employee Dashboard</CardTitle>
-            <CardDescription>Manage your profile and jobs</CardDescription>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="text-2xl">Employee Dashboard</CardTitle>
+                <CardDescription>Manage your profile and jobs</CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={logout}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

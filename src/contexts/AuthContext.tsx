@@ -31,19 +31,62 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    try {
-      const savedToken = localStorage.getItem("auth_token");
-      const savedUserRaw = localStorage.getItem("auth_user");
-      const savedUser = savedUserRaw
-        ? (JSON.parse(savedUserRaw) as AuthUser)
-        : null;
-      setToken(savedToken);
-      setUser(savedUser);
-    } catch {
-      // ignore
-    } finally {
-      setInitializing(false);
-    }
+    const initializeAuth = async () => {
+      try {
+        const savedToken = localStorage.getItem("auth_token");
+        const savedUserRaw = localStorage.getItem("auth_user");
+        
+        if (savedToken && savedUserRaw) {
+          const savedUser = JSON.parse(savedUserRaw) as AuthUser;
+          
+          // Validate token by making a test request to the server
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+            
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/me`, {
+              headers: {
+                'Authorization': `Bearer ${savedToken}`,
+                'Content-Type': 'application/json'
+              },
+              signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+              setToken(savedToken);
+              setUser(savedUser);
+            } else {
+              // Token is invalid, clear storage
+              localStorage.removeItem("auth_token");
+              localStorage.removeItem("auth_user");
+              setToken(null);
+              setUser(null);
+            }
+          } catch (error) {
+            // Network error or server down, keep token but mark as potentially invalid
+            // This allows offline usage while still protecting against invalid tokens
+            console.warn("Auth validation failed:", error);
+            setToken(savedToken);
+            setUser(savedUser);
+          }
+        } else {
+          setToken(null);
+          setUser(null);
+        }
+      } catch (error) {
+        // Clear corrupted data
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("auth_user");
+        setToken(null);
+        setUser(null);
+      } finally {
+        setInitializing(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -74,8 +117,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch {
       // ignore
     }
+    // Force clear state immediately
     setToken(null);
     setUser(null);
+    // Set initializing to true to trigger re-initialization
+    setInitializing(true);
+    // Then set it back to false to complete the logout
+    setTimeout(() => setInitializing(false), 0);
   }, []);
 
   const value = useMemo(

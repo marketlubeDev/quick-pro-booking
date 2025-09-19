@@ -217,6 +217,7 @@ export interface AuthUser {
   name?: string;
   email: string;
   role: "admin" | "employee" | string;
+  avatar?: string;
 }
 
 export interface AuthResponse {
