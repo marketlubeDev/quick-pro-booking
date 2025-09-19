@@ -13,22 +13,33 @@ import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label as FieldLabel } from "@/components/ui/label";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const role = (formData.get("role") as string) || "employee";
-
-    // TODO: Integrate real auth here. For now, redirect based on role.
-    if (role === "employee") {
-      navigate("/employee");
-    } else if (role === "admin") {
-      navigate("/admin");
-    } else {
-      navigate("/");
+    setError(null);
+    setSubmitting(true);
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = (formData.get("email") as string)?.toString().trim();
+      const password = (formData.get("password") as string) || "";
+      if (!email || !password) return;
+      const resp = await login(email, password);
+      const role = resp.user?.role?.toString().toLowerCase();
+      if (role === "admin") navigate("/admin");
+      else navigate("/employee");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Login failed";
+      setError(message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -45,7 +56,7 @@ const Login = () => {
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <FieldLabel className="text-sm font-medium">
                   Login as
                 </FieldLabel>
@@ -67,7 +78,7 @@ const Login = () => {
                     </label>
                   </div>
                 </RadioGroup>
-              </div>
+              </div> */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -96,11 +107,17 @@ const Login = () => {
                   Forgot password?
                 </Link>
               </div>
+              {error && (
+                <p className="text-sm text-red-600" role="alert">
+                  {error}
+                </p>
+              )}
               <Button
                 type="submit"
                 className="w-full bg-primary text-primary-foreground"
+                disabled={submitting}
               >
-                Sign in
+                {submitting ? "Signing in..." : "Sign in"}
               </Button>
             </form>
             <div className="mt-6 text-center text-sm text-muted-foreground">

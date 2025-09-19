@@ -1,5 +1,13 @@
 const API_BASE_URL = "http://localhost:5000";
 
+function getAuthToken(): string | null {
+  try {
+    return localStorage.getItem("auth_token");
+  } catch {
+    return null;
+  }
+}
+
 // Generic fetch function for API calls
 export async function apiFetch<T = unknown>(
   endpoint: string,
@@ -16,6 +24,9 @@ export async function apiFetch<T = unknown>(
       method,
       headers: {
         "Content-Type": "application/json",
+        ...(getAuthToken()
+          ? { Authorization: `Bearer ${getAuthToken()}` }
+          : {}),
       },
       signal,
     };
@@ -83,6 +94,9 @@ export const api = {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(getAuthToken()
+            ? { Authorization: `Bearer ${getAuthToken()}` }
+            : {}),
         },
         body: JSON.stringify(data),
       });
@@ -108,6 +122,9 @@ export const api = {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          ...(getAuthToken()
+            ? { Authorization: `Bearer ${getAuthToken()}` }
+            : {}),
         },
       });
 
@@ -189,6 +206,36 @@ export const serviceRequestApi = {
 
   async updateStatus(id: string, status: string): Promise<ApiResponse> {
     return api.post(`/api/service-requests/${id}/status`, { status });
+  },
+};
+
+// Auth types and API
+export interface AuthUser {
+  _id: string;
+  name?: string;
+  email: string;
+  role: "admin" | "employee" | string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  token: string;
+  user: AuthUser;
+}
+
+export const authApi = {
+  async login(email: string, password: string): Promise<AuthResponse> {
+    return api.post<AuthResponse>("/api/auth/login", {
+      email,
+      password,
+    }) as unknown as AuthResponse;
+  },
+
+  async me(): Promise<{ success: boolean; user: AuthUser }> {
+    return api.get("/api/auth/me") as unknown as {
+      success: boolean;
+      user: AuthUser;
+    };
   },
 };
 
