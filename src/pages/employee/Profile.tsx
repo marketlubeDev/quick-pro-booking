@@ -218,19 +218,18 @@ const EmployeeProfile = () => {
                 onFormChange={handleChange}
               />
             </TabsContent>
-          </form>
 
-          {/* Save Button */}
-          <div className="flex justify-end mt-6">
-            <Button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="min-w-[120px]"
-            >
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
+            {/* Save Button */}
+            <div className="flex justify-end mt-6">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="min-w-[120px]"
+              >
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </form>
         </Tabs>
       </div>
     </div>
