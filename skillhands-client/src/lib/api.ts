@@ -11,6 +11,8 @@ function getAuthToken(): string | null {
   }
 }
 
+console.log(API_BASE_URL, "sdkgfkjshkgdj");
+
 // Generic fetch function for API calls
 export async function apiFetch<T = unknown>(
   endpoint: string,
@@ -525,5 +527,73 @@ export const dashboardApi = {
 
   async getEmployeeStats(): Promise<ApiResponse<EmployeeDashboardStats>> {
     return api.get<EmployeeDashboardStats>("/api/dashboard/employee-stats");
+  },
+};
+
+// Reports API
+export interface ReportsData {
+  serviceRequests: ServiceRequest[];
+  employeePerformance: EmployeePerformance[];
+  stats: {
+    totalRequests: number;
+    completedRequests: number;
+    inProgressRequests: number;
+    pendingRequests: number;
+  };
+}
+
+export interface EmployeePerformance {
+  _id: string;
+  name: string;
+  email: string;
+  completedJobs: number;
+  rating: number;
+  efficiency: number;
+  totalJobs: number;
+  successRate: number;
+}
+
+export const reportsApi = {
+  async getReportsData(
+    timePeriod: string = "last-month"
+  ): Promise<ApiResponse<ReportsData>> {
+    return api.get<ReportsData>(`/api/reports?period=${timePeriod}`);
+  },
+
+  async getServiceRequests(
+    timePeriod: string = "last-month"
+  ): Promise<ApiResponse<ServiceRequest[]>> {
+    return api.get<ServiceRequest[]>(
+      `/api/reports/service-requests?period=${timePeriod}`
+    );
+  },
+
+  async getEmployeePerformance(
+    timePeriod: string = "last-month"
+  ): Promise<ApiResponse<EmployeePerformance[]>> {
+    return api.get<EmployeePerformance[]>(
+      `/api/reports/employee-performance?period=${timePeriod}`
+    );
+  },
+
+  async exportReports(
+    timePeriod: string = "last-month",
+    format: string = "csv"
+  ): Promise<Blob> {
+    const response = await fetch(
+      `${API_BASE_URL}/api/reports/export?period=${timePeriod}&format=${format}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to export reports: ${response.statusText}`);
+    }
+
+    return response.blob();
   },
 };

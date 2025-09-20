@@ -25,7 +25,7 @@ const navigationItems: NavigationItem[] = [
     path: "/admin/employee-applications",
     icon: Users,
   },
-  // { name: "Reports", path: "/admin/reports", icon: BarChart3 },
+  { name: "Reports", path: "/admin/reports", icon: BarChart3 },
   // { name: "Settings", path: "/admin/settings", icon: Settings },
 ];
 

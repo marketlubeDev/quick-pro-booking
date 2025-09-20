@@ -6,6 +6,7 @@ import authRouter from "./auth.js";
 import usersRouter from "./users.js";
 import profileRouter from "./profile.js";
 import dashboardRouter from "./dashboard.js";
+import reportsRouter from "./reports.js";
 
 const router = express.Router();
 
@@ -20,5 +21,6 @@ router.use("/auth", authRouter);
 router.use("/users", usersRouter);
 router.use("/profile", profileRouter);
 router.use("/dashboard", dashboardRouter);
+router.use("/reports", reportsRouter);
 
 export default router;
