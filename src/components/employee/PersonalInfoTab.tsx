@@ -259,13 +259,31 @@ const PersonalInfoTab = ({
               <Label htmlFor="designation" className="text-sm font-medium">
                 Designation
               </Label>
-              <Input
+              <select
                 id="designation"
                 value={form.designation || ""}
                 onChange={(e) => onFormChange("designation", e.target.value)}
-                placeholder="e.g., Plumber, Electrician, Carpenter"
-                className="h-11"
-              />
+                className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Select your designation</option>
+                <option value="Plumber">Plumber</option>
+                <option value="Electrician">Electrician</option>
+                <option value="House Cleaner">House Cleaner</option>
+                <option value="AC Technician">AC Technician</option>
+                <option value="Appliance Repair Technician">
+                  Appliance Repair Technician
+                </option>
+                <option value="Painter">Painter</option>
+                <option value="Handyman">Handyman</option>
+                <option value="Pest Control Specialist">
+                  Pest Control Specialist
+                </option>
+                <option value="Landscaper">Landscaper</option>
+                <option value="Moving Specialist">Moving Specialist</option>
+                <option value="Roofer">Roofer</option>
+                <option value="Carpenter">Carpenter</option>
+                <option value="Other">Other</option>
+              </select>
               <p className="text-xs text-muted-foreground">
                 Your current job title or professional designation
               </p>
