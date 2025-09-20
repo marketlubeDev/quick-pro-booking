@@ -14,7 +14,13 @@ import { ServiceRequest, Employee } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { employeeApi, serviceRequestApi } from "@/lib/api";
@@ -117,7 +123,7 @@ export function ServiceRequestCard({
         (request._id || request.id) as string,
         employeeId
       );
-      
+
       if (response.success) {
         toast.success("Employee assignment updated successfully");
         onEmployeeChange?.((request._id || request.id) as string, employeeId);
@@ -137,7 +143,9 @@ export function ServiceRequestCard({
       return request.assignedEmployeeDetails.name;
     }
     if (request.assignedEmployee) {
-      const employee = employees.find(emp => emp._id === request.assignedEmployee);
+      const employee = employees.find(
+        (emp) => emp._id === request.assignedEmployee
+      );
       return employee?.name || "Unknown Employee";
     }
     return null;
@@ -211,14 +219,14 @@ export function ServiceRequestCard({
             disabled={updatingEmployee || loadingEmployees}
           >
             <SelectTrigger className="w-full">
-              <SelectValue 
+              <SelectValue
                 placeholder={
-                  loadingEmployees 
-                    ? "Loading employees..." 
-                    : updatingEmployee 
-                    ? "Updating..." 
+                  loadingEmployees
+                    ? "Loading employees..."
+                    : updatingEmployee
+                    ? "Updating..."
                     : "Select an employee"
-                } 
+                }
               />
             </SelectTrigger>
             <SelectContent>
@@ -231,7 +239,8 @@ export function ServiceRequestCard({
           </Select>
           {getAssignedEmployeeName() && (
             <p className="text-xs text-muted-foreground">
-              Currently assigned to: <span className="font-medium">{getAssignedEmployeeName()}</span>
+              Currently assigned to:{" "}
+              <span className="font-medium">{getAssignedEmployeeName()}</span>
             </p>
           )}
         </div>

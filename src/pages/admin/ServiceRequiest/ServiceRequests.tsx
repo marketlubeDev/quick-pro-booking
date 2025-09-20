@@ -31,10 +31,6 @@ export function ServiceRequests() {
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(
     null
   );
-
-
-  console.log("selectedRequest", selectedRequest);
-
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
 
   const {
@@ -77,7 +73,7 @@ export function ServiceRequests() {
   const serviceRequests = useMemo(() => {
     return data?.pages.flatMap((page) => page.data) ?? [];
   }, [data]);
-
+  console.log(serviceRequests, "serviceRequests");
   // Use API-reported total when available; otherwise, fallback to loaded count
   const totalServiceRequests = useMemo(() => {
     return (
@@ -125,7 +121,6 @@ export function ServiceRequests() {
   const updateMutation = useMutation({
     mutationFn: updateServiceRequest,
     onSuccess: (data) => {
-      console.log("updateMutation onSuccess:", data);
       queryClient.invalidateQueries({
         queryKey: ["service-requests-infinite"],
       });
@@ -135,9 +130,7 @@ export function ServiceRequests() {
         queryKey: ["service-requests-all-counts"],
       });
     },
-    onError: (error) => {
-      console.error("updateMutation onError:", error);
-    },
+    onError: (error) => {},
   });
 
   // Intersection observer for infinite scroll
@@ -187,8 +180,10 @@ export function ServiceRequests() {
   };
 
   const handleAccept = (requestId: string) => {
-    const req = serviceRequests.find((r) => r._id === requestId || r._id === requestId) || null;
-    console.log("rqwqwqwqwqeq", req);
+    const req =
+      serviceRequests.find((r) => r._id === requestId || r._id === requestId) ||
+      null;
+
     setSelectedRequest(req);
     setIsScheduleOpen(true);
   };
@@ -207,7 +202,10 @@ export function ServiceRequests() {
     });
   };
 
-  const handleEmployeeChange = (requestId: string, employeeId: string | null) => {
+  const handleEmployeeChange = (
+    requestId: string,
+    employeeId: string | null
+  ) => {
     const updateData: UpdateServiceRequestInput = {
       id: requestId,
       assignedEmployee: employeeId,
@@ -365,10 +363,8 @@ export function ServiceRequests() {
         defaultDate={selectedRequest?.scheduledDate}
         isSubmitting={updateMutation.isPending}
         onConfirm={(scheduledDateISO) => {
-          console.log("onConfirm called with:", scheduledDateISO);
-          console.log("selectedRequest:", selectedRequest);
           const id = selectedRequest?._id || selectedRequest?.id;
-          console.log("selectedRequest id:", id);
+
           if (!id) {
             console.log("No id found, returning early");
             return;
