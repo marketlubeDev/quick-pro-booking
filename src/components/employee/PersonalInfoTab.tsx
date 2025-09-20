@@ -84,7 +84,7 @@ const PersonalInfoTab = ({
   return (
     <div className="space-y-6">
       {/* Profile Image Section */}
-      <Card className="shadow-sm">
+      {/* <Card className="shadow-sm">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5 text-blue-600" />
@@ -179,7 +179,7 @@ const PersonalInfoTab = ({
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Personal Details Section */}
       <Card className="shadow-sm">
@@ -254,6 +254,21 @@ const PersonalInfoTab = ({
                   className="h-11 pl-10"
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="designation" className="text-sm font-medium">
+                Designation
+              </Label>
+              <Input
+                id="designation"
+                value={form.designation || ""}
+                onChange={(e) => onFormChange("designation", e.target.value)}
+                placeholder="e.g., Plumber, Electrician, Carpenter"
+                className="h-11"
+              />
+              <p className="text-xs text-muted-foreground">
+                Your current job title or professional designation
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="level" className="text-sm font-medium">

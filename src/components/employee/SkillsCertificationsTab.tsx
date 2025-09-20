@@ -243,10 +243,10 @@ const SkillsCertificationsTab = ({
             )}
           </div>
 
-          <Separator />
+          {/* <Separator /> */}
 
           {/* Certifications Section */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <Label className="text-sm font-medium">Add New Certification</Label>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -306,7 +306,7 @@ const SkillsCertificationsTab = ({
                 </>
               )}
             </Button>
-          </div>
+          </div> */}
 
           {/* Existing Certifications */}
           {form.certifications && form.certifications.length > 0 && (

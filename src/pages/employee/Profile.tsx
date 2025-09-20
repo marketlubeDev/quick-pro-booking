@@ -43,6 +43,7 @@ const EmployeeProfile = () => {
     workExperience: [],
     expectedSalary: undefined,
     verified: false,
+    designation: "",
   });
 
   // Update form when profile data is loaded
@@ -59,6 +60,7 @@ const EmployeeProfile = () => {
         workExperience: profile.workExperience || [],
         expectedSalary: profile.expectedSalary,
         verified: profile.verified || false,
+        designation: profile.designation || "",
       });
     }
   }, [profile]);
@@ -177,6 +179,12 @@ const EmployeeProfile = () => {
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4" />
                       <span>{form.city}</span>
+                    </div>
+                  )}
+                  {form.designation && (
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>{form.designation}</span>
                     </div>
                   )}
                 </div>

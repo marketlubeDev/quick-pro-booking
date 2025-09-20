@@ -20,7 +20,8 @@ export function EmployeeApplications() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [experienceFilter, setExperienceFilter] = useState<string>("all");
-  const [selectedApplication, setSelectedApplication] = useState<EmployeeApplication | null>(null);
+  const [selectedApplication, setSelectedApplication] =
+    useState<EmployeeApplication | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const { applications, loading, error, updateStatus } =
@@ -155,10 +156,10 @@ export function EmployeeApplications() {
           </SelectContent>
         </Select>
 
-        <Button variant="outline">
+        {/* <Button variant="outline">
           <Filter className="h-4 w-4 mr-2" />
           More Filters
-        </Button>
+        </Button> */}
       </div>
 
       {/* Stats Summary */}

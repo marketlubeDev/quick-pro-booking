@@ -211,11 +211,17 @@ export const serviceRequestApi = {
     return api.post(`/api/service-requests/${id}/status`, { status });
   },
 
-  async updateAssignedEmployee(id: string, assignedEmployee: string | null): Promise<ApiResponse> {
-    return apiFetch<ApiResponse>(`/api/service-requests/${id}/assigned-employee`, {
-      method: "PATCH",
-      body: { assignedEmployee },
-    });
+  async updateAssignedEmployee(
+    id: string,
+    assignedEmployee: string | null
+  ): Promise<ApiResponse> {
+    return apiFetch<ApiResponse>(
+      `/api/service-requests/${id}/assigned-employee`,
+      {
+        method: "PATCH",
+        body: { assignedEmployee },
+      }
+    );
   },
 };
 
@@ -330,6 +336,7 @@ export interface EmployeeProfileData {
   country?: string;
   avatarUrl?: string;
   bio?: string;
+  designation?: string;
   level?: "Beginner" | "Intermediate" | "Expert";
   status?: "pending" | "approved" | "rejected";
   verified?: boolean;
@@ -489,12 +496,20 @@ export const dashboardApi = {
     return api.get<DashboardStats>("/api/dashboard/stats");
   },
 
-  async getRecentRequests(limit: number = 4): Promise<ApiResponse<ServiceRequest[]>> {
-    return api.get<ServiceRequest[]>(`/api/dashboard/recent-requests?limit=${limit}`);
+  async getRecentRequests(
+    limit: number = 4
+  ): Promise<ApiResponse<ServiceRequest[]>> {
+    return api.get<ServiceRequest[]>(
+      `/api/dashboard/recent-requests?limit=${limit}`
+    );
   },
 
-  async getRecentApplications(limit: number = 3): Promise<ApiResponse<EmployeeApplication[]>> {
-    return api.get<EmployeeApplication[]>(`/api/dashboard/recent-applications?limit=${limit}`);
+  async getRecentApplications(
+    limit: number = 3
+  ): Promise<ApiResponse<EmployeeApplication[]>> {
+    return api.get<EmployeeApplication[]>(
+      `/api/dashboard/recent-applications?limit=${limit}`
+    );
   },
 
   async getOverview(): Promise<ApiResponse<DashboardOverview>> {
