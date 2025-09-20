@@ -14,7 +14,9 @@ interface UseDashboardReturn {
 export function useDashboard(): UseDashboardReturn {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentRequests, setRecentRequests] = useState<ServiceRequest[]>([]);
-  const [recentApplications, setRecentApplications] = useState<EmployeeApplication[]>([]);
+  const [recentApplications, setRecentApplications] = useState<
+    EmployeeApplication[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,35 +26,39 @@ export function useDashboard(): UseDashboardReturn {
       setError(null);
 
       const response = await dashboardApi.getOverview();
-      
+
       if (response.success && response.data) {
         setStats(response.data.stats);
-        
+
         // Map API response fields to frontend expected fields
-        const mappedRequests = response.data.recentRequests.map((request: any) => ({
-          ...request,
-          id: request._id || request.id,
-          customerName: request.customerName || request.name,
-          customerEmail: request.customerEmail || request.email,
-          customerPhone: request.customerPhone || request.phone,
-          serviceType: request.serviceType || request.service,
-        }));
-        
-        const mappedApplications = response.data.recentApplications.map((application: any) => ({
-          ...application,
-          id: application._id || application.id,
-          name: application.fullName || application.name,
-          location: application.city || application.location,
-          experienceLevel: application.level || application.experienceLevel,
-          skills: application.skills || [],
-          rating: application.rating || 0,
-          totalJobs: application.totalJobs || 0,
-          certifications: application.certifications || [],
-          expectedSalary: application.expectedSalary || 0,
-          status: application.status || 'pending',
-          appliedDate: application.appliedDate || application.createdAt,
-        }));
-        
+        const mappedRequests = response.data.recentRequests.map(
+          (request: any) => ({
+            ...request,
+            id: request._id || request.id,
+            customerName: request.customerName || request.name,
+            customerEmail: request.customerEmail || request.email,
+            customerPhone: request.customerPhone || request.phone,
+            serviceType: request.serviceType || request.service,
+          })
+        );
+
+        const mappedApplications = response.data.recentApplications.map(
+          (application: any) => ({
+            ...application,
+            id: application._id || application.id,
+            name: application.fullName || application.name,
+            location: application.city || application.location,
+            experienceLevel: application.level || application.experienceLevel,
+            skills: application.skills || [],
+            rating: application.rating || 0,
+            totalJobs: application.totalJobs || 0,
+            certifications: application.certifications || [],
+            expectedSalary: application.expectedSalary || 0,
+            status: application.status || "pending",
+            appliedDate: application.appliedDate || application.createdAt,
+          })
+        );
+
         setRecentRequests(mappedRequests);
         setRecentApplications(mappedApplications);
       } else {
@@ -60,7 +66,9 @@ export function useDashboard(): UseDashboardReturn {
       }
     } catch (err) {
       console.error("Dashboard data fetch error:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch dashboard data");
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch dashboard data"
+      );
     } finally {
       setLoading(false);
     }
@@ -98,7 +106,7 @@ export function useDashboardStats(): UseDashboardStatsReturn {
       setError(null);
 
       const response = await dashboardApi.getStats();
-      
+
       if (response.success && response.data) {
         setStats(response.data);
       } else {
@@ -106,7 +114,9 @@ export function useDashboardStats(): UseDashboardStatsReturn {
       }
     } catch (err) {
       console.error("Dashboard stats fetch error:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch dashboard stats");
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch dashboard stats"
+      );
     } finally {
       setLoading(false);
     }
@@ -142,7 +152,7 @@ export function useRecentRequests(limit: number = 4): UseRecentRequestsReturn {
       setError(null);
 
       const response = await dashboardApi.getRecentRequests(limit);
-      
+
       if (response.success && response.data) {
         setRequests(response.data);
       } else {
@@ -150,7 +160,9 @@ export function useRecentRequests(limit: number = 4): UseRecentRequestsReturn {
       }
     } catch (err) {
       console.error("Recent requests fetch error:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch recent requests");
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch recent requests"
+      );
     } finally {
       setLoading(false);
     }
@@ -175,7 +187,9 @@ interface UseRecentApplicationsReturn {
   refetch: () => Promise<void>;
 }
 
-export function useRecentApplications(limit: number = 3): UseRecentApplicationsReturn {
+export function useRecentApplications(
+  limit: number = 3
+): UseRecentApplicationsReturn {
   const [applications, setApplications] = useState<EmployeeApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -186,15 +200,21 @@ export function useRecentApplications(limit: number = 3): UseRecentApplicationsR
       setError(null);
 
       const response = await dashboardApi.getRecentApplications(limit);
-      
+
       if (response.success && response.data) {
         setApplications(response.data);
       } else {
-        throw new Error(response.message || "Failed to fetch recent applications");
+        throw new Error(
+          response.message || "Failed to fetch recent applications"
+        );
       }
     } catch (err) {
       console.error("Recent applications fetch error:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch recent applications");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to fetch recent applications"
+      );
     } finally {
       setLoading(false);
     }

@@ -452,6 +452,12 @@ export const adminApi = {
     return api.get<EmployeeApplication[]>("/api/profile/all");
   },
 
+  async getEmployeeProfile(
+    userId: string
+  ): Promise<ApiResponse<EmployeeProfileData>> {
+    return api.get<EmployeeProfileData>(`/api/profile/employee/${userId}`);
+  },
+
   async updateEmployeeStatus(
     profileId: string,
     status: "pending" | "approved" | "rejected",

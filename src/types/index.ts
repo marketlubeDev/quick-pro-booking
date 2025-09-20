@@ -104,6 +104,17 @@ export interface ServiceRequest {
   };
 }
 
+export interface WorkExperience {
+  id?: string;
+  company: string;
+  position: string;
+  startDate: string;
+  endDate?: string;
+  current: boolean;
+  description: string;
+  location?: string;
+}
+
 export interface EmployeeApplication {
   id: string;
   name: string;
@@ -123,6 +134,7 @@ export interface EmployeeApplication {
   bio?: string;
   verified?: boolean;
   verificationNotes?: string;
+  workExperience?: WorkExperience[];
   user?: {
     _id: string;
     name: string;
