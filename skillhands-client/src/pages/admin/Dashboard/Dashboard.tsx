@@ -149,7 +149,7 @@ export function Dashboard() {
             <CardTitle className="text-lg font-semibold">
               Recent Service Requests
             </CardTitle>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => navigate("/admin/service-requests")}>
               View All
             </Button>
           </CardHeader>
@@ -203,7 +203,7 @@ export function Dashboard() {
             <CardTitle className="text-lg font-semibold">
               Recent Employee Applications
             </CardTitle>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => navigate("/admin/employee-applications")}>
               View All
             </Button>
           </CardHeader>

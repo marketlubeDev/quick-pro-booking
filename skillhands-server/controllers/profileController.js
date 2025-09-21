@@ -211,7 +211,16 @@ export const getProfileCompletion = async (req, res, next) => {
       "skills",
     ];
 
-    const missingFields = requiredFields.filter((field) => !profile[field]);
+    const missingFields = requiredFields.filter((field) => {
+      const value = profile[field];
+      // Handle arrays (like skills) - empty array is considered missing
+      if (Array.isArray(value)) {
+        return value.length === 0;
+      }
+      // Handle other fields - empty string, null, undefined are missing
+      return !value || (typeof value === 'string' && value.trim() === '');
+    });
+    
     const completion = Math.round(
       ((requiredFields.length - missingFields.length) / requiredFields.length) *
         100
