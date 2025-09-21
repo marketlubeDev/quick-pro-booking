@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   Eye,
   User,
+  UserCheck,
 } from "lucide-react";
 import { ServiceRequest, Employee } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -22,12 +23,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
-import { employeeApi, serviceRequestApi } from "@/lib/api";
-import { toast } from "sonner";
 
 interface ServiceRequestCardProps {
   request: ServiceRequest;
+  employees?: Employee[];
   onViewDetails?: (request: ServiceRequest) => void;
   onAccept?: (requestId: string) => void;
   onComplete?: (requestId: string) => void;
@@ -86,70 +85,13 @@ function formatDate(dateString: string) {
 
 export function ServiceRequestCard({
   request,
+  employees = [],
   onViewDetails,
   onAccept,
   onComplete,
   onReject,
   onEmployeeChange,
 }: ServiceRequestCardProps) {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loadingEmployees, setLoadingEmployees] = useState(false);
-  const [updatingEmployee, setUpdatingEmployee] = useState(false);
-
-  // Fetch employees on component mount
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        setLoadingEmployees(true);
-        const response = await employeeApi.getEmployees();
-        if (response.success && response.data) {
-          setEmployees(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching employees:", error);
-        toast.error("Failed to load employees");
-      } finally {
-        setLoadingEmployees(false);
-      }
-    };
-
-    fetchEmployees();
-  }, []);
-
-  const handleEmployeeChange = async (employeeId: string | null) => {
-    try {
-      setUpdatingEmployee(true);
-      const response = await serviceRequestApi.updateAssignedEmployee(
-        (request._id || request.id) as string,
-        employeeId
-      );
-
-      if (response.success) {
-        toast.success("Employee assignment updated successfully");
-        onEmployeeChange?.((request._id || request.id) as string, employeeId);
-      } else {
-        toast.error("Failed to update employee assignment");
-      }
-    } catch (error) {
-      console.error("Error updating assigned employee:", error);
-      toast.error("Failed to update employee assignment");
-    } finally {
-      setUpdatingEmployee(false);
-    }
-  };
-
-  const getAssignedEmployeeName = () => {
-    if (request.assignedEmployeeDetails) {
-      return request.assignedEmployeeDetails.name;
-    }
-    if (request.assignedEmployee) {
-      const employee = employees.find(
-        (emp) => emp._id === request.assignedEmployee
-      );
-      return employee?.name || "Unknown Employee";
-    }
-    return null;
-  };
   return (
     <Card className="hover:shadow-md transition-all duration-200 border-border/50">
       <CardHeader className="pb-3">
@@ -196,52 +138,60 @@ export function ServiceRequestCard({
 
         {/* Assigned Employee */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-sm">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Assigned Employee:</span>
-            </div>
-            {request.assignedEmployee && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleEmployeeChange(null)}
-                disabled={updatingEmployee}
-                className="h-6 px-2 text-xs"
-              >
-                Clear
-              </Button>
-            )}
-          </div>
-          <Select
-            value={request.assignedEmployee || undefined}
-            onValueChange={(value) => handleEmployeeChange(value)}
-            disabled={updatingEmployee || loadingEmployees}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue
-                placeholder={
-                  loadingEmployees
-                    ? "Loading employees..."
-                    : updatingEmployee
-                    ? "Updating..."
-                    : "Select an employee"
+          <p className="text-xs text-muted-foreground mb-1">Assigned Employee</p>
+          {request.assignedEmployee ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-sm">
+                <UserCheck className="h-4 w-4 text-green-600" />
+                <span className="text-foreground">
+                  {typeof request.assignedEmployee === 'object' && request.assignedEmployee?.fullName 
+                    ? request.assignedEmployee.fullName 
+                    : 'Unknown Employee'}
+                </span>
+              </div>
+              <Select
+                value={typeof request.assignedEmployee === 'object' ? request.assignedEmployee._id : request.assignedEmployee}
+                onValueChange={(value) => 
+                  onEmployeeChange?.((request._id || request.id) as string, value === "unassign" ? null : value)
                 }
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {employees.map((employee) => (
-                <SelectItem key={employee._id} value={employee._id}>
-                  {employee.name} ({employee.email})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {getAssignedEmployeeName() && (
-            <p className="text-xs text-muted-foreground">
-              Currently assigned to:{" "}
-              <span className="font-medium">{getAssignedEmployeeName()}</span>
-            </p>
+              >
+                <SelectTrigger className="w-32 h-7 text-xs">
+                  <SelectValue placeholder="Change" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassign">Unassign</SelectItem>
+                  {employees.map((employee) => (
+                    <SelectItem key={employee._id} value={employee._id}>
+                      {employee.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <User className="h-4 w-4" />
+                <span className="italic">Not assigned</span>
+              </div>
+              <Select
+                value=""
+                onValueChange={(value) => 
+                  onEmployeeChange?.((request._id || request.id) as string, value)
+                }
+              >
+                <SelectTrigger className="w-32 h-7 text-xs">
+                  <SelectValue placeholder="Assign" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map((employee) => (
+                    <SelectItem key={employee._id} value={employee._id}>
+                      {employee.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
         </div>
 
@@ -267,17 +217,27 @@ export function ServiceRequestCard({
           </div> */}
         </div>
 
-        {/* {request.scheduledDate && ( */}
-        <div>
-          <p className="text-xs text-muted-foreground mb-1">Scheduled</p>
-          <div className="flex items-center space-x-1 text-sm">
-            <Clock className="h-3 w-3 text-muted-foreground" />
-            <span className="text-foreground">
-              {formatDate(request.scheduledDate)}
-            </span>
+        {request.scheduledDate ? (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Scheduled</p>
+            <div className="flex items-center space-x-1 text-sm">
+              <Clock className="h-3 w-3 text-muted-foreground" />
+              <span className="text-foreground">
+                {formatDate(request.scheduledDate)}
+              </span>
+            </div>
           </div>
-        </div>
-        {/* )} */}
+        ) : (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Scheduled</p>
+            <div className="flex items-center space-x-1 text-sm">
+              <Clock className="h-3 w-3 text-muted-foreground" />
+              <span className="text-muted-foreground italic">
+                Not scheduled
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex items-center space-x-2 pt-2">

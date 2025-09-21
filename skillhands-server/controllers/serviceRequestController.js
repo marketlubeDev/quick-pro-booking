@@ -130,7 +130,7 @@ export const listServiceRequests = async (req, res) => {
     sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
 
     const docs = await ServiceRequest.find(query)
-      .populate("assignedEmployee", "name email phone")
+      .populate("assignedEmployee", "fullName email phone")
       .populate("lastUpdatedBy", "name email")
       .sort(sortOptions)
       .skip((Number(page) - 1) * Number(limit))
@@ -201,7 +201,7 @@ export const getServiceRequest = async (req, res) => {
   try {
     const { id } = req.params;
     const doc = await ServiceRequest.findById(id)
-      .populate("assignedEmployee", "name email phone")
+      .populate("assignedEmployee", "fullName email phone")
       .populate("lastUpdatedBy", "name email");
     if (!doc)
       return res.status(404).json({ success: false, message: "Not found" });
@@ -225,7 +225,8 @@ export const updateServiceRequest = async (req, res) => {
     const doc = await ServiceRequest.findByIdAndUpdate(id, updates, {
       new: true,
       runValidators: true,
-    });
+    }).populate("assignedEmployee", "fullName email phone");
+    
     if (!doc)
       return res.status(404).json({ success: false, message: "Not found" });
     return res.json({ success: true, data: doc });
@@ -721,7 +722,7 @@ export const searchServiceRequests = async (req, res) => {
     sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
 
     const results = await ServiceRequest.find(mongoQuery)
-      .populate("assignedEmployee", "name email phone")
+      .populate("assignedEmployee", "fullName email phone")
       .populate("lastUpdatedBy", "name email")
       .sort(sortOptions)
       .skip((Number(page) - 1) * Number(limit))

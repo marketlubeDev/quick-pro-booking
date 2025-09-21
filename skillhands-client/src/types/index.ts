@@ -82,10 +82,9 @@ export interface ServiceRequest {
   };
 
   // Employee job management fields
-  assignedEmployee?: string;
-  assignedEmployeeDetails?: {
+  assignedEmployee?: string | {
     _id: string;
-    name: string;
+    fullName: string;
     email: string;
     phone?: string;
   };

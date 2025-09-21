@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Filter, Plus, Loader2 } from "lucide-react";
 import { ServiceRequestCard } from "./ServiceRequestCard";
-import { ServiceRequest } from "@/types";
+import { ServiceRequest, Employee } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ServiceRequestDetailsDialog } from "./ServiceRequestDetailsDialog";
@@ -21,6 +21,7 @@ import {
   fetchServiceRequests,
   UpdateServiceRequestInput,
 } from "@/lib/api.serviceRequests";
+import { employeeApi } from "@/lib/api";
 import { ScheduleServiceDialog } from "./ScheduleServiceDialog";
 
 export function ServiceRequests() {
@@ -67,6 +68,14 @@ export function ServiceRequests() {
         countsByStatus: { pending, inProcess, completed, cancelled },
       };
     },
+  });
+
+  // Fetch employees for assignment
+  const { data: employees = [] } = useQuery({
+    queryKey: ["employees"],
+    queryFn: () => employeeApi.getEmployees(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    select: (response) => response.data || [],
   });
 
   // Flatten all pages into a single array
@@ -305,6 +314,7 @@ export function ServiceRequests() {
           <ServiceRequestCard
             key={request.id}
             request={request}
+            employees={employees}
             onViewDetails={handleViewDetails}
             onAccept={handleAccept}
             onComplete={handleComplete}

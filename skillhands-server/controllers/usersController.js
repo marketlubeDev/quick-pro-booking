@@ -55,14 +55,29 @@ export const updateUserRole = async (req, res, next) => {
 
 export const getEmployees = async (req, res, next) => {
   try {
-    const employees = await User.find({
-      role: "employee",
-      isActive: true,
-    })
-      .select("_id name email")
-      .sort({ name: 1 });
+    // Import Profile model
+    const Profile = (await import("../models/Profile.js")).default;
+    
+    // Get employee profiles for users with employee role and active status
+    const employees = await Profile.find({})
+      .populate({
+        path: "user",
+        match: { role: "employee", isActive: true },
+        select: "name email"
+      })
+      .select("_id fullName email")
+      .sort({ fullName: 1 });
 
-    res.json({ success: true, data: employees });
+    // Filter out profiles where user population failed (non-employees or inactive)
+    const activeEmployeeProfiles = employees
+      .filter(profile => profile.user)
+      .map(profile => ({
+        _id: profile._id,
+        name: profile.fullName || profile.user?.name || 'Unknown',
+        email: profile.email || profile.user?.email || 'Unknown'
+      }));
+
+    res.json({ success: true, data: activeEmployeeProfiles });
   } catch (err) {
     next(err);
   }
