@@ -45,8 +45,8 @@ const statusToVariant: Record<string, any> = {
 };
 
 const statusLabels: Record<string, string> = {
-  pending: "Pending",
-  "in-process": "In Process",
+  pending: "Pending Admin Approval",
+  "in-process": "Ready to Start",
   "in-progress": "In Progress",
   completed: "Completed",
   cancelled: "Cancelled",
@@ -109,7 +109,7 @@ export function JobDetailModal({
     }
   };
 
-  const canAccept = !job.employeeAccepted && job.status === "pending";
+  const canMarkAsDone = job.status === "in-process"; // Show "Mark as Done" only when admin has accepted (status is in-process)
   const canComplete = job.employeeAccepted && job.status === "in-progress";
   const isCompleted = job.status === "completed";
 
@@ -304,13 +304,13 @@ export function JobDetailModal({
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-            {canAccept && (
+            {canMarkAsDone && (
               <Button
                 onClick={handleAccept}
                 disabled={isSubmitting || loading}
                 className="flex-1"
               >
-                {isSubmitting ? "Accepting..." : "Accept Job"}
+                {isSubmitting ? "Marking as Done..." : "Mark as Done"}
               </Button>
             )}
             <Button

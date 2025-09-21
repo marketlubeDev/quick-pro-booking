@@ -3,6 +3,7 @@ import { useAuth } from "./useAuth";
 import {
   fetchEmployeeJobs,
   acceptJob,
+  markJobAsDone,
   completeJob,
   addJobRemarks,
   type EmployeeJob,
@@ -58,25 +59,19 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
         employeeId: user._id,
       };
 
-      const response = await acceptJob(input);
+      const response = await markJobAsDone(input);
       
       if (response.success) {
-        // Update the job in the local state
-        setJobs(prevJobs => 
-          prevJobs.map(job => 
-            job.id === jobId || job._id === jobId
-              ? { ...job, employeeAccepted: true, employeeAcceptedAt: new Date().toISOString(), status: 'in-process' }
-              : job
-          )
-        );
+        // Refetch jobs to get updated status from server
+        await fetchJobs();
       } else {
-        throw new Error(response.message || "Failed to accept job");
+        throw new Error(response.message || "Failed to mark job as done");
       }
     } catch (err) {
-      console.error("Error accepting job:", err);
+      console.error("Error marking job as done:", err);
       throw err;
     }
-  }, [user?._id]);
+  }, [user?._id, fetchJobs]);
 
   const completeJobAction = useCallback(async (jobId: string, completionNotes?: string) => {
     if (!user?._id) {

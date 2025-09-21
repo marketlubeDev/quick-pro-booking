@@ -9,6 +9,7 @@ import {
   getServiceRequestsSummary,
   getEmployeeJobs,
   acceptJob,
+  markJobAsDone,
   completeJob,
   addJobRemarks,
   assignJobToEmployee,
@@ -36,6 +37,7 @@ router.delete("/:id", deleteServiceRequest);
 // Employee job management routes
 router.get("/employee/:employeeId", getEmployeeJobs);
 router.post("/:id/accept", acceptJob);
+router.post("/:id/mark-done", markJobAsDone);
 router.post("/:id/complete", completeJob);
 router.post("/:id/remarks", addJobRemarks);
 router.post("/:id/assign", assignJobToEmployee);

@@ -32,8 +32,8 @@ const statusToVariant: Record<string, any> = {
 };
 
 const statusLabels: Record<string, string> = {
-  pending: "Pending",
-  "in-process": "In Process",
+  pending: "Pending Admin Approval",
+  "in-process": "Ready to Start",
   "in-progress": "In Progress",
   completed: "Completed",
   cancelled: "Cancelled",
@@ -70,13 +70,13 @@ const EmployeeJobs = () => {
     try {
       await acceptJobAction(jobId);
       toast({
-        title: "Job Accepted",
-        description: "You have successfully accepted this job.",
+        title: "Job Marked as Done",
+        description: "You have successfully marked this job as completed.",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to accept job. Please try again.",
+        description: "Failed to mark job as done. Please try again.",
         variant: "destructive",
       });
     }

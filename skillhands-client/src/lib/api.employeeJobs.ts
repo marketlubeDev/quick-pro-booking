@@ -70,6 +70,15 @@ export async function acceptJob(input: AcceptJobInput): Promise<JobActionRespons
   });
 }
 
+export async function markJobAsDone(input: AcceptJobInput): Promise<JobActionResponse> {
+  const { jobId, employeeId } = input;
+  
+  return apiFetch<JobActionResponse>(`/api/service-requests/${jobId}/mark-done`, {
+    method: "POST",
+    body: { employeeId },
+  });
+}
+
 export async function completeJob(input: CompleteJobInput): Promise<JobActionResponse> {
   const { jobId, employeeId, completionNotes } = input;
   

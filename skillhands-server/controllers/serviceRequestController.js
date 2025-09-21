@@ -285,7 +285,19 @@ export const getEmployeeJobs = async (req, res) => {
     const { employeeId } = req.params;
     const { status } = req.query;
 
-    const query = { assignedEmployee: employeeId };
+    // First, find the profile for this user
+    const Profile = (await import("../models/Profile.js")).default;
+    const profile = await Profile.findOne({ user: employeeId });
+    
+    if (!profile) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Employee profile not found" 
+      });
+    }
+
+    // Use the profile ID to query jobs
+    const query = { assignedEmployee: profile._id };
     if (status) query.status = status;
 
     const jobs = await ServiceRequest.find(query)
@@ -306,12 +318,23 @@ export const acceptJob = async (req, res) => {
     const { id } = req.params;
     const { employeeId } = req.body;
 
+    // First, find the profile for this user
+    const Profile = (await import("../models/Profile.js")).default;
+    const profile = await Profile.findOne({ user: employeeId });
+    
+    if (!profile) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Employee profile not found" 
+      });
+    }
+
     const job = await ServiceRequest.findById(id);
     if (!job) {
       return res.status(404).json({ success: false, message: "Job not found" });
     }
 
-    if (job.assignedEmployee.toString() !== employeeId) {
+    if (job.assignedEmployee.toString() !== profile._id.toString()) {
       return res
         .status(403)
         .json({ success: false, message: "Not authorized to accept this job" });
@@ -325,7 +348,7 @@ export const acceptJob = async (req, res) => {
 
     job.employeeAccepted = true;
     job.employeeAcceptedAt = new Date();
-    job.status = "in-progress";
+    job.status = "in-process";
 
     await job.save();
 
@@ -338,17 +361,91 @@ export const acceptJob = async (req, res) => {
   }
 };
 
-export const completeJob = async (req, res) => {
+export const markJobAsDone = async (req, res) => {
   try {
     const { id } = req.params;
     const { employeeId, completionNotes } = req.body;
+
+    // First, find the profile for this user
+    const Profile = (await import("../models/Profile.js")).default;
+    const profile = await Profile.findOne({ user: employeeId });
+    
+    if (!profile) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Employee profile not found" 
+      });
+    }
 
     const job = await ServiceRequest.findById(id);
     if (!job) {
       return res.status(404).json({ success: false, message: "Job not found" });
     }
 
-    if (job.assignedEmployee.toString() !== employeeId) {
+    if (job.assignedEmployee.toString() !== profile._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to mark this job as done",
+      });
+    }
+
+    if (job.status === "completed") {
+      return res.status(400).json({
+        success: false,
+        message: "Job is already completed",
+      });
+    }
+
+    if (job.status !== "in-process") {
+      return res.status(400).json({
+        success: false,
+        message: "Job must be approved by admin before it can be marked as done",
+      });
+    }
+
+    // Mark job as done - set status to completed and add completion details
+    job.status = "completed";
+    job.completedAt = new Date();
+    job.employeeAccepted = true; // Ensure this is set if not already
+    job.employeeAcceptedAt = job.employeeAcceptedAt || new Date();
+    
+    if (completionNotes) {
+      job.completionNotes = completionNotes;
+    }
+
+    await job.save();
+
+    return res.json({ success: true, data: job });
+  } catch (error) {
+    console.error("markJobAsDone error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to mark job as done" });
+  }
+};
+
+export const completeJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { employeeId, completionNotes } = req.body;
+
+    // First, find the profile for this user
+    const Profile = (await import("../models/Profile.js")).default;
+    const profile = await Profile.findOne({ user: employeeId });
+    
+    if (!profile) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Employee profile not found" 
+      });
+    }
+
+    const job = await ServiceRequest.findById(id);
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found" });
+    }
+
+    if (job.assignedEmployee.toString() !== profile._id.toString()) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to complete this job",
@@ -384,12 +481,23 @@ export const addJobRemarks = async (req, res) => {
     const { id } = req.params;
     const { employeeId, remarks } = req.body;
 
+    // First, find the profile for this user
+    const Profile = (await import("../models/Profile.js")).default;
+    const profile = await Profile.findOne({ user: employeeId });
+    
+    if (!profile) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Employee profile not found" 
+      });
+    }
+
     const job = await ServiceRequest.findById(id);
     if (!job) {
       return res.status(404).json({ success: false, message: "Job not found" });
     }
 
-    if (job.assignedEmployee.toString() !== employeeId) {
+    if (job.assignedEmployee.toString() !== profile._id.toString()) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to add remarks to this job",

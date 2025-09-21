@@ -272,7 +272,7 @@ export function ServiceRequestDetailsDialog({
           )}
 
           {/* Employee Assignment */}
-          {request.assignedEmployeeDetails && (
+          {request.assignedEmployee && typeof request.assignedEmployee === 'object' && (
             <>
               <Separator />
               <div className="space-y-3">
@@ -281,20 +281,20 @@ export function ServiceRequestDetailsDialog({
                   <div>
                     <p className="text-sm text-muted-foreground">Name</p>
                     <p className="font-medium">
-                      {request.assignedEmployeeDetails.name}
+                      {request.assignedEmployee.fullName}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Email</p>
                     <p className="text-foreground">
-                      {request.assignedEmployeeDetails.email}
+                      {request.assignedEmployee.email}
                     </p>
                   </div>
-                  {request.assignedEmployeeDetails.phone && (
+                  {request.assignedEmployee.phone && (
                     <div>
                       <p className="text-sm text-muted-foreground">Phone</p>
                       <p className="text-foreground">
-                        {request.assignedEmployeeDetails.phone}
+                        {request.assignedEmployee.phone}
                       </p>
                     </div>
                   )}
