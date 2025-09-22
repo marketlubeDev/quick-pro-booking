@@ -218,9 +218,9 @@ export const getProfileCompletion = async (req, res, next) => {
         return value.length === 0;
       }
       // Handle other fields - empty string, null, undefined are missing
-      return !value || (typeof value === 'string' && value.trim() === '');
+      return !value || (typeof value === "string" && value.trim() === "");
     });
-    
+
     const completion = Math.round(
       ((requiredFields.length - missingFields.length) / requiredFields.length) *
         100
@@ -260,7 +260,7 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
         (cert) => cert.name || cert
       ),
       expectedSalary: profile.expectedSalary || 0,
-      status: profile.verificationStatus || "pending",
+      status: profile.status || profile.verificationStatus || "pending",
       appliedDate: profile.createdAt || new Date(),
       location: profile.city || "Unknown",
       avatarUrl: profile.avatarUrl,
@@ -330,7 +330,9 @@ export const updateEmployeeStatus = async (req, res, next) => {
       });
     }
 
+    // Keep both fields in sync so both old/new clients and queries reflect changes
     profile.verificationStatus = status;
+    profile.status = status;
     if (verificationNotes) {
       profile.verificationNotes = verificationNotes;
     }

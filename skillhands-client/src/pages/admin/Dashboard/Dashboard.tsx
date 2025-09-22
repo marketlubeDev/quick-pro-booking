@@ -49,7 +49,9 @@ function formatDate(dateString: string) {
 }
 
 export function Dashboard() {
-  const { stats, recentRequests, recentApplications, loading, error, refetch } = useDashboard();
+  const { stats, recentRequests, recentApplications, loading, error, refetch } =
+    useDashboard();
+
   const navigate = useNavigate();
   if (error) {
     return (
@@ -95,7 +97,9 @@ export function Dashboard() {
           onClick={refetch}
           disabled={loading}
         >
-          <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
@@ -149,7 +153,11 @@ export function Dashboard() {
             <CardTitle className="text-lg font-semibold">
               Recent Service Requests
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={() => navigate("/admin/service-requests")}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/admin/service-requests")}
+            >
               View All
             </Button>
           </CardHeader>
@@ -183,11 +191,19 @@ export function Dashboard() {
                     <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                       <div className="flex items-center space-x-1">
                         <MapPin className="h-3 w-3" />
-                        <span>{request.address ? request.address.split(",")[0] : 'N/A'}</span>
+                        <span>
+                          {request.address
+                            ? request.address.split(",")[0]
+                            : "N/A"}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-3 w-3" />
-                        <span>{request.createdAt ? formatDate(request.createdAt) : 'N/A'}</span>
+                        <span>
+                          {request.createdAt
+                            ? formatDate(request.createdAt)
+                            : "N/A"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -203,7 +219,11 @@ export function Dashboard() {
             <CardTitle className="text-lg font-semibold">
               Recent Employee Applications
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={() => navigate("/admin/employee-applications")}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/admin/employee-applications")}
+            >
               View All
             </Button>
           </CardHeader>
@@ -235,10 +255,13 @@ export function Dashboard() {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {application.skills && application.skills.length > 0 
-                        ? `${application.skills.slice(0, 2).join(", ")}${application.skills.length > 2 ? ` +${application.skills.length - 2} more` : ''}`
-                        : 'No skills listed'
-                      }
+                      {application.skills && application.skills.length > 0
+                        ? `${application.skills.slice(0, 2).join(", ")}${
+                            application.skills.length > 2
+                              ? ` +${application.skills.length - 2} more`
+                              : ""
+                          }`
+                        : "No skills listed"}
                     </p>
                     <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                       <div className="flex items-center space-x-1">
@@ -247,7 +270,7 @@ export function Dashboard() {
                       </div>
                       <div className="flex items-center space-x-1">
                         <MapPin className="h-3 w-3" />
-                        <span>{application.location || 'N/A'}</span>
+                        <span>{application.location || "N/A"}</span>
                       </div>
                     </div>
                   </div>

@@ -57,24 +57,24 @@ export const getEmployees = async (req, res, next) => {
   try {
     // Import Profile model
     const Profile = (await import("../models/Profile.js")).default;
-    
-    // Get employee profiles for users with employee role and active status
-    const employees = await Profile.find({})
+
+    // Get approved employee profiles for users with employee role and active status
+    const employees = await Profile.find({ status: "approved" })
       .populate({
         path: "user",
         match: { role: "employee", isActive: true },
-        select: "name email"
+        select: "name email",
       })
       .select("_id fullName email")
       .sort({ fullName: 1 });
 
     // Filter out profiles where user population failed (non-employees or inactive)
     const activeEmployeeProfiles = employees
-      .filter(profile => profile.user)
-      .map(profile => ({
+      .filter((profile) => profile.user)
+      .map((profile) => ({
         _id: profile._id,
-        name: profile.fullName || profile.user?.name || 'Unknown',
-        email: profile.email || profile.user?.email || 'Unknown'
+        name: profile.fullName || profile.user?.name || "Unknown",
+        email: profile.email || profile.user?.email || "Unknown",
       }));
 
     res.json({ success: true, data: activeEmployeeProfiles });

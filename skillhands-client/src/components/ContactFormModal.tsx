@@ -72,6 +72,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
 
+
   // Function to fetch employees
   const fetchEmployees = async () => {
     try {
@@ -728,13 +729,23 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             </div>
 
             <div>
-              <Label htmlFor="assignedEmployee">Assign to Employee (Optional)</Label>
+              <Label htmlFor="assignedEmployee">
+                Assign to Employee (Optional)
+              </Label>
               <Select
                 value={formData.assignedEmployee || undefined}
-                onValueChange={(value) => handleInputChange("assignedEmployee", value || "")}
+                onValueChange={(value) =>
+                  handleInputChange("assignedEmployee", value || "")
+                }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={loadingEmployees ? "Loading employees..." : "Select an employee (optional)"} />
+                  <SelectValue
+                    placeholder={
+                      loadingEmployees
+                        ? "Loading employees..."
+                        : "Select an employee (optional)"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent className="z-[1000]">
                   {employees.map((employee) => (
@@ -1028,9 +1039,10 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 )}
                 {formData.assignedEmployee && (
                   <li>
-                    <strong>Assigned Employee:</strong> {
-                      employees.find(emp => emp._id === formData.assignedEmployee)?.name || "Unknown"
-                    }
+                    <strong>Assigned Employee:</strong>{" "}
+                    {employees.find(
+                      (emp) => emp._id === formData.assignedEmployee
+                    )?.name || "Unknown"}
                   </li>
                 )}
               </ul>
