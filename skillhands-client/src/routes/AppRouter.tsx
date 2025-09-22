@@ -73,7 +73,6 @@ export const router = createBrowserRouter([
       { path: "service-requests", element: <ServiceRequests /> },
       { path: "employee-applications", element: <EmployeeApplications /> },
       { path: "reports", element: <Reports /> },
-      // { path: "settings", element: <Settings /> },
     ],
   },
   { path: "*", element: <NotFound /> },
