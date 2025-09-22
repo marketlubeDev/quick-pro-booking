@@ -161,10 +161,12 @@ export function EmployeeDetailModal({
 
   if (!application) return null;
 
+  console.log(jobs, "jobsasdasdas");
+
   const completedJobs = jobs.filter((job) => job.status === "completed");
   const activeJobs = jobs.filter(
     (job) =>
-      job.status === "in-progress" ||
+      job.status === "in-process" ||
       (job.status === "pending" && job.employeeAccepted)
   );
   const pendingJobs = jobs.filter(

@@ -205,7 +205,7 @@ export function ServiceRequestDetailsDialog({
                   {request.scheduledDate || "Not scheduled"}
                 </p>
               </div>
-              {request.estimatedDuration && (
+              {/* {request.estimatedDuration && (
                 <div>
                   <p className="text-sm text-muted-foreground">
                     Estimated Duration
@@ -224,15 +224,15 @@ export function ServiceRequestDetailsDialog({
                     {request.actualDuration} hours
                   </p>
                 </div>
-              )}
-              {request.completedAt && (
+              )} */}
+              {/* {request.completedAt && (
                 <div>
                   <p className="text-sm text-muted-foreground">Completed At</p>
                   <p className="text-foreground">
                     {new Date(request.completedAt).toLocaleString()}
                   </p>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
 
@@ -272,64 +272,69 @@ export function ServiceRequestDetailsDialog({
           )}
 
           {/* Employee Assignment */}
-          {request.assignedEmployee && typeof request.assignedEmployee === 'object' && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Assigned Employee</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Name</p>
-                    <p className="font-medium">
-                      {request.assignedEmployee.fullName}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="text-foreground">
-                      {request.assignedEmployee.email}
-                    </p>
-                  </div>
-                  {request.assignedEmployee.phone && (
+          {request.assignedEmployee &&
+            typeof request.assignedEmployee === "object" && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold">Assigned Employee</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">Phone</p>
+                      <p className="text-sm text-muted-foreground">Name</p>
+                      <p className="font-medium">
+                        {request.assignedEmployee.fullName}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Email</p>
                       <p className="text-foreground">
-                        {request.assignedEmployee.phone}
+                        {request.assignedEmployee.email}
+                      </p>
+                    </div>
+                    {request.assignedEmployee.phone && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Phone</p>
+                        <p className="text-foreground">
+                          {request.assignedEmployee.phone}
+                        </p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm text-muted-foreground">Status</p>
+                      <Badge
+                        className={
+                          request.employeeAccepted
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }
+                      >
+                        {request.employeeAccepted ? "Accepted" : "Pending"}
+                      </Badge>
+                    </div>
+                  </div>
+                  {request.employeeRemarks && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Employee Remarks
+                      </p>
+                      <p className="text-foreground">
+                        {request.employeeRemarks}
                       </p>
                     </div>
                   )}
-                  <div>
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    <Badge
-                      className={
-                        request.employeeAccepted
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }
-                    >
-                      {request.employeeAccepted ? "Accepted" : "Pending"}
-                    </Badge>
-                  </div>
+                  {request.completionNotes && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Completion Notes
+                      </p>
+                      <p className="text-foreground">
+                        {request.completionNotes}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                {request.employeeRemarks && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Employee Remarks
-                    </p>
-                    <p className="text-foreground">{request.employeeRemarks}</p>
-                  </div>
-                )}
-                {request.completionNotes && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Completion Notes
-                    </p>
-                    <p className="text-foreground">{request.completionNotes}</p>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+              </>
+            )}
 
           {/* Customer Feedback */}
           {(request.customerRating || request.customerFeedback) && (
