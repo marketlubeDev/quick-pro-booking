@@ -44,18 +44,12 @@ export const getDashboardStats = async (req, res) => {
 
     // Get employee applications (fallback to verificationStatus if status doesn't exist)
     const employeeApplications = await Profile.countDocuments({
-      $or: [
-        { status: "pending" },
-        { verificationStatus: "pending" }
-      ]
+      $or: [{ status: "pending" }, { verificationStatus: "pending" }],
     });
 
     // Get active employees (fallback to verificationStatus if status doesn't exist)
     const activeEmployees = await Profile.countDocuments({
-      $or: [
-        { status: "approved" },
-        { verificationStatus: "approved" }
-      ]
+      $or: [{ status: "approved" }, { verificationStatus: "approved" }],
     });
 
     const stats = {
@@ -82,7 +76,7 @@ export const getDashboardStats = async (req, res) => {
 export const getRecentServiceRequests = async (req, res) => {
   try {
     const { limit = 4 } = req.query;
-    
+
     const recentRequests = await ServiceRequest.find()
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
@@ -105,7 +99,7 @@ export const getRecentServiceRequests = async (req, res) => {
 export const getRecentEmployeeApplications = async (req, res) => {
   try {
     const { limit = 3 } = req.query;
-    
+
     const recentApplications = await Profile.find()
       .populate("user", "name email role isActive createdAt")
       .sort({ appliedDate: -1, createdAt: -1 })
@@ -129,15 +123,12 @@ export const getRecentEmployeeApplications = async (req, res) => {
 export const getDashboardOverview = async (req, res) => {
   try {
     // Get all stats in parallel
-    const [
-      statsResult,
-      recentRequestsResult,
-      recentApplicationsResult,
-    ] = await Promise.all([
-      getDashboardStats(req, { json: () => ({}) }), // Mock response object
-      getRecentServiceRequests(req, { json: () => ({}) }),
-      getRecentEmployeeApplications(req, { json: () => ({}) }),
-    ]);
+    const [statsResult, recentRequestsResult, recentApplicationsResult] =
+      await Promise.all([
+        getDashboardStats(req, { json: () => ({}) }), // Mock response object
+        getRecentServiceRequests(req, { json: () => ({}) }),
+        getRecentEmployeeApplications(req, { json: () => ({}) }),
+      ]);
 
     // Since we can't easily extract data from the mock responses,
     // let's implement the logic directly here
@@ -174,16 +165,10 @@ export const getDashboardOverview = async (req, res) => {
 
     const pendingRequests = statusCountsObj.pending || 0;
     const employeeApplications = await Profile.countDocuments({
-      $or: [
-        { status: "pending" },
-        { verificationStatus: "pending" }
-      ]
+      $or: [{ status: "pending" }, { verificationStatus: "pending" }],
     });
     const activeEmployees = await Profile.countDocuments({
-      $or: [
-        { status: "approved" },
-        { verificationStatus: "approved" }
-      ]
+      $or: [{ status: "approved" }, { verificationStatus: "approved" }],
     });
 
     const recentRequests = await ServiceRequest.find()
@@ -233,17 +218,17 @@ export const getEmployeeDashboardStats = async (req, res) => {
     const profile = await Profile.findOne({ user: userId });
     let profileCompletion = 0;
     let missingFields = [];
-    
+
     if (profile) {
       const requiredFields = [
         "fullName",
-        "email", 
+        "email",
         "phone",
         "city",
         "level",
         "skills",
       ];
-      
+
       missingFields = requiredFields.filter((field) => {
         const value = profile[field];
         // Handle arrays (like skills) - empty array is considered missing
@@ -251,41 +236,53 @@ export const getEmployeeDashboardStats = async (req, res) => {
           return value.length === 0;
         }
         // Handle other fields - empty string, null, undefined are missing
-        return !value || (typeof value === 'string' && value.trim() === '');
+        return !value || (typeof value === "string" && value.trim() === "");
       });
-      
+
       profileCompletion = Math.round(
-        ((requiredFields.length - missingFields.length) / requiredFields.length) * 100
+        ((requiredFields.length - missingFields.length) /
+          requiredFields.length) *
+          100
       );
     }
 
+    // Determine the assigned employee id (ServiceRequest.assignedEmployee references Profile)
+    const assignedEmployeeId = profile ? profile._id : null;
+
     // Get active jobs (service requests assigned to this employee)
-    const activeJobs = await ServiceRequest.countDocuments({
-      assignedEmployee: userId,
-      status: { $in: ["pending", "in-progress", "scheduled"] }
-    });
+    const activeJobs = assignedEmployeeId
+      ? await ServiceRequest.countDocuments({
+          assignedEmployee: assignedEmployeeId,
+          status: { $in: ["pending", "in-progress", "in-process"] },
+        })
+      : 0;
 
     // Get completed jobs for success rate calculation
-    const completedJobs = await ServiceRequest.countDocuments({
-      assignedEmployee: userId,
-      status: "completed"
-    });
+    const completedJobs = assignedEmployeeId
+      ? await ServiceRequest.countDocuments({
+          assignedEmployee: assignedEmployeeId,
+          status: "completed",
+        })
+      : 0;
 
     const totalJobs = activeJobs + completedJobs;
-    const successRate = totalJobs > 0 ? Math.round((completedJobs / totalJobs) * 100) : 0;
+    const successRate =
+      totalJobs > 0 ? Math.round((completedJobs / totalJobs) * 100) : 0;
 
     // Get total jobs completed
-    const totalCompletedJobs = await ServiceRequest.countDocuments({
-      assignedEmployee: userId,
-      status: "completed"
-    });
+    const totalCompletedJobs = assignedEmployeeId
+      ? await ServiceRequest.countDocuments({
+          assignedEmployee: assignedEmployeeId,
+          status: "completed",
+        })
+      : 0;
 
     const stats = {
       profileCompletion,
       activeJobs,
       successRate,
       totalCompletedJobs,
-      missingFields
+      missingFields,
     };
 
     return res.json({
@@ -296,6 +293,9 @@ export const getEmployeeDashboardStats = async (req, res) => {
     console.error("getEmployeeDashboardStats error:", error);
     return res
       .status(500)
-      .json({ success: false, message: "Failed to get employee dashboard stats" });
+      .json({
+        success: false,
+        message: "Failed to get employee dashboard stats",
+      });
   }
 };

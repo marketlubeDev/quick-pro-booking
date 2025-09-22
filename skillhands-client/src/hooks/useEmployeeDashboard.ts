@@ -22,7 +22,6 @@ export function useEmployeeDashboard(): UseEmployeeDashboardReturn {
 
       if (response.success && response.data) {
         setStats(response.data);
-        console.log(response.data, "response.dataasdasdasd");
       } else {
         throw new Error(
           response.message || "Failed to fetch employee dashboard stats"
