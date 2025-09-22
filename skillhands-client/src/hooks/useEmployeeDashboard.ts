@@ -19,15 +19,22 @@ export function useEmployeeDashboard(): UseEmployeeDashboardReturn {
       setError(null);
 
       const response = await dashboardApi.getEmployeeStats();
-      
+
       if (response.success && response.data) {
         setStats(response.data);
+        console.log(response.data, "response.dataasdasdasd");
       } else {
-        throw new Error(response.message || "Failed to fetch employee dashboard stats");
+        throw new Error(
+          response.message || "Failed to fetch employee dashboard stats"
+        );
       }
     } catch (err) {
       console.error("Employee dashboard stats fetch error:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch employee dashboard stats");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to fetch employee dashboard stats"
+      );
     } finally {
       setLoading(false);
     }

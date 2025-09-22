@@ -9,14 +9,20 @@ import {
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Briefcase, TrendingUp, ShieldCheck, LogOut, Loader2 } from "lucide-react";
+import {
+  Briefcase,
+  TrendingUp,
+  ShieldCheck,
+  LogOut,
+  Loader2,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmployeeDashboard } from "@/hooks/useEmployeeDashboard";
 
 const Employee = () => {
   const { logout } = useAuth();
   const { stats, loading, error } = useEmployeeDashboard();
-
+  console.log(stats, "asdasfaffasasf");
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -50,7 +56,9 @@ const Employee = () => {
                   {loading ? (
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm text-muted-foreground">Loading...</span>
+                      <span className="text-sm text-muted-foreground">
+                        Loading...
+                      </span>
                     </div>
                   ) : error ? (
                     <p className="text-sm text-red-500">Error loading data</p>
@@ -60,7 +68,8 @@ const Employee = () => {
                         {stats?.profileCompletion || 0}%
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {stats?.profileCompletion && stats.profileCompletion < 100
+                        {stats?.profileCompletion &&
+                        stats.profileCompletion < 100
                           ? "Complete your profile"
                           : "Profile complete"}
                       </p>
@@ -75,7 +84,9 @@ const Employee = () => {
                   {loading ? (
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm text-muted-foreground">Loading...</span>
+                      <span className="text-sm text-muted-foreground">
+                        Loading...
+                      </span>
                     </div>
                   ) : error ? (
                     <p className="text-sm text-red-500">Error loading data</p>
@@ -98,7 +109,9 @@ const Employee = () => {
                   {loading ? (
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm text-muted-foreground">Loading...</span>
+                      <span className="text-sm text-muted-foreground">
+                        Loading...
+                      </span>
                     </div>
                   ) : error ? (
                     <p className="text-sm text-red-500">Error loading data</p>

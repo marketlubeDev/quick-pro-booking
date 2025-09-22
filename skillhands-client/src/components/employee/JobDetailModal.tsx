@@ -123,9 +123,7 @@ export function JobDetailModal({
               {statusLabels[job.status] || job.status}
             </Badge>
           </DialogTitle>
-          <DialogDescription>
-            Job ID: {job.id || job._id}
-          </DialogDescription>
+          <DialogDescription>Job ID: {job.id || job._id}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -178,7 +176,9 @@ export function JobDetailModal({
                   <p className="font-medium">{job.address}</p>
                   {(job.city || job.state || job.zip) && (
                     <p className="text-sm text-muted-foreground">
-                      {[job.city, job.state, job.zip].filter(Boolean).join(", ")}
+                      {[job.city, job.state, job.zip]
+                        .filter(Boolean)
+                        .join(", ")}
                     </p>
                   )}
                 </div>
@@ -205,17 +205,18 @@ export function JobDetailModal({
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span>
-                    Preferred: {new Date(job.preferredDate).toLocaleDateString()} at{" "}
+                    Preferred:{" "}
+                    {new Date(job.preferredDate).toLocaleDateString()} at{" "}
                     {job.preferredTime}
                   </span>
                 </div>
               )}
-              {job.estimatedCost && job.estimatedCost > 0 && (
+              {/* {job.estimatedCost && job.estimatedCost > 0 && (
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                   <span>Estimated Cost: ${job.estimatedCost}</span>
                 </div>
-              )}
+              )} */}
             </CardContent>
           </Card>
 
@@ -239,8 +240,7 @@ export function JobDetailModal({
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-500" />
                     <span className="text-sm">
-                      Completed on{" "}
-                      {new Date(job.completedAt).toLocaleString()}
+                      Completed on {new Date(job.completedAt).toLocaleString()}
                     </span>
                   </div>
                 )}
@@ -282,7 +282,9 @@ export function JobDetailModal({
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <Label htmlFor="completionNotes">Completion Notes (Optional)</Label>
+                  <Label htmlFor="completionNotes">
+                    Completion Notes (Optional)
+                  </Label>
                   <Textarea
                     id="completionNotes"
                     value={completionNotes}
@@ -313,11 +315,7 @@ export function JobDetailModal({
                 {isSubmitting ? "Marking as Done..." : "Mark as Done"}
               </Button>
             )}
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
+            <Button variant="outline" onClick={onClose} className="flex-1">
               Close
             </Button>
           </div>
