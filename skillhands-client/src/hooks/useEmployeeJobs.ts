@@ -37,8 +37,9 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
     try {
       setLoading(true);
       setError(null);
-      
+
       const employeeJobs = await fetchEmployeeJobs(user._id, status);
+
       setJobs(employeeJobs);
     } catch (err) {
       console.error("Error fetching employee jobs:", err);
@@ -48,99 +49,108 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
     }
   }, [user?._id, status]);
 
-  const acceptJobAction = useCallback(async (jobId: string) => {
-    if (!user?._id) {
-      throw new Error("User not authenticated");
-    }
-
-    try {
-      const input: AcceptJobInput = {
-        jobId,
-        employeeId: user._id,
-      };
-
-      const response = await markJobAsDone(input);
-      
-      if (response.success) {
-        // Refetch jobs to get updated status from server
-        await fetchJobs();
-      } else {
-        throw new Error(response.message || "Failed to mark job as done");
+  const acceptJobAction = useCallback(
+    async (jobId: string) => {
+      if (!user?._id) {
+        throw new Error("User not authenticated");
       }
-    } catch (err) {
-      console.error("Error marking job as done:", err);
-      throw err;
-    }
-  }, [user?._id, fetchJobs]);
 
-  const completeJobAction = useCallback(async (jobId: string, completionNotes?: string) => {
-    if (!user?._id) {
-      throw new Error("User not authenticated");
-    }
+      try {
+        const input: AcceptJobInput = {
+          jobId,
+          employeeId: user._id,
+        };
 
-    try {
-      const input: CompleteJobInput = {
-        jobId,
-        employeeId: user._id,
-        completionNotes,
-      };
+        const response = await markJobAsDone(input);
 
-      const response = await completeJob(input);
-      
-      if (response.success) {
-        // Update the job in the local state
-        setJobs(prevJobs => 
-          prevJobs.map(job => 
-            job.id === jobId || job._id === jobId
-              ? { 
-                  ...job, 
-                  status: 'completed', 
-                  completedAt: new Date().toISOString(),
-                  completionNotes: completionNotes || job.completionNotes
-                }
-              : job
-          )
-        );
-      } else {
-        throw new Error(response.message || "Failed to complete job");
+        if (response.success) {
+          // Refetch jobs to get updated status from server
+          await fetchJobs();
+        } else {
+          throw new Error(response.message || "Failed to mark job as done");
+        }
+      } catch (err) {
+        console.error("Error marking job as done:", err);
+        throw err;
       }
-    } catch (err) {
-      console.error("Error completing job:", err);
-      throw err;
-    }
-  }, [user?._id]);
+    },
+    [user?._id, fetchJobs]
+  );
 
-  const addRemarksAction = useCallback(async (jobId: string, remarks: string) => {
-    if (!user?._id) {
-      throw new Error("User not authenticated");
-    }
-
-    try {
-      const input: AddRemarksInput = {
-        jobId,
-        employeeId: user._id,
-        remarks,
-      };
-
-      const response = await addJobRemarks(input);
-      
-      if (response.success) {
-        // Update the job in the local state
-        setJobs(prevJobs => 
-          prevJobs.map(job => 
-            job.id === jobId || job._id === jobId
-              ? { ...job, employeeRemarks: remarks }
-              : job
-          )
-        );
-      } else {
-        throw new Error(response.message || "Failed to add remarks");
+  const completeJobAction = useCallback(
+    async (jobId: string, completionNotes?: string) => {
+      if (!user?._id) {
+        throw new Error("User not authenticated");
       }
-    } catch (err) {
-      console.error("Error adding remarks:", err);
-      throw err;
-    }
-  }, [user?._id]);
+
+      try {
+        const input: CompleteJobInput = {
+          jobId,
+          employeeId: user._id,
+          completionNotes,
+        };
+
+        const response = await completeJob(input);
+
+        if (response.success) {
+          // Update the job in the local state
+          setJobs((prevJobs) =>
+            prevJobs.map((job) =>
+              job.id === jobId || job._id === jobId
+                ? {
+                    ...job,
+                    status: "completed",
+                    completedAt: new Date().toISOString(),
+                    completionNotes: completionNotes || job.completionNotes,
+                  }
+                : job
+            )
+          );
+        } else {
+          throw new Error(response.message || "Failed to complete job");
+        }
+      } catch (err) {
+        console.error("Error completing job:", err);
+        throw err;
+      }
+    },
+    [user?._id]
+  );
+
+  const addRemarksAction = useCallback(
+    async (jobId: string, remarks: string) => {
+      if (!user?._id) {
+        throw new Error("User not authenticated");
+      }
+
+      try {
+        const input: AddRemarksInput = {
+          jobId,
+          employeeId: user._id,
+          remarks,
+        };
+
+        const response = await addJobRemarks(input);
+
+        if (response.success) {
+          // Update the job in the local state
+          setJobs((prevJobs) =>
+            prevJobs.map((job) =>
+              job.id === jobId || job._id === jobId
+                ? { ...job, employeeRemarks: remarks }
+                : job
+            )
+          );
+        } else {
+          throw new Error(response.message || "Failed to add remarks");
+        }
+      } catch (err) {
+        console.error("Error adding remarks:", err);
+        throw err;
+      }
+    },
+    [user?._id]
+  );
 
   useEffect(() => {
     fetchJobs();
