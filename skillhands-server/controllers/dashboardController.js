@@ -291,11 +291,9 @@ export const getEmployeeDashboardStats = async (req, res) => {
     });
   } catch (error) {
     console.error("getEmployeeDashboardStats error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to get employee dashboard stats",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get employee dashboard stats",
+    });
   }
 };

@@ -226,7 +226,7 @@ export const updateServiceRequest = async (req, res) => {
       new: true,
       runValidators: true,
     }).populate("assignedEmployee", "fullName email phone");
-    
+
     if (!doc)
       return res.status(404).json({ success: false, message: "Not found" });
     return res.json({ success: true, data: doc });
@@ -288,11 +288,11 @@ export const getEmployeeJobs = async (req, res) => {
     // First, find the profile for this user
     const Profile = (await import("../models/Profile.js")).default;
     const profile = await Profile.findOne({ user: employeeId });
-    
+
     if (!profile) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Employee profile not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Employee profile not found",
       });
     }
 
@@ -303,6 +303,21 @@ export const getEmployeeJobs = async (req, res) => {
     const jobs = await ServiceRequest.find(query)
       .populate("assignedEmployee", "fullName email phone")
       .sort({ createdAt: -1 });
+
+    console.log("=== DEBUG: getEmployeeJobs ===");
+    console.log("Employee ID:", employeeId);
+    console.log("Profile ID:", profile._id);
+    console.log("Query:", query);
+    console.log("Found jobs count:", jobs.length);
+    console.log(
+      "Jobs data:",
+      jobs.map((job) => ({
+        id: job._id,
+        status: job.status,
+        employeeAccepted: job.employeeAccepted,
+        service: job.service,
+      }))
+    );
 
     return res.json({ success: true, data: jobs });
   } catch (error) {
@@ -321,11 +336,11 @@ export const acceptJob = async (req, res) => {
     // First, find the profile for this user
     const Profile = (await import("../models/Profile.js")).default;
     const profile = await Profile.findOne({ user: employeeId });
-    
+
     if (!profile) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Employee profile not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Employee profile not found",
       });
     }
 
@@ -369,11 +384,11 @@ export const markJobAsDone = async (req, res) => {
     // First, find the profile for this user
     const Profile = (await import("../models/Profile.js")).default;
     const profile = await Profile.findOne({ user: employeeId });
-    
+
     if (!profile) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Employee profile not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Employee profile not found",
       });
     }
 
@@ -399,7 +414,8 @@ export const markJobAsDone = async (req, res) => {
     if (job.status !== "in-process") {
       return res.status(400).json({
         success: false,
-        message: "Job must be approved by admin before it can be marked as done",
+        message:
+          "Job must be approved by admin before it can be marked as done",
       });
     }
 
@@ -408,7 +424,7 @@ export const markJobAsDone = async (req, res) => {
     job.completedAt = new Date();
     job.employeeAccepted = true; // Ensure this is set if not already
     job.employeeAcceptedAt = job.employeeAcceptedAt || new Date();
-    
+
     if (completionNotes) {
       job.completionNotes = completionNotes;
     }
@@ -432,11 +448,11 @@ export const completeJob = async (req, res) => {
     // First, find the profile for this user
     const Profile = (await import("../models/Profile.js")).default;
     const profile = await Profile.findOne({ user: employeeId });
-    
+
     if (!profile) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Employee profile not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Employee profile not found",
       });
     }
 
@@ -484,11 +500,11 @@ export const addJobRemarks = async (req, res) => {
     // First, find the profile for this user
     const Profile = (await import("../models/Profile.js")).default;
     const profile = await Profile.findOne({ user: employeeId });
-    
+
     if (!profile) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Employee profile not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Employee profile not found",
       });
     }
 
