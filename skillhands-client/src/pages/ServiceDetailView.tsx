@@ -55,7 +55,7 @@ const ServiceDetailView = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      {/* <Header /> */}
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
@@ -266,7 +266,7 @@ const ServiceDetailView = () => {
         </div>
       </section>
 
-      <Footer />
+      {/* <Footer /> */}
       <FloatingWhatsApp />
     </div>
   );
