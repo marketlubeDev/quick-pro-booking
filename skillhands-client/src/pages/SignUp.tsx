@@ -94,7 +94,7 @@ const SignUp = () => {
       }
       const role = resp.user?.role?.toString().toLowerCase();
       if (role === "admin") navigate("/admin");
-      else navigate("/employee");
+      else navigate("/signup/success");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Sign up failed";
       setError(message);

@@ -17,6 +17,7 @@ import Login from "@/pages/Login";
 import SignUp from "@/pages/SignUp";
 import ForgotPassword from "@/pages/ForgotPassword";
 import Employee from "@/pages/Employee";
+import EmployeeSignupSuccess from "@/pages/EmployeeSignupSuccess";
 import EmployeeProfile from "@/pages/employee/Profile";
 import EmployeeJobs from "@/pages/employee/Jobs";
 import Admin from "@/pages/admin/Admin";
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/forgot", element: <ForgotPassword /> },
   { path: "/signup", element: <SignUp /> },
+  { path: "/signup/success", element: <EmployeeSignupSuccess /> },
   {
     path: "/employee",
     element: (
