@@ -2,7 +2,10 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Profile from "../models/Profile.js";
-import { sendOtpEmail } from "../services/emailService.js";
+import {
+  sendOtpEmail,
+  sendNewEmployeeEmail,
+} from "../services/emailService.js";
 
 const jwtSecret = process.env.JWT_SECRET || "dev_secret_change_me";
 const jwtExpiresIn = process.env.JWT_EXPIRES_IN || "7d";
@@ -19,7 +22,17 @@ const signToken = (user) => {
 
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password, role: requestedRole } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role: requestedRole,
+      designation,
+      address,
+      city,
+      state,
+      postalCode,
+    } = req.body;
     if (!email || !password) {
       return res
         .status(400)
@@ -45,6 +58,22 @@ export const register = async (req, res, next) => {
       role,
     });
     await Profile.create({ user: user._id });
+    // Fire-and-forget: notify admin about new employee signup
+    try {
+      await sendNewEmployeeEmail({
+        name,
+        email: user.email,
+        role: user.role,
+        designation,
+        address,
+        city,
+        state,
+        postalCode,
+      });
+    } catch (e) {
+      // Don't block registration on email failure
+      console.error("New employee email failed", e);
+    }
     const token = signToken(user);
     return res
       .status(201)

@@ -76,7 +76,13 @@ const SignUp = () => {
         setError("Please enter a valid Maryland ZIP code we serve");
         return;
       }
-      const resp = await register(name, email, password);
+      const resp = await register(name, email, password, {
+        designation: designation || undefined,
+        address,
+        city: formCity || city || undefined,
+        state: "MD",
+        postalCode: zip,
+      });
       // Best-effort profile bootstrap with address info
       try {
         await employeeApi.updateProfile({

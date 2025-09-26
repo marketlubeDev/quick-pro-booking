@@ -290,13 +290,21 @@ export const authApi = {
   async register(
     name: string,
     email: string,
-    password: string
+    password: string,
+    extra?: {
+      designation?: string;
+      address?: string;
+      city?: string;
+      state?: string;
+      postalCode?: string;
+    }
   ): Promise<AuthResponse> {
     return api.post<AuthResponse>("/api/auth/register", {
       name,
       email,
       password,
       role: "employee",
+      ...(extra || {}),
     }) as unknown as AuthResponse;
   },
 

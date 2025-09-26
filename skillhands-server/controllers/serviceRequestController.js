@@ -1,4 +1,5 @@
 import ServiceRequest from "../models/ServiceRequest.js";
+import { sendEmail } from "../services/emailService.js";
 
 export const createServiceRequest = async (req, res) => {
   try {
@@ -66,6 +67,26 @@ export const createServiceRequest = async (req, res) => {
       isRecurring: isRecurring || false,
       recurringPattern: recurringPattern || null,
     });
+
+    // Fire-and-forget email notification; do not block response if email fails
+    try {
+      await sendEmail({
+        service,
+        description,
+        preferredDate,
+        preferredTime,
+        name,
+        phone,
+        email,
+        address,
+        city,
+        zip,
+        fileData: req.file,
+      });
+    } catch (emailError) {
+      // eslint-disable-next-line no-console
+      console.error("createServiceRequest email error:", emailError);
+    }
 
     return res.status(201).json({ success: true, data: doc });
   } catch (error) {

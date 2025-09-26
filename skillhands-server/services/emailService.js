@@ -514,6 +514,140 @@ export const sendOtpEmail = async ({ to, otp }) => {
   return { success: true, messageId: result.messageId };
 };
 
+// Notify admin: new employee registration
+export const sendNewEmployeeEmail = async ({
+  name,
+  email,
+  role,
+  designation,
+  address,
+  city,
+  state,
+  postalCode,
+}) => {
+  const transporter = createTransporter();
+  const to = process.env.EMAIL_TO;
+  if (!to) {
+    // If no recipient configured, skip silently
+    return { success: false, skipped: true };
+  }
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to,
+    subject: `New employee registered: ${name || email}`,
+    text: `A new employee account was created.\n\nName: ${
+      name || "(not provided)"
+    }\nEmail: ${email}\nRole: ${role}${
+      designation ? `\nDesignation: ${designation}` : ""
+    }${
+      address || city || state || postalCode
+        ? `\nAddress: ${address || ""}${city ? `, ${city}` : ""}${
+            state ? `, ${state}` : ""
+          }${postalCode ? ` ${postalCode}` : ""}`
+        : ""
+    }\n\nThis notification was generated automatically by SkillHands.`,
+    html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>New Employee Registration</title>
+        <style>
+          *{box-sizing:border-box;margin:0;padding:0}
+          body{background:#f5f7fb;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;line-height:1.6;padding:24px}
+          .container{max-width:640px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 24px 48px rgba(2,6,23,0.08)}
+          .header{position:relative;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);padding:28px 28px 24px;color:#fff}
+          .header h1{font-size:22px;font-weight:800;letter-spacing:.2px;margin-bottom:4px}
+          .header p{opacity:.95;font-size:14px}
+          .pill{display:inline-block;margin-top:12px;background:rgba(255,255,255,.15);backdrop-filter:blur(2px);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600}
+          .content{padding:24px;background:#ffffff}
+          .section{border:1px solid #e5e7eb;border-radius:12px;padding:18px 16px;margin-bottom:16px;background:#fafafa}
+          .title{font-size:14px;font-weight:700;color:#374151;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+          .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+          .item{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px}
+          .label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:6px;font-weight:700}
+          .value{font-size:15px;color:#111827;font-weight:600}
+          .footer{padding:18px 24px;background:#0f172a;color:#cbd5e1;text-align:center;font-size:12px}
+          .footer a{color:#93c5fd;text-decoration:none}
+          @media (max-width: 540px){.grid{grid-template-columns:1fr}}
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>New employee registration</h1>
+            <p>A new employee account was just created.</p>
+            <span class="pill">SkillHands · Quick Pro Booking</span>
+          </div>
+          <div class="content">
+            <div class="section">
+              <div class="title">Employee</div>
+              <div class="grid">
+                <div class="item">
+                  <div class="label">Name</div>
+                  <div class="value">${name || "(not provided)"}</div>
+                </div>
+                <div class="item">
+                  <div class="label">Email</div>
+                  <div class="value">${email}</div>
+                </div>
+                <div class="item">
+                  <div class="label">Role</div>
+                  <div class="value">${role}</div>
+                </div>
+                ${
+                  designation
+                    ? `
+                <div class="item">
+                  <div class="label">Designation</div>
+                  <div class="value">${designation}</div>
+                </div>`
+                    : ""
+                }
+              </div>
+            </div>
+
+            ${
+              address || city || state || postalCode
+                ? `
+            <div class="section">
+              <div class="title">Address</div>
+              <div class="grid">
+                <div class="item">
+                  <div class="label">Street</div>
+                  <div class="value">${address || "—"}</div>
+                </div>
+                <div class="item">
+                  <div class="label">City</div>
+                  <div class="value">${city || "—"}</div>
+                </div>
+                <div class="item">
+                  <div class="label">State</div>
+                  <div class="value">${state || "—"}</div>
+                </div>
+                <div class="item">
+                  <div class="label">Postal code</div>
+                  <div class="value">${postalCode || "—"}</div>
+                </div>
+              </div>
+            </div>`
+                : ""
+            }
+          </div>
+          <div class="footer">
+            <div>This notification was generated automatically by SkillHands.</div>
+            <div style="margin-top:6px">Please follow up in your admin dashboard.</div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+  const result = await transporter.sendMail(mailOptions);
+  return { success: true, messageId: result.messageId };
+};
+
 // Test email configuration
 export const testEmailConfig = async () => {
   try {

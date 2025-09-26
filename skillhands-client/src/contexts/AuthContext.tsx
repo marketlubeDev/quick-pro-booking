@@ -15,7 +15,14 @@ type AuthContextValue = {
   register: (
     name: string,
     email: string,
-    password: string
+    password: string,
+    extra?: {
+      designation?: string;
+      address?: string;
+      city?: string;
+      state?: string;
+      postalCode?: string;
+    }
   ) => Promise<AuthResponse>;
   logout: () => void;
   setUser: (u: AuthUser | null) => void;
@@ -35,25 +42,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const savedToken = localStorage.getItem("auth_token");
         const savedUserRaw = localStorage.getItem("auth_user");
-        
+
         if (savedToken && savedUserRaw) {
           const savedUser = JSON.parse(savedUserRaw) as AuthUser;
-          
+
           // Validate token by making a test request to the server
           try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-            
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/me`, {
-              headers: {
-                'Authorization': `Bearer ${savedToken}`,
-                'Content-Type': 'application/json'
-              },
-              signal: controller.signal
-            });
-            
+
+            const response = await fetch(
+              `${
+                import.meta.env.VITE_API_URL || "http://localhost:3001"
+              }/api/auth/me`,
+              {
+                headers: {
+                  Authorization: `Bearer ${savedToken}`,
+                  "Content-Type": "application/json",
+                },
+                signal: controller.signal,
+              }
+            );
+
             clearTimeout(timeoutId);
-            
+
             if (response.ok) {
               setToken(savedToken);
               setUser(savedUser);
@@ -99,8 +111,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const register = useCallback(
-    async (name: string, email: string, password: string) => {
-      const resp = await authApi.register(name, email, password);
+    async (
+      name: string,
+      email: string,
+      password: string,
+      extra?: {
+        designation?: string;
+        address?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+      }
+    ) => {
+      const resp = await authApi.register(name, email, password, extra);
       localStorage.setItem("auth_token", resp.token);
       localStorage.setItem("auth_user", JSON.stringify(resp.user));
       setToken(resp.token);
