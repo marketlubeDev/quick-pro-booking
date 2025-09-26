@@ -77,6 +77,31 @@ export const login = async (req, res, next) => {
         .status(401)
         .json({ success: false, message: "Invalid credentials" });
     }
+    // If the user is an employee, ensure their profile is approved before allowing login
+    if (user.role === "employee") {
+      try {
+        const profile = await Profile.findOne({ user: user._id }).select(
+          "status verificationStatus"
+        );
+        const status =
+          profile?.status || profile?.verificationStatus || "pending";
+        if (status !== "approved") {
+          return res.status(403).json({
+            success: false,
+            message:
+              status === "rejected"
+                ? "Your application was rejected. Please contact support."
+                : "Your account is awaiting approval by an admin.",
+          });
+        }
+      } catch (e) {
+        // If profile lookup fails, be safe and deny access
+        return res.status(403).json({
+          success: false,
+          message: "Unable to verify approval status. Please try again later.",
+        });
+      }
+    }
     const token = signToken(user);
     return res.json({ success: true, token, user: user.toSafeJSON() });
   } catch (err) {
