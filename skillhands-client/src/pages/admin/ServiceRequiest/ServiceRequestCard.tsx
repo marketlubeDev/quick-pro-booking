@@ -246,7 +246,7 @@ export function ServiceRequestCard({
             <div className="flex items-center space-x-1 text-sm">
               <Clock className="h-3 w-3 text-muted-foreground" />
               <span className="text-muted-foreground italic">
-                Not scheduledsd
+                Not scheduled
               </span>
             </div>
           </div>
