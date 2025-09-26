@@ -371,6 +371,8 @@ export function ServiceRequests() {
         onOpenChange={setIsScheduleOpen}
         customerName={selectedRequest?.customerName}
         defaultDate={selectedRequest?.scheduledDate}
+        preferredDate={selectedRequest?.preferredDate}
+        preferredTime={selectedRequest?.preferredTime}
         isSubmitting={updateMutation.isPending}
         onConfirm={(scheduledDateISO) => {
           const id = selectedRequest?._id || selectedRequest?.id;

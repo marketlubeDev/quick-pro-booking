@@ -138,21 +138,31 @@ export function ServiceRequestCard({
 
         {/* Assigned Employee */}
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground mb-1">Assigned Employee</p>
+          <p className="text-xs text-muted-foreground mb-1">
+            Assigned Employee
+          </p>
           {request.assignedEmployee ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 text-sm">
                 <UserCheck className="h-4 w-4 text-green-600" />
                 <span className="text-foreground">
-                  {typeof request.assignedEmployee === 'object' && request.assignedEmployee?.fullName 
-                    ? request.assignedEmployee.fullName 
-                    : 'Unknown Employee'}
+                  {typeof request.assignedEmployee === "object" &&
+                  request.assignedEmployee?.fullName
+                    ? request.assignedEmployee.fullName
+                    : "Unknown Employee"}
                 </span>
               </div>
               <Select
-                value={typeof request.assignedEmployee === 'object' ? request.assignedEmployee._id : request.assignedEmployee}
-                onValueChange={(value) => 
-                  onEmployeeChange?.((request._id || request.id) as string, value === "unassign" ? null : value)
+                value={
+                  typeof request.assignedEmployee === "object"
+                    ? request.assignedEmployee._id
+                    : request.assignedEmployee
+                }
+                onValueChange={(value) =>
+                  onEmployeeChange?.(
+                    (request._id || request.id) as string,
+                    value === "unassign" ? null : value
+                  )
                 }
               >
                 <SelectTrigger className="w-32 h-7 text-xs">
@@ -176,8 +186,11 @@ export function ServiceRequestCard({
               </div>
               <Select
                 value=""
-                onValueChange={(value) => 
-                  onEmployeeChange?.((request._id || request.id) as string, value)
+                onValueChange={(value) =>
+                  onEmployeeChange?.(
+                    (request._id || request.id) as string,
+                    value
+                  )
                 }
               >
                 <SelectTrigger className="w-32 h-7 text-xs">
@@ -233,7 +246,7 @@ export function ServiceRequestCard({
             <div className="flex items-center space-x-1 text-sm">
               <Clock className="h-3 w-3 text-muted-foreground" />
               <span className="text-muted-foreground italic">
-                Not scheduled
+                Not scheduledsd
               </span>
             </div>
           </div>
