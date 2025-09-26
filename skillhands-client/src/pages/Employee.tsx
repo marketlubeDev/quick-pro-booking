@@ -22,7 +22,7 @@ import { useEmployeeDashboard } from "@/hooks/useEmployeeDashboard";
 const Employee = () => {
   const { logout } = useAuth();
   const { stats, loading, error } = useEmployeeDashboard();
-  console.log(stats, "asdasfaffasasf");
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />

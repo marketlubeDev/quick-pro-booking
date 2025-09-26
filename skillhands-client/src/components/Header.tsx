@@ -123,14 +123,12 @@ const Header = () => {
 
           {/* Enhanced CTA Buttons */}
           <div className="hidden md:flex items-center space-x-3">
-            {/* Employee Login Button */}
+            {/* Pro Login Button */}
             <div className="relative group">
               <Link to="/login">
-                <PrimaryButton
-                  className="ipad-mini-cta relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30 border-0 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold"
-                >
+                <PrimaryButton className="ipad-mini-cta relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30 border-0 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold">
                   <span className="relative z-10 flex items-center space-x-2">
-                    <span>Employee Login</span>
+                    <span>Pro Login</span>
                     <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-white/80 animate-pulse" />
                     </div>
@@ -252,12 +250,10 @@ const Header = () => {
                 ))}
 
                 <div className="pt-6 mt-4 border-t border-primary/20 space-y-3">
-                  {/* Employee Login Button */}
+                  {/* Pro Login Button */}
                   <Link to="/login" onClick={() => setIsOpen(false)}>
-                    <PrimaryButton
-                      className="w-full transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold relative overflow-hidden group"
-                    >
-                      <span className="relative z-10">Employee Login</span>
+                    <PrimaryButton className="w-full transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold relative overflow-hidden group">
+                      <span className="relative z-10">Pro Login</span>
                       <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12" />
                     </PrimaryButton>
                   </Link>
