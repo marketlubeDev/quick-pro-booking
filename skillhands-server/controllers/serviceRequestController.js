@@ -1,5 +1,8 @@
 import ServiceRequest from "../models/ServiceRequest.js";
-import { sendEmail } from "../services/emailService.js";
+import {
+  sendEmail,
+  sendScheduleConfirmationEmail,
+} from "../services/emailService.js";
 
 export const createServiceRequest = async (req, res) => {
   try {
@@ -243,6 +246,7 @@ export const updateServiceRequest = async (req, res) => {
         size: req.file.size,
       };
     }
+    const previous = await ServiceRequest.findById(id);
     const doc = await ServiceRequest.findByIdAndUpdate(id, updates, {
       new: true,
       runValidators: true,
@@ -250,6 +254,29 @@ export const updateServiceRequest = async (req, res) => {
 
     if (!doc)
       return res.status(404).json({ success: false, message: "Not found" });
+
+    // Send schedule confirmation if scheduledDate changed
+    try {
+      const before = previous?.scheduledDate || null;
+      const after = doc?.scheduledDate || null;
+      const changed = (before || after) && String(before) !== String(after);
+
+      if (changed && doc.email) {
+        await sendScheduleConfirmationEmail({
+          to: doc.email,
+          name: doc.name || doc.customerName,
+          service: doc.service || doc.serviceType,
+          scheduledDateISO: after,
+          address: doc.address,
+          city: doc.city,
+          state: doc.state,
+          zip: doc.zip,
+        });
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("schedule confirmation email error:", e);
+    }
     return res.json({ success: true, data: doc });
   } catch (error) {
     return res.status(400).json({ success: false, message: "Invalid request" });
