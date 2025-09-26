@@ -266,23 +266,21 @@ const PersonalInfoTab = ({
                 className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="">Select your designation</option>
-                <option value="Plumber">Plumber</option>
-                <option value="Electrician">Electrician</option>
-                <option value="House Cleaner">House Cleaner</option>
-                <option value="AC Technician">AC Technician</option>
-                <option value="Appliance Repair Technician">
-                  Appliance Repair Technician
-                </option>
-                <option value="Painter">Painter</option>
-                <option value="Handyman">Handyman</option>
-                <option value="Pest Control Specialist">
+                <option value="plumber">Plumber</option>
+                <option value="electrician">Electrician</option>
+                <option value="house cleaner">House Cleaner</option>
+                <option value="ac technician">AC Technician</option>
+                <option value="appliance repair">Appliance Repair</option>
+                <option value="painter">Painter</option>
+                <option value="handyman">Handyman</option>
+                <option value="pest control specialist">
                   Pest Control Specialist
                 </option>
-                <option value="Landscaper">Landscaper</option>
-                <option value="Moving Specialist">Moving Specialist</option>
-                <option value="Roofer">Roofer</option>
-                <option value="Carpenter">Carpenter</option>
-                <option value="Other">Other</option>
+                <option value="landscaper">Landscaper</option>
+                <option value="moving specialist">Moving Specialist</option>
+                <option value="roofer">Roofer</option>
+                {/* <option value="carpenter">Carpenter</option> */}
+                <option value="other">Other</option>
               </select>
               <p className="text-xs text-muted-foreground">
                 Your current job title or professional designation
