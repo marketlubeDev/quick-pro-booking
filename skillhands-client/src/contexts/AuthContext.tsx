@@ -36,12 +36,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
+  // Per-tab id to coordinate single active session across tabs
+  const [tabId] = useState<string>(
+    () => `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
 
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         const savedToken = localStorage.getItem("auth_token");
         const savedUserRaw = localStorage.getItem("auth_user");
+        const owner = localStorage.getItem("auth_owner");
 
         if (savedToken && savedUserRaw) {
           const savedUser = JSON.parse(savedUserRaw) as AuthUser;
@@ -69,10 +74,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (response.ok) {
               setToken(savedToken);
               setUser(savedUser);
+              // If no owner is set (legacy), claim ownership for this tab
+              if (!owner) {
+                try {
+                  localStorage.setItem("auth_owner", tabId);
+                } catch {}
+              }
             } else {
               // Token is invalid, clear storage
               localStorage.removeItem("auth_token");
               localStorage.removeItem("auth_user");
+              localStorage.removeItem("auth_owner");
               setToken(null);
               setUser(null);
             }
@@ -82,15 +94,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             console.warn("Auth validation failed:", error);
             setToken(savedToken);
             setUser(savedUser);
+            if (!owner) {
+              try {
+                localStorage.setItem("auth_owner", tabId);
+              } catch {}
+            }
           }
         } else {
           setToken(null);
           setUser(null);
+          try {
+            localStorage.removeItem("auth_owner");
+          } catch {}
         }
       } catch (error) {
         // Clear corrupted data
         localStorage.removeItem("auth_token");
         localStorage.removeItem("auth_user");
+        localStorage.removeItem("auth_owner");
         setToken(null);
         setUser(null);
       } finally {
@@ -99,16 +120,65 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     initializeAuth();
-  }, []);
+  }, [tabId]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const resp = await authApi.login(email, password);
-    localStorage.setItem("auth_token", resp.token);
-    localStorage.setItem("auth_user", JSON.stringify(resp.user));
-    setToken(resp.token);
-    setUser(resp.user);
-    return resp;
-  }, []);
+  // Listen for cross-tab login/logout via localStorage changes
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key) return;
+      if (e.key === "auth_owner") {
+        const currentOwner = localStorage.getItem("auth_owner");
+        // Another tab took ownership; clear local state but do not clear storage
+        if (currentOwner && currentOwner !== tabId) {
+          setToken(null);
+          setUser(null);
+        }
+        // If owner removed and we still have token, keep state as-is
+        return;
+      }
+      if (e.key === "auth_token" || e.key === "auth_user") {
+        const currentOwner = localStorage.getItem("auth_owner");
+        const hasToken = !!localStorage.getItem("auth_token");
+        const hasUser = !!localStorage.getItem("auth_user");
+        // If token/user removed globally, reflect logout locally
+        if (!hasToken || !hasUser) {
+          setToken(null);
+          setUser(null);
+          return;
+        }
+        // If token/user changed and owner is not this tab, reflect new session
+        if (currentOwner && currentOwner !== tabId) {
+          try {
+            const savedUserRaw = localStorage.getItem("auth_user");
+            const savedToken = localStorage.getItem("auth_token");
+            if (savedUserRaw && savedToken) {
+              const savedUser = JSON.parse(savedUserRaw) as AuthUser;
+              setToken(savedToken);
+              setUser(savedUser);
+            }
+          } catch {}
+        }
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [tabId]);
+
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const resp = await authApi.login(email, password);
+      localStorage.setItem("auth_token", resp.token);
+      localStorage.setItem("auth_user", JSON.stringify(resp.user));
+      // Mark this tab as the active session owner
+      try {
+        localStorage.setItem("auth_owner", tabId);
+      } catch {}
+      setToken(resp.token);
+      setUser(resp.user);
+      return resp;
+    },
+    [tabId]
+  );
 
   const register = useCallback(
     async (
@@ -126,17 +196,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const resp = await authApi.register(name, email, password, extra);
       localStorage.setItem("auth_token", resp.token);
       localStorage.setItem("auth_user", JSON.stringify(resp.user));
+      try {
+        localStorage.setItem("auth_owner", tabId);
+      } catch {}
       setToken(resp.token);
       setUser(resp.user);
       return resp;
     },
-    []
+    [tabId]
   );
 
   const logout = useCallback(() => {
     try {
       localStorage.removeItem("auth_token");
       localStorage.removeItem("auth_user");
+      localStorage.removeItem("auth_owner");
     } catch {
       // ignore
     }
