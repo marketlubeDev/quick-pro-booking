@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { EmployeeApplication, WorkExperience } from "@/types";
 import { fetchEmployeeJobs, type EmployeeJob } from "@/lib/api.employeeJobs";
-import { adminApi } from "@/lib/api";
+import { adminApi, type EmployeeProfileData } from "@/lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EmployeeDetailModalProps {
@@ -110,6 +110,10 @@ export function EmployeeDetailModal({
   const [workExperienceError, setWorkExperienceError] = useState<string | null>(
     null
   );
+  const [employeeProfile, setEmployeeProfile] =
+    useState<EmployeeProfileData | null>(null);
+
+  console.log(application, "dsfdffasfsadsadas");
 
   useEffect(() => {
     if (isOpen && application?.user?._id) {
@@ -144,9 +148,11 @@ export function EmployeeDetailModal({
       setWorkExperienceError(null);
 
       const response = await adminApi.getEmployeeProfile(application.user._id);
-      if (response.success && response.data?.workExperience) {
-        setWorkExperience(response.data.workExperience);
+      if (response.success && response.data) {
+        setEmployeeProfile(response.data);
+        setWorkExperience(response.data.workExperience || []);
       } else {
+        setEmployeeProfile(null);
         setWorkExperience([]);
       }
     } catch (err) {
@@ -221,7 +227,7 @@ export function EmployeeDetailModal({
                     </label>
                     <p className="text-sm">{application.phone}</p>
                   </div>
-                  <div>
+                  {/* <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Location
                     </label>
@@ -229,7 +235,40 @@ export function EmployeeDetailModal({
                       <MapPin className="h-3 w-3" />
                       <span>{application.location}</span>
                     </p>
-                  </div>
+                  </div> */}
+                  {(employeeProfile?.addressLine1 || application.address) && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Address
+                      </label>
+                      <p className="text-sm flex items-center space-x-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>
+                          {employeeProfile?.addressLine1 || application.address}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+                  {(employeeProfile?.city || application.city) && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        City
+                      </label>
+                      <p className="text-sm">
+                        {employeeProfile?.city || application.city}
+                      </p>
+                    </div>
+                  )}
+                  {(employeeProfile?.postalCode || application.zip) && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        ZIP Code
+                      </label>
+                      <p className="text-sm">
+                        {employeeProfile?.postalCode || application.zip}
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Experience Level

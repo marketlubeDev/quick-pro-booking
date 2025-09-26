@@ -37,6 +37,8 @@ const EmployeeProfile = () => {
     email: "",
     phone: "",
     city: "",
+    addressLine1: "",
+    postalCode: "",
     level: "Intermediate",
     skills: [],
     certifications: [],
@@ -54,6 +56,10 @@ const EmployeeProfile = () => {
         email: profile.email || profile.user?.email || "",
         phone: profile.phone || "",
         city: profile.city || "",
+        addressLine1:
+          (profile as any).addressLine1 || (profile as any).addressline1 || "",
+        postalCode:
+          (profile as any).postalCode || (profile as any).postalcode || "",
         level: profile.level || "Intermediate",
         skills: profile.skills || [],
         certifications: profile.certifications || [],

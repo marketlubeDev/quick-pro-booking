@@ -31,6 +31,7 @@ import {
   Star,
 } from "lucide-react";
 import { employeeApi, type EmployeeProfileData } from "@/lib/api";
+import { marylandZipCodes } from "@/data/marylandZipCodes";
 import { useToast } from "@/hooks/use-toast";
 
 interface PersonalInfoTabProps {
@@ -83,104 +84,6 @@ const PersonalInfoTab = ({
 
   return (
     <div className="space-y-6">
-      {/* Profile Image Section */}
-      {/* <Card className="shadow-sm">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5 text-blue-600" />
-            Profile Picture
-          </CardTitle>
-          <CardDescription>
-            Upload a professional profile picture
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="relative">
-              <Avatar className="h-32 w-32 border-4 border-gray-200">
-                <AvatarImage
-                  alt={form.fullName}
-                  src={profileImagePreview || ""}
-                />
-                <AvatarFallback className="text-3xl font-bold">
-                  {form.fullName
-                    ? form.fullName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .slice(0, 2)
-                    : "EP"}
-                </AvatarFallback>
-              </Avatar>
-              {profileImage && (
-                <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1">
-                  <div className="h-3 w-3 rounded-full bg-white"></div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 space-y-4">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="profileImageFile"
-                  className="text-sm font-medium"
-                >
-                  Choose Profile Image
-                </Label>
-                <Input
-                  id="profileImageFile"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleProfileImageChange}
-                  className="h-11"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Recommended: Square image, at least 400x400px, max 5MB
-                </p>
-              </div>
-
-              {profileImage && (
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    onClick={handleUploadProfileImage}
-                    disabled={uploading}
-                    className="flex-1"
-                  >
-                    {uploading ? (
-                      <>
-                        <Upload className="h-4 w-4 mr-2 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Image
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setProfileImage(null);
-                      setProfileImagePreview("");
-                      const fileInput = document.getElementById(
-                        "profileImageFile"
-                      ) as HTMLInputElement;
-                      if (fileInput) fileInput.value = "";
-                    }}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card> */}
-
       {/* Personal Details Section */}
       <Card className="shadow-sm">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -240,6 +143,22 @@ const PersonalInfoTab = ({
                 Include country code for international numbers
               </p>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address" className="text-sm font-medium">
+                Address
+              </Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="address"
+                  value={form.addressLine1 || ""}
+                  onChange={(e) => onFormChange("addressLine1", e.target.value)}
+                  placeholder="Street address"
+                  className="h-11 pl-10"
+                />
+              </div>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="city" className="text-sm font-medium">
                 City
@@ -254,6 +173,32 @@ const PersonalInfoTab = ({
                   className="h-11 pl-10"
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="zip" className="text-sm font-medium">
+                ZIP Code
+              </Label>
+              <Select
+                value={form.postalCode || ""}
+                onValueChange={(zip) => {
+                  onFormChange("postalCode", zip);
+                  const entry = marylandZipCodes.find((z) => z.zip === zip);
+                  if (entry && entry.city && entry.city !== form.city) {
+                    onFormChange("city", entry.city);
+                  }
+                }}
+              >
+                <SelectTrigger className="h-11" id="zip">
+                  <SelectValue placeholder="Select ZIP (MD)" />
+                </SelectTrigger>
+                <SelectContent className="max-h-80">
+                  {marylandZipCodes.map((z) => (
+                    <SelectItem key={z.zip} value={z.zip}>
+                      {z.zip} — {z.city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="designation" className="text-sm font-medium">

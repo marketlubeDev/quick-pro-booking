@@ -82,12 +82,14 @@ export interface ServiceRequest {
   };
 
   // Employee job management fields
-  assignedEmployee?: string | {
-    _id: string;
-    fullName: string;
-    email: string;
-    phone?: string;
-  };
+  assignedEmployee?:
+    | string
+    | {
+        _id: string;
+        fullName: string;
+        email: string;
+        phone?: string;
+      };
   employeeAccepted?: boolean;
   employeeAcceptedAt?: string;
   employeeRemarks?: string;
@@ -128,6 +130,10 @@ export interface EmployeeApplication {
   status: "pending" | "approved" | "rejected";
   appliedDate: string;
   location: string;
+  // Address details (optional)
+  address?: string;
+  city?: string;
+  zip?: string;
   // Additional fields from API
   avatarUrl?: string;
   bio?: string;
