@@ -190,11 +190,6 @@ export function EmployeeApplications() {
             <SelectItem value="Expert">Expert</SelectItem>
           </SelectContent>
         </Select>
-
-        {/* <Button variant="outline">
-          <Filter className="h-4 w-4 mr-2" />
-          More Filters
-        </Button> */}
       </div>
 
       {/* Stats Summary */}
