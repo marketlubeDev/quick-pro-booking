@@ -33,24 +33,19 @@ function isValidEmail(email: string) {
 
 function isValidUSPhoneNumber(phone: string) {
   // Remove all non-digit characters (only digits and parentheses allowed)
-  const digitsOnly = phone.replace(/[^\d]/g, '');
-  
-  // US phone number patterns:
-  // 1. 10 digits (standard US number without country code)
-  // 2. 11 digits starting with 1 (US number with country code)
-  // 3. 7 digits (local number, though less common for business)
-  
+  const digitsOnly = phone.replace(/[^\d]/g, "");
+
   if (digitsOnly.length === 10) {
     // Standard 10-digit US number
     return true;
-  } else if (digitsOnly.length === 11 && digitsOnly.startsWith('1')) {
+  } else if (digitsOnly.length === 11 && digitsOnly.startsWith("1")) {
     // 11-digit number starting with 1 (US country code)
     return true;
   } else if (digitsOnly.length === 7) {
     // 7-digit local number (less common but valid)
     return true;
   }
-  
+
   return false;
 }
 
@@ -60,31 +55,31 @@ const Request = () => {
   // Function to convert slug back to service title
   const convertSlugToTitle = (slug: string) => {
     if (!slug) return "";
-    
+
     // Map service slugs to actual service names
     const slugToServiceMap: { [key: string]: string } = {
-      'home-maintenance': 'Home Maintenance',
-      'cleaning': 'Cleaning',
-      'appliance-repairs': 'Appliance Repairs',
-      'electrical-plumbing': 'Electrical & Plumbing',
-      'ac-hvac': 'AC & HVAC',
-      'painting': 'Painting',
-      'roof-gutter': 'Roof & Gutter',
-      'lawn-care': 'Lawn Care',
-      'pest-control': 'Pest Control',
-      'moving-storage': 'Moving & Storage',
-      'kitchen-renovation': 'Kitchen Renovation'
+      "home-maintenance": "Home Maintenance",
+      cleaning: "Cleaning",
+      "appliance-repairs": "Appliance Repairs",
+      "electrical-plumbing": "Electrical & Plumbing",
+      "ac-hvac": "AC & HVAC",
+      painting: "Painting",
+      "roof-gutter": "Roof & Gutter",
+      "lawn-care": "Lawn Care",
+      "pest-control": "Pest Control",
+      "moving-storage": "Moving & Storage",
+      "kitchen-renovation": "Kitchen Renovation",
     };
-    
+
     // Check if we have a direct mapping
     if (slugToServiceMap[slug]) {
       return slugToServiceMap[slug];
     }
-    
+
     // Fallback to the original conversion logic
     return slug
       .replace(/-/g, " ") // Replace hyphens with spaces
-      .replace(/\b\w/g, l => l.toUpperCase()) // Capitalize first letter of each word
+      .replace(/\b\w/g, (l) => l.toUpperCase()) // Capitalize first letter of each word
       .replace(/\s+And\s+/g, " & ") // Replace " And " with " & "
       .replace(/\bAc\b/g, "AC") // Convert "Ac" to "AC"
       .replace(/\bHvac\b/g, "HVAC"); // Convert "Hvac" to "HVAC"
@@ -127,7 +122,6 @@ const Request = () => {
     "Pest Control",
     "Moving & Storage",
     "Kitchen Renovation",
-    
   ];
 
   const timeSlots = [
@@ -209,8 +203,16 @@ const Request = () => {
 
     // Prince George's County and parts of Howard and Anne Arundel Counties (20701-20799)
     { zip: "20701", city: "Annapolis Junction", county: "Howard County" },
-    { zip: "20704", city: "Fort George G Meade", county: "Anne Arundel County" },
-    { zip: "20705", city: "Andrews Air Force Base", county: "Prince George's County" },
+    {
+      zip: "20704",
+      city: "Fort George G Meade",
+      county: "Anne Arundel County",
+    },
+    {
+      zip: "20705",
+      city: "Andrews Air Force Base",
+      county: "Prince George's County",
+    },
     { zip: "20706", city: "Lanham", county: "Prince George's County" },
     { zip: "20707", city: "Lanham", county: "Prince George's County" },
     { zip: "20708", city: "Bladensburg", county: "Prince George's County" },
@@ -255,7 +257,11 @@ const Request = () => {
     { zip: "20755", city: "College Park", county: "Prince George's County" },
     { zip: "20757", city: "Oxon Hill", county: "Prince George's County" },
     { zip: "20758", city: "Suitland", county: "Prince George's County" },
-    { zip: "20759", city: "District Heights", county: "Prince George's County" },
+    {
+      zip: "20759",
+      city: "District Heights",
+      county: "Prince George's County",
+    },
     { zip: "20762", city: "Riverdale", county: "Prince George's County" },
     { zip: "20763", city: "Riverdale", county: "Prince George's County" },
     { zip: "20764", city: "Riverdale", county: "Prince George's County" },
@@ -551,16 +557,21 @@ const Request = () => {
       setServiceAvailable(true);
 
       // ZIP code must start with '2'
-      if (value.length > 0 && value[0] !== '2') {
-        setZipError("Service not available in this area. We currently serve Maryland only.");
+      if (value.length > 0 && value[0] !== "2") {
+        setZipError(
+          "Service not available in this area. We currently serve Maryland only."
+        );
         setServiceAvailable(false);
       }
 
       // Auto-fill city if ZIP code is valid Maryland ZIP
       if (value.length === 5) {
-        const zipData = marylandZipCodes.find(zip => zip.zip === value);
+        const zipData = marylandZipCodes.find((zip) => zip.zip === value);
         if (zipData) {
-          setFormData(prev => ({ ...prev, city: `${zipData.city}, ${zipData.county}` }));
+          setFormData((prev) => ({
+            ...prev,
+            city: `${zipData.city}, ${zipData.county}`,
+          }));
         }
       }
     }
@@ -569,7 +580,8 @@ const Request = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > 10 * 1024 * 1024) {
+        // 10MB limit
         setImageError("Image size should not exceed 10MB.");
         e.target.value = "";
         return;
@@ -582,19 +594,21 @@ const Request = () => {
   const handleRemoveImage = () => {
     setFormData((prev) => ({ ...prev, image: null }));
     // Reset the file input
-    const fileInput = document.getElementById('image') as HTMLInputElement;
+    const fileInput = document.getElementById("image") as HTMLInputElement;
     if (fileInput) {
-      fileInput.value = '';
+      fileInput.value = "";
     }
   };
 
   // Effect to update service availability when ZIP changes
   useEffect(() => {
     if (formData.zip && formData.zip.length === 5) {
-      const found = marylandZipCodes.some((zipData) => zipData.zip === formData.zip);
+      const found = marylandZipCodes.some(
+        (zipData) => zipData.zip === formData.zip
+      );
       setServiceAvailable(found);
       if (!found) {
-        setFormData((prev) => ({ ...prev, city: '' }));
+        setFormData((prev) => ({ ...prev, city: "" }));
       }
     } else {
       setServiceAvailable(true); // Default to true for incomplete ZIPs
@@ -626,7 +640,9 @@ const Request = () => {
     }
 
     // Check if ZIP code is in Maryland
-    const isMarylandZip = marylandZipCodes.some(zipData => zipData.zip === zip);
+    const isMarylandZip = marylandZipCodes.some(
+      (zipData) => zipData.zip === zip
+    );
     if (!isMarylandZip) {
       setServiceAvailable(false);
       return "Service not available in this area. We currently serve Maryland only.";
@@ -674,7 +690,9 @@ const Request = () => {
     }
 
     if (!isValidUSPhoneNumber(formData.phone)) {
-      setSubmitError("Please enter a valid US phone number (e.g., (555)1234567 or 15551234567).");
+      setSubmitError(
+        "Please enter a valid US phone number (e.g., (555)1234567 or 15551234567)."
+      );
       setIsSubmitting(false);
       return;
     }
@@ -747,9 +765,16 @@ const Request = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleZipSelect = (zipData: { zip: string; city: string; county: string }) => {
+  const handleZipSelect = (zipData: {
+    zip: string;
+    city: string;
+    county: string;
+  }) => {
     handleInputChange("zip", zipData.zip);
-    setFormData((prev) => ({ ...prev, city: `${zipData.city}, ${zipData.county}` }));
+    setFormData((prev) => ({
+      ...prev,
+      city: `${zipData.city}, ${zipData.county}`,
+    }));
     setZipDropdownOpen(false);
     // Focus the ZIP input after selection
     setTimeout(() => zipInputRef.current?.blur(), 0);
@@ -845,14 +870,16 @@ const Request = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <form onSubmit={(e) => {
-                  // Only allow form submission when in step 3
-                  if (step !== 3) {
-                    e.preventDefault();
-                    return;
-                  }
-                  handleSubmit(e);
-                }}>
+                <form
+                  onSubmit={(e) => {
+                    // Only allow form submission when in step 3
+                    if (step !== 3) {
+                      e.preventDefault();
+                      return;
+                    }
+                    handleSubmit(e);
+                  }}
+                >
                   {/* Step 1: Service Details */}
                   {step === 1 && (
                     <div className="space-y-4">
@@ -872,10 +899,7 @@ const Request = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {services.map((service) => (
-                              <SelectItem
-                                key={service}
-                                value={service}
-                              >
+                              <SelectItem key={service} value={service}>
                                 {service}
                               </SelectItem>
                             ))}
@@ -944,7 +968,9 @@ const Request = () => {
                           </div>
                         )}
                         {imageError && (
-                          <p className="text-red-500 text-sm mt-1">{imageError}</p>
+                          <p className="text-red-500 text-sm mt-1">
+                            {imageError}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -1007,7 +1033,9 @@ const Request = () => {
                           placeholder="John Smith"
                         />
                         {step2NameError && (
-                          <p className="text-red-500 text-sm mt-1">{step2NameError}</p>
+                          <p className="text-red-500 text-sm mt-1">
+                            {step2NameError}
+                          </p>
                         )}
                       </div>
 
@@ -1021,10 +1049,16 @@ const Request = () => {
                           inputMode="tel"
                           maxLength={15}
                           onChange={(e) => {
-                            const sanitizedValue = e.target.value.replace(/[^\d\(\)]/g, '');
+                            const sanitizedValue = e.target.value.replace(
+                              /[^\d\(\)]/g,
+                              ""
+                            );
                             handleInputChange("phone", sanitizedValue);
                             // Real-time validation
-                            if (sanitizedValue && isValidUSPhoneNumber(sanitizedValue)) {
+                            if (
+                              sanitizedValue &&
+                              isValidUSPhoneNumber(sanitizedValue)
+                            ) {
                               setStep2Error("");
                             }
                           }}
@@ -1034,7 +1068,9 @@ const Request = () => {
                           Only digits and parentheses allowed
                         </p> */}
                         {step2Error && step2Error.includes("phone") && (
-                          <p className="text-red-500 text-sm mt-1">{step2Error}</p>
+                          <p className="text-red-500 text-sm mt-1">
+                            {step2Error}
+                          </p>
                         )}
                       </div>
 
@@ -1051,7 +1087,9 @@ const Request = () => {
                           placeholder="john@example.com"
                         />
                         {step2Error && step2Error.includes("email") && (
-                          <p className="text-red-500 text-sm mt-1">{step2Error}</p>
+                          <p className="text-red-500 text-sm mt-1">
+                            {step2Error}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -1080,7 +1118,9 @@ const Request = () => {
                             id="city"
                             required
                             value={formData.city}
-                            onChange={(e) => handleInputChange("city", e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("city", e.target.value)
+                            }
                             placeholder="Your City, County"
                           />
                         </div>
@@ -1097,33 +1137,33 @@ const Request = () => {
                         <div>
                           <Label htmlFor="zip">ZIP Code *</Label>
                           <div className="relative">
-                                                      <Input
+                            <Input
                               id="zip"
                               required
                               value={formData.zip}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  handleInputChange("zip", value);
-                                  setZipDropdownOpen(true);
-                                  
-                                  // Clear ZIP error when user starts typing
-                                  if (zipError) {
-                                    setZipError("");
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                handleInputChange("zip", value);
+                                setZipDropdownOpen(true);
+
+                                // Clear ZIP error when user starts typing
+                                if (zipError) {
+                                  setZipError("");
+                                }
+
+                                // Validate ZIP when it reaches 5 digits
+                                if (value.length === 5) {
+                                  const validation = validateZipCode(value);
+                                  if (validation) {
+                                    setZipError(validation);
                                   }
-                                  
-                                  // Validate ZIP when it reaches 5 digits
-                                  if (value.length === 5) {
-                                    const validation = validateZipCode(value);
-                                    if (validation) {
-                                      setZipError(validation);
-                                    }
-                                  }
-                                }}
-                                placeholder="12345"
-                                maxLength={5}
-                                className={zipError ? "border-red-500" : ""}
-                                onFocus={() => setZipDropdownOpen(true)}
-                                ref={zipInputRef}
+                                }
+                              }}
+                              placeholder="12345"
+                              maxLength={5}
+                              className={zipError ? "border-red-500" : ""}
+                              onFocus={() => setZipDropdownOpen(true)}
+                              ref={zipInputRef}
                             />
                             {/* Combobox for searching ZIP codes */}
                             {zipDropdownOpen && filteredZipCodes.length > 0 && (
@@ -1136,9 +1176,12 @@ const Request = () => {
                                       <CommandItem
                                         key={zipData.zip}
                                         value={zipData.zip}
-                                        onSelect={() => handleZipSelect(zipData)}
+                                        onSelect={() =>
+                                          handleZipSelect(zipData)
+                                        }
                                       >
-                                        {zipData.zip} - {zipData.city}, {zipData.county}
+                                        {zipData.zip} - {zipData.city},{" "}
+                                        {zipData.county}
                                       </CommandItem>
                                     ))}
                                   </CommandList>
@@ -1147,16 +1190,20 @@ const Request = () => {
                             )}
                           </div>
                           {zipError && (
-                            <p className="text-red-500 text-sm mt-1">{zipError}</p>
+                            <p className="text-red-500 text-sm mt-1">
+                              {zipError}
+                            </p>
                           )}
                           {!zipError && formData.zip && serviceAvailable && (
                             <p className="text-green-600 text-sm mt-1">
-                              ✓ Service available in {formData.city || "this area"}
+                              ✓ Service available in{" "}
+                              {formData.city || "this area"}
                             </p>
                           )}
                           {!zipError && !serviceAvailable && formData.zip && (
                             <p className="text-orange-600 text-sm mt-1">
-                              ⚠ Service not available in this area. We currently serve Maryland only.
+                              ⚠ Service not available in this area. We currently
+                              serve Maryland only.
                             </p>
                           )}
                         </div>
@@ -1177,14 +1224,14 @@ const Request = () => {
                             <strong>Time:</strong> {formData.preferredTime}
                           </li>
                           <li>
-                            <strong>Contact:</strong> {formData.name} - {formData.phone}
+                            <strong>Contact:</strong> {formData.name} -{" "}
+                            {formData.phone}
                           </li>
                           {formData.email && (
                             <li>
                               <strong>Email:</strong> {formData.email}
                             </li>
                           )}
-
                         </ul>
                       </div>
                     </div>
@@ -1212,16 +1259,22 @@ const Request = () => {
                     <div className="ml-auto">
                       {step < 3 ? (
                         <div>
-                        <PrimaryButton
-                          type="button"
-                          onClick={nextStep}
-                          disabled={
-                            (step === 1 && (!formData.service || !formData.description)) ||
-                            (step === 2 && (!formData.preferredDate || !formData.preferredTime || !formData.name || !formData.phone || !formData.email))
-                          }
-                        >
-                          Next
-                        </PrimaryButton>
+                          <PrimaryButton
+                            type="button"
+                            onClick={nextStep}
+                            disabled={
+                              (step === 1 &&
+                                (!formData.service || !formData.description)) ||
+                              (step === 2 &&
+                                (!formData.preferredDate ||
+                                  !formData.preferredTime ||
+                                  !formData.name ||
+                                  !formData.phone ||
+                                  !formData.email))
+                            }
+                          >
+                            Next
+                          </PrimaryButton>
                         </div>
                       ) : (
                         <PrimaryButton
