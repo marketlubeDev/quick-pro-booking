@@ -103,6 +103,7 @@ export interface ServiceRequest {
     name: string;
     email: string;
   };
+  rejectionReason?: string;
 }
 
 export interface WorkExperience {

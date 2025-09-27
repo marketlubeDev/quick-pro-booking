@@ -104,6 +104,7 @@ const ServiceRequestSchema = new mongoose.Schema(
       default: null,
     },
     nextScheduledDate: { type: Date, default: null },
+    rejectionReason: { type: String, trim: true, default: "" },
   },
   { timestamps: true }
 );

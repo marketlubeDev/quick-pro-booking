@@ -250,6 +250,7 @@ export type UpdateServiceRequestInput = {
   status?: ServiceRequest["status"];
   scheduledDate?: string;
   assignedEmployee?: string | null;
+  rejectionReason?: string;
 };
 
 export async function updateServiceRequest(

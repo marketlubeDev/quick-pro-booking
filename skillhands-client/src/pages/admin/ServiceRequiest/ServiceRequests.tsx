@@ -23,6 +23,7 @@ import {
 } from "@/lib/api.serviceRequests";
 import { employeeApi } from "@/lib/api";
 import { ScheduleServiceDialog } from "./ScheduleServiceDialog";
+import { RejectServiceDialog } from "./RejectServiceDialog";
 
 export function ServiceRequests() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,6 +34,7 @@ export function ServiceRequests() {
     null
   );
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+  const [isRejectOpen, setIsRejectOpen] = useState(false);
 
   const {
     data,
@@ -204,11 +206,20 @@ export function ServiceRequests() {
     });
   };
 
-  const handleReject = (requestId: string) => {
-    updateMutation.mutate({
-      id: requestId,
-      status: "cancelled",
-    });
+  const handleReject = (request: ServiceRequest) => {
+    setSelectedRequest(request);
+    setIsRejectOpen(true);
+  };
+
+  const handleRejectConfirm = (reason: string) => {
+    if (selectedRequest) {
+      updateMutation.mutate({
+        id: selectedRequest._id || selectedRequest.id,
+        status: "rejected",
+        rejectionReason: reason,
+      });
+      setIsRejectOpen(false);
+    }
   };
 
   const handleEmployeeChange = (
@@ -393,6 +404,15 @@ export function ServiceRequests() {
           });
           setIsScheduleOpen(false);
         }}
+      />
+
+      <RejectServiceDialog
+        open={isRejectOpen}
+        onOpenChange={setIsRejectOpen}
+        customerName={selectedRequest?.name || selectedRequest?.customerName}
+        serviceName={selectedRequest?.service}
+        isSubmitting={updateMutation.isPending}
+        onConfirm={handleRejectConfirm}
       />
     </div>
   );

@@ -30,7 +30,7 @@ interface ServiceRequestCardProps {
   onViewDetails?: (request: ServiceRequest) => void;
   onAccept?: (requestId: string) => void;
   onComplete?: (requestId: string) => void;
-  onReject?: (requestId: string) => void;
+  onReject?: (request: ServiceRequest) => void;
   onEmployeeChange?: (requestId: string, employeeId: string | null) => void;
 }
 
@@ -279,9 +279,7 @@ export function ServiceRequestCard({
               <Button
                 size="sm"
                 variant="destructive"
-                onClick={() =>
-                  onReject?.((request._id || request.id) as string)
-                }
+                onClick={() => onReject?.(request)}
                 className="flex-1"
               >
                 <XCircle className="h-4 w-4 mr-1" />
