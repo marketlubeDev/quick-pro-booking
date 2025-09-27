@@ -17,6 +17,7 @@ export const applyCors = (app) => {
         "https://skillhands.us",
         "http://www.skillhands.us",
         "http://skillhands.us",
+        "https://quick-pro-booking-we8z.vercel.app",
       ];
 
   // Include Vercel deployment URL if available
@@ -24,6 +25,14 @@ export const applyCors = (app) => {
     const vercelOrigin = `https://${process.env.VERCEL_URL}`;
     if (!allowedOrigins.includes(vercelOrigin)) {
       allowedOrigins.push(vercelOrigin);
+    }
+  }
+
+  // Add any additional Vercel preview URLs
+  if (process.env.VERCEL_BRANCH_URL) {
+    const branchOrigin = `https://${process.env.VERCEL_BRANCH_URL}`;
+    if (!allowedOrigins.includes(branchOrigin)) {
+      allowedOrigins.push(branchOrigin);
     }
   }
 
@@ -38,7 +47,19 @@ export const applyCors = (app) => {
       // Allow non-browser requests or same-origin with no Origin header
       if (!origin) return callback(null, true);
       if (isWildcard) return callback(null, true);
-      const isAllowed = allowedOrigins.some((o) => o === origin);
+
+      // Check exact match first
+      let isAllowed = allowedOrigins.some((o) => o === origin);
+
+      // If not allowed, check for Vercel URL patterns
+      if (!isAllowed && origin) {
+        const isVercelUrl =
+          origin.includes(".vercel.app") || origin.includes(".vercel.com");
+        if (isVercelUrl) {
+          console.log("CORS Debug - Vercel URL detected, allowing:", origin);
+          isAllowed = true;
+        }
+      }
 
       console.log("CORS Debug - Is Allowed:", isAllowed);
 
