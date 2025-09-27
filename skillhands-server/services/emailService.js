@@ -764,6 +764,157 @@ export const sendNewEmployeeEmail = async ({
   return { success: true, messageId: result.messageId };
 };
 
+// Send service completion notification to customer
+export const sendServiceCompletionEmail = async ({
+  to,
+  name,
+  service,
+  completedAt,
+  address,
+  city,
+  state,
+  zip,
+  assignedEmployee,
+  completionNotes,
+}) => {
+  const transporter = createTransporter();
+
+  const completionDate = completedAt ? new Date(completedAt) : new Date();
+  const formattedDate = completionDate.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const subject = `Your ${service || "service"} has been completed`;
+  const text = `Hello ${name || "Customer"},
+
+Great news! Your ${service || "service"} has been completed on ${formattedDate}.
+
+Location: ${[address, city, state, zip].filter(Boolean).join(", ")}
+${assignedEmployee ? `Service Provider: ${assignedEmployee}` : ""}
+${completionNotes ? `Notes: ${completionNotes}` : ""}
+
+Thank you for choosing SkillHands. We hope you're satisfied with our service!
+
+If you have any questions or need follow-up service, please don't hesitate to contact us.
+
+— SkillHands · Quick Pro Booking`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <body style="margin:0;background:#f6f7fb;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f6f7fb;padding:24px 0;">
+          <tr>
+            <td align="center">
+              <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" style="max-width:680px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 12px 28px rgba(2,6,23,0.08);">
+                <tr>
+                  <td style="padding:24px;background:#10b981;background-image:linear-gradient(135deg,#10b981,#059669);color:#ffffff;">
+                    <h1 style="margin:0;font-size:20px;font-weight:800;letter-spacing:.2px;">✅ Service Completed</h1>
+                    <p style="margin:6px 0 0;font-size:13px;opacity:.95;">SkillHands · Quick Pro Booking</p>
+                    <span style="display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:700;">Service update</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:24px;background:#ffffff;">
+                    <p style="margin:0 0 8px;font-size:15px;color:#111827;">Hi ${
+                      name || "there"
+                    },</p>
+                    <p style="margin:0 0 16px;color:#374151;font-size:14px;">Great news! Your <span style="display:inline-block;background:#10b981;color:#ffffff;font-weight:700;padding:8px 12px;border-radius:12px;">${(
+                      service || "service"
+                    ).toString()}</span> has been completed.</p>
+
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0 8px;">
+                      <tr>
+                        <td style="padding:14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;">
+                          <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#166534;font-weight:800;">Completed on</div>
+                          <div style="font-size:15px;color:#111827;font-weight:600;">${formattedDate}</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td height="12"></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                          <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Location</div>
+                          <div style="font-size:15px;color:#111827;font-weight:600;">${[
+                            address,
+                            city,
+                            state,
+                            zip,
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}</div>
+                        </td>
+                      </tr>
+                      ${
+                        assignedEmployee
+                          ? `
+                      <tr>
+                        <td height="12"></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                          <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Service Provider</div>
+                          <div style="font-size:15px;color:#111827;font-weight:600;">${assignedEmployee}</div>
+                        </td>
+                      </tr>
+                      `
+                          : ""
+                      }
+                      ${
+                        completionNotes
+                          ? `
+                      <tr>
+                        <td height="12"></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                          <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Completion Notes</div>
+                          <div style="font-size:15px;color:#111827;font-weight:600;">${completionNotes}</div>
+                        </td>
+                      </tr>
+                      `
+                          : ""
+                      }
+                    </table>
+
+                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin:16px 0;">
+                      <p style="margin:0;color:#166534;font-size:14px;font-weight:600;">🎉 Thank you for choosing SkillHands!</p>
+                      <p style="margin:8px 0 0;color:#374151;font-size:14px;">We hope you're satisfied with our service. If you have any questions or need follow-up service, please don't hesitate to contact us.</p>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:18px 24px 24px;color:#6b7280;font-size:12px;border-top:1px solid #e5e7eb;background:#ffffff;">
+                    <div>Thank you for choosing SkillHands.</div>
+                    <div style="margin-top:6px;">This message was sent automatically; replies go to our support team.</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to,
+    cc: process.env.EMAIL_TO,
+    subject,
+    text,
+    html,
+  };
+
+  const result = await transporter.sendMail(mailOptions);
+  return { success: true, messageId: result.messageId };
+};
+
 // Test email configuration
 export const testEmailConfig = async () => {
   try {

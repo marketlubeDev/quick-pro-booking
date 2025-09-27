@@ -2,6 +2,7 @@ import ServiceRequest from "../models/ServiceRequest.js";
 import {
   sendEmail,
   sendScheduleConfirmationEmail,
+  sendServiceCompletionEmail,
 } from "../services/emailService.js";
 
 export const createServiceRequest = async (req, res) => {
@@ -277,6 +278,31 @@ export const updateServiceRequest = async (req, res) => {
       // eslint-disable-next-line no-console
       console.error("schedule confirmation email error:", e);
     }
+
+    // Send completion notification if status changed to completed
+    try {
+      const statusChangedToCompleted =
+        previous?.status !== "completed" && doc?.status === "completed";
+
+      if (statusChangedToCompleted && doc.email) {
+        await sendServiceCompletionEmail({
+          to: doc.email,
+          name: doc.name || doc.customerName,
+          service: doc.service || doc.serviceType,
+          completedAt: doc.completedAt || new Date(),
+          address: doc.address,
+          city: doc.city,
+          state: doc.state,
+          zip: doc.zip,
+          assignedEmployee: doc.assignedEmployee?.fullName || null,
+          completionNotes: doc.completionNotes || null,
+        });
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("completion notification email error:", e);
+    }
+
     return res.json({ success: true, data: doc });
   } catch (error) {
     return res.status(400).json({ success: false, message: "Invalid request" });
@@ -479,6 +505,27 @@ export const markJobAsDone = async (req, res) => {
 
     await job.save();
 
+    // Send completion notification to customer
+    try {
+      if (job.email) {
+        await sendServiceCompletionEmail({
+          to: job.email,
+          name: job.name || job.customerName,
+          service: job.service || job.serviceType,
+          completedAt: job.completedAt,
+          address: job.address,
+          city: job.city,
+          state: job.state,
+          zip: job.zip,
+          assignedEmployee: profile.fullName,
+          completionNotes: job.completionNotes || null,
+        });
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("completion notification email error:", e);
+    }
+
     return res.json({ success: true, data: job });
   } catch (error) {
     console.error("markJobAsDone error:", error);
@@ -530,6 +577,27 @@ export const completeJob = async (req, res) => {
     }
 
     await job.save();
+
+    // Send completion notification to customer
+    try {
+      if (job.email) {
+        await sendServiceCompletionEmail({
+          to: job.email,
+          name: job.name || job.customerName,
+          service: job.service || job.serviceType,
+          completedAt: job.completedAt,
+          address: job.address,
+          city: job.city,
+          state: job.state,
+          zip: job.zip,
+          assignedEmployee: profile.fullName,
+          completionNotes: job.completionNotes || null,
+        });
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("completion notification email error:", e);
+    }
 
     return res.json({ success: true, data: job });
   } catch (error) {
