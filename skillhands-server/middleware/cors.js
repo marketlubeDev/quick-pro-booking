@@ -9,15 +9,13 @@ export const applyCors = (app) => {
         .map((o) => o.trim())
         .filter(Boolean)
     : [
-        "http://localhost:3000",
-        "http://localhost:5173",
         "http://localhost:8080",
         "http://localhost:8081",
         "https://www.skillhands.us",
         "https://skillhands.us",
         "http://www.skillhands.us",
         "http://skillhands.us",
-        "https://quick-pro-booking-we8z.vercel.app",
+        "*",
       ];
 
   // Include Vercel deployment URL if available
