@@ -21,6 +21,8 @@ interface EmployeeApplicationCardProps {
   onViewDetails?: (application: EmployeeApplication) => void;
   onApprove?: (applicationId: string) => void;
   onReject?: (applicationId: string) => void;
+  isApproving?: boolean;
+  isRejecting?: boolean;
 }
 
 function getStatusBadgeVariant(
@@ -80,6 +82,8 @@ export function EmployeeApplicationCard({
   onViewDetails,
   onApprove,
   onReject,
+  isApproving = false,
+  isRejecting = false,
 }: EmployeeApplicationCardProps) {
   return (
     <Card className="hover:shadow-md transition-all duration-200 border-border/50">
@@ -225,18 +229,38 @@ export function EmployeeApplicationCard({
                 size="sm"
                 onClick={() => onApprove?.(application.id)}
                 className="flex-1 bg-success hover:bg-success/90"
+                disabled={isApproving || isRejecting}
               >
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Approve
+                {isApproving ? (
+                  <>
+                    <div className="mr-1 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Approving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Approve
+                  </>
+                )}
               </Button>
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={() => onReject?.(application.id)}
                 className="flex-1"
+                disabled={isApproving || isRejecting}
               >
-                <XCircle className="h-4 w-4 mr-1" />
-                Reject
+                {isRejecting ? (
+                  <>
+                    <div className="mr-1 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Rejecting...
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-4 w-4 mr-1" />
+                    Reject
+                  </>
+                )}
               </Button>
             </>
           )}

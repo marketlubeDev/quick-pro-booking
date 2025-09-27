@@ -1048,6 +1048,384 @@ Thank you for considering SkillHands for your service needs.
   return { success: true, messageId: result.messageId };
 };
 
+// Send employee application approval notification
+export const sendEmployeeApplicationApprovalEmail = async ({
+  to,
+  name,
+  designation,
+  experienceLevel,
+  skills,
+  expectedSalary,
+  verificationNotes,
+}) => {
+  const transporter = createTransporter();
+
+  const subject = `🎉 Congratulations! Your SkillHands Application Has Been Approved`;
+  const text = `Hello ${name || "Applicant"},
+
+Congratulations! We are pleased to inform you that your application to join SkillHands has been approved.
+
+Application Details:
+- Name: ${name || "N/A"}
+- Designation: ${designation || "N/A"}
+- Experience Level: ${experienceLevel || "N/A"}
+- Expected Salary: ${expectedSalary ? `${expectedSalary} AED` : "N/A"}
+- Skills: ${skills ? skills.join(", ") : "N/A"}
+
+${verificationNotes ? `Notes from our team: ${verificationNotes}` : ""}
+
+What's Next?
+1. You can now log into your SkillHands account
+2. Complete your profile to start receiving job opportunities
+3. Browse available service requests in your area
+4. Start building your reputation with our customers
+
+We're excited to have you as part of the SkillHands team! If you have any questions, please don't hesitate to contact us.
+
+Welcome aboard!
+
+— SkillHands · Quick Pro Booking Team`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Application Approved - SkillHands</title>
+        <style>
+          *{box-sizing:border-box;margin:0;padding:0}
+          body{background:#f5f7fb;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;line-height:1.6;padding:24px}
+          .container{max-width:640px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 24px 48px rgba(2,6,23,0.08)}
+          .header{position:relative;background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:28px 28px 24px;color:#fff}
+          .header h1{font-size:22px;font-weight:800;letter-spacing:.2px;margin-bottom:4px}
+          .header p{opacity:.95;font-size:14px}
+          .pill{display:inline-block;margin-top:12px;background:rgba(255,255,255,.15);backdrop-filter:blur(2px);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600}
+          .content{padding:24px;background:#ffffff}
+          .section{border:1px solid #e5e7eb;border-radius:12px;padding:18px 16px;margin-bottom:16px;background:#f0fdf4}
+          .title{font-size:14px;font-weight:700;color:#374151;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+          .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+          .item{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px}
+          .label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:6px;font-weight:700}
+          .value{font-size:15px;color:#111827;font-weight:600}
+          .success-badge{display:inline-flex;align-items:center;gap:6px;background:#10b981;color:#fff;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700;margin-bottom:16px}
+          .next-steps{background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:18px;margin:16px 0}
+          .next-steps h3{color:#92400e;font-size:16px;font-weight:700;margin-bottom:12px}
+          .next-steps ol{color:#92400e;padding-left:20px}
+          .next-steps li{margin-bottom:8px;font-size:14px}
+          .footer{padding:18px 24px;background:#0f172a;color:#cbd5e1;text-align:center;font-size:12px}
+          .footer a{color:#93c5fd;text-decoration:none}
+          @media (max-width: 540px){.grid{grid-template-columns:1fr}}
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎉 Application Approved!</h1>
+            <p>Welcome to the SkillHands team!</p>
+            <span class="pill">SkillHands · Quick Pro Booking</span>
+          </div>
+          <div class="content">
+            <div class="success-badge">
+              ✅ Application Status: Approved
+            </div>
+
+            <p style="font-size:16px;color:#111827;margin-bottom:20px;">
+              Hello <strong>${name || "Applicant"}</strong>,
+            </p>
+
+            <p style="font-size:15px;color:#374151;margin-bottom:20px;">
+              Congratulations! We are pleased to inform you that your application to join SkillHands has been approved. We're excited to have you as part of our team!
+            </p>
+
+            <div class="section">
+              <div class="title">Application Details</div>
+              <div class="grid">
+                <div class="item">
+                  <div class="label">Name</div>
+                  <div class="value">${name || "N/A"}</div>
+                </div>
+                <div class="item">
+                  <div class="label">Designation</div>
+                  <div class="value">${designation || "N/A"}</div>
+                </div>
+                <div class="item">
+                  <div class="label">Experience Level</div>
+                  <div class="value">${experienceLevel || "N/A"}</div>
+                </div>
+                <div class="item">
+                  <div class="label">Expected Salary</div>
+                  <div class="value">${
+                    expectedSalary ? `${expectedSalary} AED` : "N/A"
+                  }</div>
+                </div>
+              </div>
+              ${
+                skills && skills.length > 0
+                  ? `
+                <div style="margin-top:12px;">
+                  <div class="label">Skills</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+                    ${skills
+                      .map(
+                        (skill) =>
+                          `<span style="background:#e5e7eb;color:#374151;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:500;">${skill}</span>`
+                      )
+                      .join("")}
+                  </div>
+                </div>
+              `
+                  : ""
+              }
+            </div>
+
+            ${
+              verificationNotes
+                ? `
+              <div class="section" style="background:#fef3c7;border-color:#f59e0b;">
+                <div class="title" style="color:#92400e;">Notes from our team</div>
+                <p style="color:#92400e;font-size:14px;margin:0;">${verificationNotes}</p>
+              </div>
+            `
+                : ""
+            }
+
+            <div class="next-steps">
+              <h3>🚀 What's Next?</h3>
+              <ol>
+                <li>Log into your SkillHands account</li>
+                <li>Complete your profile to start receiving job opportunities</li>
+                <li>Browse available service requests in your area</li>
+                <li>Start building your reputation with our customers</li>
+              </ol>
+            </div>
+
+            <p style="font-size:15px;color:#374151;margin-top:20px;">
+              If you have any questions, please don't hesitate to contact us. We're here to help you succeed!
+            </p>
+
+            <p style="font-size:15px;color:#374151;margin-top:16px;">
+              Welcome aboard!<br>
+              <strong>— SkillHands · Quick Pro Booking Team</strong>
+            </p>
+          </div>
+          <div class="footer">
+            <p>© 2024 SkillHands · Quick Pro Booking. All rights reserved.</p>
+            <p>This email was sent to ${to}. If you have any questions, please contact our support team.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to,
+    cc: process.env.EMAIL_TO,
+    subject,
+    text,
+    html,
+  };
+
+  const result = await transporter.sendMail(mailOptions);
+  return { success: true, messageId: result.messageId };
+};
+
+// Send employee application rejection notification
+export const sendEmployeeApplicationRejectionEmail = async ({
+  to,
+  name,
+  designation,
+  experienceLevel,
+  skills,
+  expectedSalary,
+  verificationNotes,
+  rejectionReason,
+}) => {
+  const transporter = createTransporter();
+
+  const subject = `Application Update: SkillHands Employee Application`;
+  const text = `Hello ${name || "Applicant"},
+
+Thank you for your interest in joining SkillHands. After careful consideration, we regret to inform you that we are unable to approve your application at this time.
+
+Application Details:
+- Name: ${name || "N/A"}
+- Designation: ${designation || "N/A"}
+- Experience Level: ${experienceLevel || "N/A"}
+- Expected Salary: ${expectedSalary ? `${expectedSalary} AED` : "N/A"}
+- Skills: ${skills ? skills.join(", ") : "N/A"}
+
+${
+  rejectionReason
+    ? `Reason for rejection: ${rejectionReason}`
+    : verificationNotes
+    ? `Feedback: ${verificationNotes}`
+    : "We encourage you to continue developing your skills and consider reapplying in the future."
+}
+
+We appreciate the time and effort you put into your application. While we cannot move forward at this time, we encourage you to:
+1. Continue building your skills and experience
+2. Consider reapplying in the future
+3. Stay connected with us for future opportunities
+
+Thank you for your interest in SkillHands, and we wish you the best in your professional journey.
+
+— SkillHands · Quick Pro Booking Team`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Application Update - SkillHands</title>
+        <style>
+          *{box-sizing:border-box;margin:0;padding:0}
+          body{background:#f5f7fb;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;line-height:1.6;padding:24px}
+          .container{max-width:640px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 24px 48px rgba(2,6,23,0.08)}
+          .header{position:relative;background:linear-gradient(135deg,#6b7280 0%,#4b5563 100%);padding:28px 28px 24px;color:#fff}
+          .header h1{font-size:22px;font-weight:800;letter-spacing:.2px;margin-bottom:4px}
+          .header p{opacity:.95;font-size:14px}
+          .pill{display:inline-block;margin-top:12px;background:rgba(255,255,255,.15);backdrop-filter:blur(2px);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600}
+          .content{padding:24px;background:#ffffff}
+          .section{border:1px solid #e5e7eb;border-radius:12px;padding:18px 16px;margin-bottom:16px;background:#f9fafb}
+          .title{font-size:14px;font-weight:700;color:#374151;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+          .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+          .item{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px}
+          .label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:6px;font-weight:700}
+          .value{font-size:15px;color:#111827;font-weight:600}
+          .status-badge{display:inline-flex;align-items:center;gap:6px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700;margin-bottom:16px}
+          .encouragement{background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:18px;margin:16px 0}
+          .encouragement h3{color:#92400e;font-size:16px;font-weight:700;margin-bottom:12px}
+          .encouragement ol{color:#92400e;padding-left:20px}
+          .encouragement li{margin-bottom:8px;font-size:14px}
+          .footer{padding:18px 24px;background:#0f172a;color:#cbd5e1;text-align:center;font-size:12px}
+          .footer a{color:#93c5fd;text-decoration:none}
+          @media (max-width: 540px){.grid{grid-template-columns:1fr}}
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Application Update</h1>
+            <p>Thank you for your interest in SkillHands</p>
+            <span class="pill">SkillHands · Quick Pro Booking</span>
+          </div>
+          <div class="content">
+            <div class="status-badge">
+              📋 Application Status: Not Approved
+            </div>
+
+            <p style="font-size:16px;color:#111827;margin-bottom:20px;">
+              Hello <strong>${name || "Applicant"}</strong>,
+            </p>
+
+            <p style="font-size:15px;color:#374151;margin-bottom:20px;">
+              Thank you for your interest in joining SkillHands. After careful consideration, we regret to inform you that we are unable to approve your application at this time.
+            </p>
+
+            <div class="section">
+              <div class="title">Application Details</div>
+              <div class="grid">
+                <div class="item">
+                  <div class="label">Name</div>
+                  <div class="value">${name || "N/A"}</div>
+                </div>
+                <div class="item">
+                  <div class="label">Designation</div>
+                  <div class="value">${designation || "N/A"}</div>
+                </div>
+                <div class="item">
+                  <div class="label">Experience Level</div>
+                  <div class="value">${experienceLevel || "N/A"}</div>
+                </div>
+                <div class="item">
+                  <div class="label">Expected Salary</div>
+                  <div class="value">${
+                    expectedSalary ? `${expectedSalary} AED` : "N/A"
+                  }</div>
+                </div>
+              </div>
+              ${
+                skills && skills.length > 0
+                  ? `
+                <div style="margin-top:12px;">
+                  <div class="label">Skills</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+                    ${skills
+                      .map(
+                        (skill) =>
+                          `<span style="background:#e5e7eb;color:#374151;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:500;">${skill}</span>`
+                      )
+                      .join("")}
+                  </div>
+                </div>
+              `
+                  : ""
+              }
+            </div>
+
+            ${
+              rejectionReason
+                ? `
+              <div class="section" style="background:#fef3c7;border-color:#f59e0b;">
+                <div class="title" style="color:#92400e;">Reason for Rejection</div>
+                <p style="color:#92400e;font-size:14px;margin:0;">${rejectionReason}</p>
+              </div>
+            `
+                : verificationNotes
+                ? `
+              <div class="section" style="background:#fef3c7;border-color:#f59e0b;">
+                <div class="title" style="color:#92400e;">Feedback</div>
+                <p style="color:#92400e;font-size:14px;margin:0;">${verificationNotes}</p>
+              </div>
+            `
+                : ""
+            }
+
+            <div class="encouragement">
+              <h3>💪 Keep Moving Forward</h3>
+              <p style="color:#92400e;font-size:14px;margin-bottom:12px;">
+                We appreciate the time and effort you put into your application. While we cannot move forward at this time, we encourage you to:
+              </p>
+              <ol>
+                <li>Continue building your skills and experience</li>
+                <li>Consider reapplying in the future</li>
+                <li>Stay connected with us for future opportunities</li>
+              </ol>
+            </div>
+
+            <p style="font-size:15px;color:#374151;margin-top:20px;">
+              Thank you for your interest in SkillHands, and we wish you the best in your professional journey.
+            </p>
+
+            <p style="font-size:15px;color:#374151;margin-top:16px;">
+              <strong>— SkillHands · Quick Pro Booking Team</strong>
+            </p>
+          </div>
+          <div class="footer">
+            <p>© 2024 SkillHands · Quick Pro Booking. All rights reserved.</p>
+            <p>This email was sent to ${to}. If you have any questions, please contact our support team.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to,
+    cc: process.env.EMAIL_TO,
+    subject,
+    text,
+    html,
+  };
+
+  const result = await transporter.sendMail(mailOptions);
+  return { success: true, messageId: result.messageId };
+};
+
 // Test email configuration
 export const testEmailConfig = async () => {
   try {

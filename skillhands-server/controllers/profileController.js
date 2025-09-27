@@ -1,6 +1,10 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import Profile from "../models/Profile.js";
+import {
+  sendEmployeeApplicationApprovalEmail,
+  sendEmployeeApplicationRejectionEmail,
+} from "../services/emailService.js";
 
 export const getMyProfile = async (req, res, next) => {
   try {
@@ -330,6 +334,9 @@ export const updateEmployeeStatus = async (req, res, next) => {
       });
     }
 
+    // Store the previous status to check if it changed
+    const previousStatus = profile.status;
+
     // Keep both fields in sync so both old/new clients and queries reflect changes
     profile.verificationStatus = status;
     profile.status = status;
@@ -340,6 +347,43 @@ export const updateEmployeeStatus = async (req, res, next) => {
     profile.lastUpdated = new Date();
 
     await profile.save();
+
+    // Send email notification if status changed to approved or rejected
+    try {
+      if (
+        status === "approved" &&
+        previousStatus !== "approved" &&
+        profile.user?.email
+      ) {
+        await sendEmployeeApplicationApprovalEmail({
+          to: profile.user.email,
+          name: profile.fullName || profile.user.name,
+          designation: profile.designation,
+          experienceLevel: profile.level,
+          skills: profile.skills || [],
+          expectedSalary: profile.expectedSalary,
+          verificationNotes: verificationNotes,
+        });
+      } else if (
+        status === "rejected" &&
+        previousStatus !== "rejected" &&
+        profile.user?.email
+      ) {
+        await sendEmployeeApplicationRejectionEmail({
+          to: profile.user.email,
+          name: profile.fullName || profile.user.name,
+          designation: profile.designation,
+          experienceLevel: profile.level,
+          skills: profile.skills || [],
+          expectedSalary: profile.expectedSalary,
+          verificationNotes: verificationNotes,
+          rejectionReason: verificationNotes, // Use verificationNotes as rejection reason
+        });
+      }
+    } catch (emailError) {
+      // Log email error but don't fail the request
+      console.error("Failed to send application status email:", emailError);
+    }
 
     return res.json({
       success: true,

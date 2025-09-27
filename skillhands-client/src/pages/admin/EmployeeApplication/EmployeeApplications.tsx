@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Search, Filter, Plus, Users, Loader2 } from "lucide-react";
 import { EmployeeApplicationCard } from "./EmployeeApplicationCard";
 import { EmployeeDetailModal } from "./EmployeeDetailModal";
+import { RejectApplicationDialog } from "./RejectApplicationDialog";
 import { EmployeeApplication } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,14 @@ export function EmployeeApplications() {
   const [selectedApplication, setSelectedApplication] =
     useState<EmployeeApplication | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [applicationToReject, setApplicationToReject] =
+    useState<EmployeeApplication | null>(null);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [approvingApplicationId, setApprovingApplicationId] = useState<
+    string | null
+  >(null);
 
   const { applications, loading, error, updateStatus } =
     useEmployeeApplications();
@@ -63,6 +72,8 @@ export function EmployeeApplications() {
 
   const handleApprove = async (applicationId: string) => {
     try {
+      setIsApproving(true);
+      setApprovingApplicationId(applicationId);
       await updateStatus(applicationId, "approved");
       toast({
         title: "Application Approved",
@@ -75,16 +86,33 @@ export function EmployeeApplications() {
         description: "Failed to approve application. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsApproving(false);
+      setApprovingApplicationId(null);
     }
   };
 
-  const handleReject = async (applicationId: string) => {
+  const handleReject = (applicationId: string) => {
+    const application = applications.find((app) => app.id === applicationId);
+    if (application) {
+      setApplicationToReject(application);
+      setIsRejectModalOpen(true);
+    }
+  };
+
+  const handleConfirmReject = async (rejectionReason: string) => {
+    if (!applicationToReject) return;
+
     try {
-      await updateStatus(applicationId, "rejected");
+      setIsRejecting(true);
+      await updateStatus(applicationToReject.id, "rejected", rejectionReason);
       toast({
         title: "Application Rejected",
-        description: "Employee application has been rejected.",
+        description:
+          "Employee application has been rejected and notification sent.",
       });
+      setIsRejectModalOpen(false);
+      setApplicationToReject(null);
     } catch (error) {
       console.error("Failed to reject application:", error);
       toast({
@@ -92,7 +120,14 @@ export function EmployeeApplications() {
         description: "Failed to reject application. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsRejecting(false);
     }
+  };
+
+  const handleCloseRejectModal = () => {
+    setIsRejectModalOpen(false);
+    setApplicationToReject(null);
   };
 
   if (loading) {
@@ -201,6 +236,12 @@ export function EmployeeApplications() {
             onViewDetails={handleViewDetails}
             onApprove={handleApprove}
             onReject={handleReject}
+            isApproving={
+              isApproving && approvingApplicationId === application.id
+            }
+            isRejecting={
+              isRejecting && applicationToReject?.id === application.id
+            }
           />
         ))}
       </div>
@@ -223,6 +264,15 @@ export function EmployeeApplications() {
         application={selectedApplication}
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
+      />
+
+      {/* Reject Application Modal */}
+      <RejectApplicationDialog
+        isOpen={isRejectModalOpen}
+        onClose={handleCloseRejectModal}
+        onConfirm={handleConfirmReject}
+        employeeName={applicationToReject?.name}
+        loading={isRejecting}
       />
     </div>
   );
