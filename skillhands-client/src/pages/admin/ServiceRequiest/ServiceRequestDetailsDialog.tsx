@@ -32,6 +32,16 @@ const getStatusColor = (status: string) => {
   }
 };
 
+function formatDate(dateString: string) {
+  return new Date(dateString).toLocaleDateString("en-AE", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 const getPriorityColor = (priority: string) => {
   switch (priority) {
     case "urgent":
@@ -202,7 +212,9 @@ export function ServiceRequestDetailsDialog({
               <div>
                 <p className="text-sm text-muted-foreground">Scheduled Date</p>
                 <p className="text-foreground">
-                  {request.scheduledDate || "Not scheduled"}
+                  {request.scheduledDate
+                    ? formatDate(request.scheduledDate)
+                    : "Not scheduled"}
                 </p>
               </div>
               {/* {request.estimatedDuration && (
