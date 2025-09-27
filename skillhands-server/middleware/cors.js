@@ -14,6 +14,9 @@ export const applyCors = (app) => {
         "http://localhost:8080",
         "http://localhost:8081",
         "https://www.skillhands.us",
+        "https://skillhands.us",
+        "http://www.skillhands.us",
+        "http://skillhands.us",
       ];
 
   // Include Vercel deployment URL if available
@@ -28,10 +31,17 @@ export const applyCors = (app) => {
 
   const corsOptions = {
     origin: (origin, callback) => {
+      // Debug logging
+      console.log("CORS Debug - Origin:", origin);
+      console.log("CORS Debug - Allowed Origins:", allowedOrigins);
+
       // Allow non-browser requests or same-origin with no Origin header
       if (!origin) return callback(null, true);
       if (isWildcard) return callback(null, true);
       const isAllowed = allowedOrigins.some((o) => o === origin);
+
+      console.log("CORS Debug - Is Allowed:", isAllowed);
+
       // Do not throw on disallowed origins; disable CORS instead of 500 error
       return callback(null, isAllowed);
     },

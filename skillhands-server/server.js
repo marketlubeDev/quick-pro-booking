@@ -63,6 +63,16 @@ app.get("/", (req, res) => {
   res.json({ success: true, message: "Server is running" });
 });
 
+// CORS test endpoint
+app.get("/api/cors-test", (req, res) => {
+  res.json({
+    success: true,
+    message: "CORS is working!",
+    origin: req.headers.origin,
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // // Health check routes that bypass database middleware
 // app.get("/api/health", (req, res) => {
 //   res.json({
