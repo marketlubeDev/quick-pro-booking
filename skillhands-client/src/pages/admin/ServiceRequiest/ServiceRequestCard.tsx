@@ -10,6 +10,7 @@ import {
   Eye,
   User,
   UserCheck,
+  Loader2,
 } from "lucide-react";
 import { ServiceRequest, Employee } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,9 @@ interface ServiceRequestCardProps {
   onComplete?: (requestId: string) => void;
   onReject?: (request: ServiceRequest) => void;
   onEmployeeChange?: (requestId: string, employeeId: string | null) => void;
+  isLoadingAccept?: boolean;
+  isLoadingComplete?: boolean;
+  isLoadingReject?: boolean;
 }
 
 function getStatusBadgeVariant(
@@ -91,6 +95,9 @@ export function ServiceRequestCard({
   onComplete,
   onReject,
   onEmployeeChange,
+  isLoadingAccept = false,
+  isLoadingComplete = false,
+  isLoadingReject = false,
 }: ServiceRequestCardProps) {
   return (
     <Card className="hover:shadow-md transition-all duration-200 border-border/50">
@@ -272,8 +279,13 @@ export function ServiceRequestCard({
                   onAccept?.((request._id || request.id) as string)
                 }
                 className="flex-1"
+                disabled={isLoadingAccept || isLoadingReject}
               >
-                <CheckCircle className="h-4 w-4 mr-1" />
+                {isLoadingAccept ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                )}
                 Accept
               </Button>
               <Button
@@ -281,8 +293,13 @@ export function ServiceRequestCard({
                 variant="destructive"
                 onClick={() => onReject?.(request)}
                 className="flex-1"
+                disabled={isLoadingAccept || isLoadingReject}
               >
-                <XCircle className="h-4 w-4 mr-1" />
+                {isLoadingReject ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <XCircle className="h-4 w-4 mr-1" />
+                )}
                 Reject
               </Button>
             </>
@@ -295,8 +312,13 @@ export function ServiceRequestCard({
                 onComplete?.((request._id || request.id) as string)
               }
               className="flex-1 bg-success hover:bg-success/90"
+              disabled={isLoadingComplete}
             >
-              <CheckCircle className="h-4 w-4 mr-1" />
+              {isLoadingComplete ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <CheckCircle className="h-4 w-4 mr-1" />
+              )}
               Complete
             </Button>
           )}

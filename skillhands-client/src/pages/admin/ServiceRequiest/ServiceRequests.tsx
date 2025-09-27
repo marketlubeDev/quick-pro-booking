@@ -144,6 +144,11 @@ export function ServiceRequests() {
     onError: (error) => {},
   });
 
+  // Track which request is being processed for loading states
+  const [processingRequestId, setProcessingRequestId] = useState<string | null>(
+    null
+  );
+
   // Intersection observer for infinite scroll
   const loadMoreRef = useIntersectionObserver({
     onIntersect: useCallback(() => {
@@ -200,10 +205,18 @@ export function ServiceRequests() {
   };
 
   const handleComplete = (requestId: string) => {
-    updateMutation.mutate({
-      id: requestId,
-      status: "completed",
-    });
+    setProcessingRequestId(requestId);
+    updateMutation.mutate(
+      {
+        id: requestId,
+        status: "completed",
+      },
+      {
+        onSettled: () => {
+          setProcessingRequestId(null);
+        },
+      }
+    );
   };
 
   const handleReject = (request: ServiceRequest) => {
@@ -213,12 +226,21 @@ export function ServiceRequests() {
 
   const handleRejectConfirm = (reason: string) => {
     if (selectedRequest) {
-      updateMutation.mutate({
-        id: selectedRequest._id || selectedRequest.id,
-        status: "rejected",
-        rejectionReason: reason,
-      });
-      setIsRejectOpen(false);
+      const requestId = selectedRequest._id || selectedRequest.id;
+      setProcessingRequestId(requestId);
+      updateMutation.mutate(
+        {
+          id: requestId,
+          status: "rejected",
+          rejectionReason: reason,
+        },
+        {
+          onSettled: () => {
+            setProcessingRequestId(null);
+            setIsRejectOpen(false);
+          },
+        }
+      );
     }
   };
 
@@ -321,18 +343,26 @@ export function ServiceRequests() {
 
       {/* Service Requests Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredRequests.map((request) => (
-          <ServiceRequestCard
-            key={request.id}
-            request={request}
-            employees={employees}
-            onViewDetails={handleViewDetails}
-            onAccept={handleAccept}
-            onComplete={handleComplete}
-            onReject={handleReject}
-            onEmployeeChange={handleEmployeeChange}
-          />
-        ))}
+        {filteredRequests.map((request) => {
+          const requestId = request._id || request.id;
+          const isProcessing = processingRequestId === requestId;
+
+          return (
+            <ServiceRequestCard
+              key={request.id}
+              request={request}
+              employees={employees}
+              onViewDetails={handleViewDetails}
+              onAccept={handleAccept}
+              onComplete={handleComplete}
+              onReject={handleReject}
+              onEmployeeChange={handleEmployeeChange}
+              isLoadingAccept={isProcessing && updateMutation.isPending}
+              isLoadingComplete={isProcessing && updateMutation.isPending}
+              isLoadingReject={isProcessing && updateMutation.isPending}
+            />
+          );
+        })}
       </div>
 
       {/* Infinite Scroll Loading Indicator */}
@@ -397,12 +427,20 @@ export function ServiceRequests() {
             status: "in-process",
             scheduledDate: scheduledDateISO,
           });
-          updateMutation.mutate({
-            id,
-            status: "in-process",
-            scheduledDate: scheduledDateISO,
-          });
-          setIsScheduleOpen(false);
+          setProcessingRequestId(id);
+          updateMutation.mutate(
+            {
+              id,
+              status: "in-process",
+              scheduledDate: scheduledDateISO,
+            },
+            {
+              onSettled: () => {
+                setProcessingRequestId(null);
+                setIsScheduleOpen(false);
+              },
+            }
+          );
         }}
       />
 
