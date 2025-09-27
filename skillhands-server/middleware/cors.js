@@ -12,9 +12,6 @@ export const applyCors = (app) => {
         "http://localhost:8080",
         "http://localhost:8081",
         "https://www.skillhands.us",
-        "https://skillhands.us",
-        "http://www.skillhands.us",
-        "http://skillhands.us",
         "*",
       ];
 

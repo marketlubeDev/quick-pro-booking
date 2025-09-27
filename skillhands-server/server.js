@@ -1,7 +1,7 @@
 import express from "express";
+import cors from "cors";
 import dotenv from "dotenv";
 import { applySecurity } from "./middleware/security.js";
-import { applyCors } from "./middleware/cors.js";
 import { multerErrorHandler } from "./middleware/uploads.js";
 import { errorHandler, notFound } from "./middleware/errors.js";
 import apiRoutes from "./routes/index.js";
@@ -27,6 +27,20 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// CORS middleware
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:8080",
+      "https://www.skillhands.us",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 // Security middleware
 applySecurity(app);
 
@@ -37,9 +51,6 @@ applySecurity(app);
 //   message: "Too many requests from this IP, please try again later.",
 // });
 // app.use("/api/", limiter);
-
-// CORS
-applyCors(app);
 
 // Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
