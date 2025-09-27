@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import dotenv from "dotenv";
 import { applySecurity } from "../middleware/security.js";
 import { applyCors } from "../middleware/cors.js";
@@ -63,6 +64,16 @@ if (process.env.NODE_ENV !== "production") {
 // Routes that don't require database connection
 app.get("/", (req, res) => {
   res.json({ success: true, message: "Server is running" });
+});
+
+// CORS test endpoint
+app.get("/api/cors-test", (req, res) => {
+  res.json({
+    success: true,
+    message: "CORS is working!",
+    origin: req.headers.origin,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Health check routes that bypass database middleware
