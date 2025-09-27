@@ -11,7 +11,21 @@ import reportsRouter from "./reports.js";
 const router = express.Router();
 
 router.get("/health", (req, res) => {
-  res.json({ status: "OK", message: "Server is running" });
+  res.json({
+    status: "OK",
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+// Health check that doesn't require database
+router.get("/ping", (req, res) => {
+  res.json({
+    status: "OK",
+    message: "Pong",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 router.post("/contact", upload.single("image"), submitContact);

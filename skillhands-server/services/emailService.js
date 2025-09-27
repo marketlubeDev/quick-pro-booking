@@ -1,15 +1,34 @@
 import nodemailer from "nodemailer";
 
-// Create transporter
+// Create transporter with error handling
 const createTransporter = () => {
+  const requiredEnvVars = [
+    "EMAIL_HOST",
+    "EMAIL_PORT",
+    "EMAIL_USER",
+    "EMAIL_PASS",
+  ];
+  const missingVars = requiredEnvVars.filter(
+    (varName) => !process.env[varName]
+  );
+
+  if (missingVars.length > 0) {
+    console.error("Missing email configuration:", missingVars);
+    throw new Error(`Missing email configuration: ${missingVars.join(", ")}`);
+  }
+
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: false, // true for 465, false for other ports
+    port: parseInt(process.env.EMAIL_PORT),
+    secure: process.env.EMAIL_PORT === "465", // true for 465, false for other ports
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    // Add timeout settings for serverless
+    connectionTimeout: 10000,
+    greetingTimeout: 5000,
+    socketTimeout: 10000,
   });
 };
 
@@ -1424,6 +1443,20 @@ Thank you for your interest in SkillHands, and we wish you the best in your prof
 
   const result = await transporter.sendMail(mailOptions);
   return { success: true, messageId: result.messageId };
+};
+
+// Safe email sending wrapper
+const safeSendEmail = async (emailFunction, ...args) => {
+  try {
+    return await emailFunction(...args);
+  } catch (error) {
+    console.error("Email sending failed:", error);
+    // Don't throw error in production to prevent 500 errors
+    if (process.env.NODE_ENV === "development") {
+      throw error;
+    }
+    return { success: false, error: error.message };
+  }
 };
 
 // Test email configuration
