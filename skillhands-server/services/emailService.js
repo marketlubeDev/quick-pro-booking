@@ -915,6 +915,139 @@ If you have any questions or need follow-up service, please don't hesitate to co
   return { success: true, messageId: result.messageId };
 };
 
+// Send service rejection notification to customer
+export const sendServiceRejectionEmail = async ({
+  to,
+  name,
+  service,
+  rejectionReason,
+  address,
+  city,
+  state,
+  zip,
+  requestId,
+}) => {
+  const transporter = createTransporter();
+
+  const subject = `Service Request Update: ${
+    service || "Your service request"
+  }`;
+  const text = `Hello ${name || "Customer"},
+
+We regret to inform you that we are unable to fulfill your service request at this time.
+
+Service: ${service || "Service request"}
+Request ID: ${requestId || "N/A"}
+Location: ${[address, city, state, zip].filter(Boolean).join(", ")}
+
+Reason: ${rejectionReason || "No specific reason provided"}
+
+We apologize for any inconvenience this may cause. If you have any questions or would like to discuss alternative solutions, please don't hesitate to contact us.
+
+Thank you for considering SkillHands for your service needs.
+
+— SkillHands · Quick Pro Booking`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <body style="margin:0;background:#f6f7fb;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f6f7fb;padding:24px 0;">
+          <tr>
+            <td align="center">
+              <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" style="max-width:680px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 12px 28px rgba(2,6,23,0.08);">
+                <tr>
+                  <td style="padding:24px;background:#dc2626;background-image:linear-gradient(135deg,#dc2626,#b91c1c);color:#ffffff;">
+                    <h1 style="margin:0;font-size:20px;font-weight:800;letter-spacing:.2px;">Service Request Update</h1>
+                    <p style="margin:6px 0 0;font-size:13px;opacity:.95;">SkillHands · Quick Pro Booking</p>
+                    <span style="display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:700;">Request update</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:24px;background:#ffffff;">
+                    <p style="margin:0 0 8px;font-size:15px;color:#111827;">Hi ${
+                      name || "there"
+                    },</p>
+                    <p style="margin:0 0 16px;color:#374151;font-size:14px;">We regret to inform you that we are unable to fulfill your <span style="display:inline-block;background:#dc2626;color:#ffffff;font-weight:700;padding:8px 12px;border-radius:12px;">${(
+                      service || "service request"
+                    ).toString()}</span> at this time.</p>
+
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0 8px;">
+                      <tr>
+                        <td style="padding:14px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;">
+                          <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#991b1b;font-weight:800;">Request ID</div>
+                          <div style="font-size:15px;color:#111827;font-weight:600;">${
+                            requestId || "N/A"
+                          }</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td height="12"></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                          <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Location</div>
+                          <div style="font-size:15px;color:#111827;font-weight:600;">${[
+                            address,
+                            city,
+                            state,
+                            zip,
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td height="12"></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:14px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;">
+                          <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#991b1b;font-weight:800;">Reason</div>
+                          <div style="font-size:15px;color:#111827;font-weight:600;">${
+                            rejectionReason || "No specific reason provided"
+                          }</div>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px;margin:16px 0;">
+                      <p style="margin:0;color:#991b1b;font-size:14px;font-weight:600;">💬 We're here to help</p>
+                      <p style="margin:8px 0 0;color:#374151;font-size:14px;">We apologize for any inconvenience this may cause. If you have any questions or would like to discuss alternative solutions, please don't hesitate to contact us.</p>
+                    </div>
+
+                    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:16px;margin:16px 0;">
+                      <p style="margin:0;color:#0369a1;font-size:14px;font-weight:600;">📞 Contact Us</p>
+                      <p style="margin:8px 0 0;color:#374151;font-size:14px;">Thank you for considering SkillHands for your service needs. We look forward to serving you in the future.</p>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:18px 24px 24px;color:#6b7280;font-size:12px;border-top:1px solid #e5e7eb;background:#ffffff;">
+                    <div>Thank you for choosing SkillHands.</div>
+                    <div style="margin-top:6px;">This message was sent automatically; replies go to our support team.</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to,
+    cc: process.env.EMAIL_TO,
+    subject,
+    text,
+    html,
+  };
+
+  const result = await transporter.sendMail(mailOptions);
+  return { success: true, messageId: result.messageId };
+};
+
 // Test email configuration
 export const testEmailConfig = async () => {
   try {

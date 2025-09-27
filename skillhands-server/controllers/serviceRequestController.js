@@ -3,6 +3,7 @@ import {
   sendEmail,
   sendScheduleConfirmationEmail,
   sendServiceCompletionEmail,
+  sendServiceRejectionEmail,
 } from "../services/emailService.js";
 
 export const createServiceRequest = async (req, res) => {
@@ -301,6 +302,29 @@ export const updateServiceRequest = async (req, res) => {
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("completion notification email error:", e);
+    }
+
+    // Send rejection notification if status changed to rejected
+    try {
+      const statusChangedToRejected =
+        previous?.status !== "rejected" && doc?.status === "rejected";
+
+      if (statusChangedToRejected && doc.email) {
+        await sendServiceRejectionEmail({
+          to: doc.email,
+          name: doc.name || doc.customerName,
+          service: doc.service || doc.serviceType,
+          rejectionReason: doc.rejectionReason || "No specific reason provided",
+          address: doc.address,
+          city: doc.city,
+          state: doc.state,
+          zip: doc.zip,
+          requestId: doc._id,
+        });
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("rejection notification email error:", e);
     }
 
     return res.json({ success: true, data: doc });
