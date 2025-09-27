@@ -72,6 +72,114 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const [step2EmailError, setStep2EmailError] = useState("");
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+
+  // Function to filter employees based on ZIP code and service
+  const filterEmployeesByZipAndService = (
+    zipCode: string,
+    service: string,
+    employeeList: Employee[]
+  ) => {
+    let filteredEmployees = employeeList;
+
+    // First filter by ZIP code
+    if (zipCode && zipCode.length === 5) {
+      // Find the ZIP code data to get city and county information
+      const zipData = marylandZipCodes.find((zip) => zip.zip === zipCode);
+      if (zipData) {
+        // Filter employees who are in the same city or county, or have no location data
+        filteredEmployees = filteredEmployees.filter((employee) => {
+          // If employee has no location data, include them (they can work anywhere)
+          if (!employee.city && !employee.postalCode) {
+            return true;
+          }
+
+          // If employee has postal code, check if it matches the selected ZIP
+          if (employee.postalCode && employee.postalCode === zipCode) {
+            return true;
+          }
+
+          // If employee has city data, check if it matches the ZIP code's city
+          if (employee.city) {
+            const employeeCity = employee.city.toLowerCase();
+            const zipCity = zipData.city.toLowerCase();
+            const zipCounty = zipData.county.toLowerCase();
+
+            // Check if employee's city matches ZIP code's city or county
+            return (
+              employeeCity.includes(zipCity) ||
+              employeeCity.includes(zipCounty) ||
+              zipCity.includes(employeeCity) ||
+              zipCounty.includes(employeeCity)
+            );
+          }
+
+          return false;
+        });
+      }
+    }
+
+    // Then filter by service if a service is selected
+    if (service && service.trim()) {
+      const selectedService = service.toLowerCase();
+      filteredEmployees = filteredEmployees.filter((employee) => {
+        // If employee has no skills, include them (they can do any service)
+        if (!employee.skills || employee.skills.length === 0) {
+          return true;
+        }
+
+        // Check if employee has skills that match the selected service
+        return employee.skills.some((skill) => {
+          const skillLower = skill.toLowerCase();
+          const serviceLower = selectedService;
+
+          // Direct match
+          if (skillLower === serviceLower) {
+            return true;
+          }
+
+          // Partial match (e.g., "plumbing" matches "plumber")
+          if (
+            skillLower.includes(serviceLower) ||
+            serviceLower.includes(skillLower)
+          ) {
+            return true;
+          }
+
+          // Special mappings for common variations
+          const serviceMappings: { [key: string]: string[] } = {
+            plumbing: ["plumber", "pipe", "water", "drain"],
+            electrical: ["electrician", "electric", "wiring", "power"],
+            "house cleaning": ["cleaner", "cleaning", "maid", "janitor"],
+            "ac repair": [
+              "hvac",
+              "air conditioning",
+              "cooling",
+              "refrigeration",
+            ],
+            "appliance repair": ["appliance", "repair", "technician", "fix"],
+            painting: ["painter", "paint", "decorator"],
+            handyman: ["handyman", "maintenance", "repair", "fix"],
+            "pest control": ["pest", "exterminator", "bug", "insect"],
+            "lawn care": ["landscaping", "lawn", "gardening", "mowing"],
+            moving: ["mover", "moving", "relocation", "transport"],
+            roofing: ["roofer", "roof", "shingle", "gutter"],
+          };
+
+          if (serviceMappings[serviceLower]) {
+            return serviceMappings[serviceLower].some(
+              (mapping) =>
+                skillLower.includes(mapping) || mapping.includes(skillLower)
+            );
+          }
+
+          return false;
+        });
+      });
+    }
+
+    return filteredEmployees;
+  };
 
   // Function to fetch employees
   const fetchEmployees = async () => {
@@ -80,6 +188,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       const response = await employeeApi.getEmployees();
       if (response.success && response.data) {
         setEmployees(response.data);
+        // Initially show all employees
+        setFilteredEmployees(response.data);
       }
     } catch (error) {
       console.error("Error fetching employees:", error);
@@ -207,6 +317,32 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       setServiceAvailable(true); // Default to true for incomplete ZIPs
     }
   }, [formData.zip]);
+
+  // Effect to filter employees when ZIP code or service changes
+  useEffect(() => {
+    const filtered = filterEmployeesByZipAndService(
+      formData.zip,
+      formData.service,
+      employees
+    );
+    setFilteredEmployees(filtered);
+
+    // Clear assigned employee if they're not in the filtered list or if no employees are available
+    if (formData.assignedEmployee) {
+      if (filtered.length === 0) {
+        // No employees available for this ZIP code and service combination, clear assignment
+        setFormData((prev) => ({ ...prev, assignedEmployee: "" }));
+      } else {
+        // Check if the currently assigned employee is still available
+        const isAssignedEmployeeAvailable = filtered.some(
+          (emp) => emp._id === formData.assignedEmployee
+        );
+        if (!isAssignedEmployeeAvailable) {
+          setFormData((prev) => ({ ...prev, assignedEmployee: "" }));
+        }
+      }
+    }
+  }, [formData.zip, formData.service, employees]);
 
   useEffect(() => {
     if (formData.image) {
@@ -490,35 +626,6 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             </div>
 
             <div>
-              <Label htmlFor="assignedEmployee">
-                Assign to Employee (Optional)
-              </Label>
-              <Select
-                value={formData.assignedEmployee || undefined}
-                onValueChange={(value) =>
-                  handleInputChange("assignedEmployee", value || "")
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      loadingEmployees
-                        ? "Loading employees..."
-                        : "Select an employee (optional)"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent className="z-[1000]">
-                  {employees.map((employee) => (
-                    <SelectItem key={employee._id} value={employee._id}>
-                      {employee.name} ({employee.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
               <Label htmlFor="description">Describe the issue or task</Label>
               <Textarea
                 id="description"
@@ -774,6 +881,81 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   </p>
                 )}
               </div>
+              <div>
+                <Label htmlFor="assignedEmployee">Assign to Employee</Label>
+                <Select
+                  value={formData.assignedEmployee || undefined}
+                  onValueChange={(value) =>
+                    handleInputChange("assignedEmployee", value || "")
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        loadingEmployees
+                          ? "Loading employees..."
+                          : filteredEmployees.length === 0
+                          ? "No employees available for this area"
+                          : "Select an employee"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="z-[1000]">
+                    {filteredEmployees.length === 0 ? (
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                        No employees available for{" "}
+                        {formData.service
+                          ? `${formData.service} service in `
+                          : ""}
+                        this ZIP code
+                      </div>
+                    ) : (
+                      filteredEmployees.map((employee) => (
+                        <SelectItem key={employee._id} value={employee._id}>
+                          <div className="flex flex-col">
+                            <span>
+                              {employee.name} ({employee.email})
+                            </span>
+                            <div className="flex flex-col gap-1">
+                              {employee.city && (
+                                <span className="text-xs text-muted-foreground">
+                                  📍 {employee.city}
+                                  {employee.state && `, ${employee.state}`}
+                                </span>
+                              )}
+                              {employee.skills &&
+                                employee.skills.length > 0 && (
+                                  <span className="text-xs text-blue-600">
+                                    🛠️ {employee.skills.slice(0, 3).join(", ")}
+                                    {employee.skills.length > 3 &&
+                                      ` +${employee.skills.length - 3} more`}
+                                  </span>
+                                )}
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {formData.zip && filteredEmployees.length === 0 && (
+                  <p className="text-orange-600 text-sm mt-1">
+                    ⚠ No employees available for{" "}
+                    {formData.service ? `${formData.service} service in ` : ""}
+                    ZIP code {formData.zip}.
+                    {employees.length > 0 &&
+                      " Try selecting a different ZIP code or service."}
+                  </p>
+                )}
+                {formData.zip && filteredEmployees.length > 0 && (
+                  <p className="text-green-600 text-sm mt-1">
+                    ✓ {filteredEmployees.length} employee
+                    {filteredEmployees.length !== 1 ? "s" : ""} available for{" "}
+                    {formData.service ? `${formData.service} service in ` : ""}
+                    this area
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="bg-muted/50 p-4 rounded-lg">
@@ -801,9 +983,17 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 {formData.assignedEmployee && (
                   <li>
                     <strong>Assigned Employee:</strong>{" "}
-                    {employees.find(
-                      (emp) => emp._id === formData.assignedEmployee
-                    )?.name || "Unknown"}
+                    {(() => {
+                      const assignedEmp = employees.find(
+                        (emp) => emp._id === formData.assignedEmployee
+                      );
+                      if (assignedEmp) {
+                        return `${assignedEmp.name}${
+                          assignedEmp.city ? ` (${assignedEmp.city})` : ""
+                        }`;
+                      }
+                      return "Unknown";
+                    })()}
                   </li>
                 )}
               </ul>

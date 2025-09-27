@@ -232,6 +232,10 @@ export interface Employee {
   _id: string;
   name: string;
   email: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  skills?: string[];
 }
 
 // Auth types and API

@@ -65,7 +65,7 @@ export const getEmployees = async (req, res, next) => {
         match: { role: "employee", isActive: true },
         select: "name email",
       })
-      .select("_id fullName email")
+      .select("_id fullName email city state postalCode skills")
       .sort({ fullName: 1 });
 
     // Filter out profiles where user population failed (non-employees or inactive)
@@ -75,6 +75,10 @@ export const getEmployees = async (req, res, next) => {
         _id: profile._id,
         name: profile.fullName || profile.user?.name || "Unknown",
         email: profile.email || profile.user?.email || "Unknown",
+        city: profile.city || "",
+        state: profile.state || "",
+        postalCode: profile.postalCode || "",
+        skills: profile.skills || [],
       }));
 
     res.json({ success: true, data: activeEmployeeProfiles });

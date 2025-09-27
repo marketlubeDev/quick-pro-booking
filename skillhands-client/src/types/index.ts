@@ -155,6 +155,10 @@ export interface Employee {
   _id: string;
   name: string;
   email: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  skills?: string[];
 }
 
 export interface DashboardStats {
