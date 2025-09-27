@@ -14,7 +14,7 @@ export const applyCors = (app) => {
         "http://localhost:8080",
         "http://localhost:8081",
 
-        "*",
+        "https://www.skillhands.us",
       ];
 
   // Include Vercel deployment URL if available
