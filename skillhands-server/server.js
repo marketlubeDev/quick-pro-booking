@@ -42,7 +42,7 @@ app.use(
 );
 
 // Security middleware
-applySecurity(app);
+// applySecurity(app);
 
 // Rate limiting
 // const limiter = rateLimit({

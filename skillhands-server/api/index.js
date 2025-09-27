@@ -30,7 +30,18 @@ const app = express();
 applySecurity(app);
 
 // CORS
-applyCors(app);
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:8080",
+      "https://www.skillhands.us",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    // allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
