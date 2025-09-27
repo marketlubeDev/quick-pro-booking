@@ -17,12 +17,12 @@ import {
 dotenv.config();
 
 // Validate environment variables
-if (process.env.NODE_ENV === "production") {
-  console.log("🔍 Validating environment configuration...");
-  validateEnvironment();
-  validateEmailConfig();
-  validateDatabaseConfig();
-}
+// if (process.env.NODE_ENV === "production") {
+//   console.log("🔍 Validating environment configuration...");
+//   validateEnvironment();
+//   validateEmailConfig();
+//   validateDatabaseConfig();
+// }
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -63,23 +63,23 @@ app.get("/", (req, res) => {
   res.json({ success: true, message: "Server is running" });
 });
 
-// Health check routes that bypass database middleware
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "OK",
-    message: "Server is running",
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || "development",
-  });
-});
+// // Health check routes that bypass database middleware
+// app.get("/api/health", (req, res) => {
+//   res.json({
+//     status: "OK",
+//     message: "Server is running",
+//     timestamp: new Date().toISOString(),
+//     environment: process.env.NODE_ENV || "development",
+//   });
+// });
 
-app.get("/api/ping", (req, res) => {
-  res.json({
-    status: "OK",
-    message: "Pong",
-    timestamp: new Date().toISOString(),
-  });
-});
+// app.get("/api/ping", (req, res) => {
+//   res.json({
+//     status: "OK",
+//     message: "Pong",
+//     timestamp: new Date().toISOString(),
+//   });
+// });
 
 // Database connection middleware for production (serverless)
 if (process.env.NODE_ENV === "production") {
