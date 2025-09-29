@@ -85,6 +85,7 @@ export function EmployeeApplicationCard({
   isApproving = false,
   isRejecting = false,
 }: EmployeeApplicationCardProps) {
+  console.log(application, "asjdgksgs");
   return (
     <Card className="hover:shadow-md transition-all duration-200 border-border/50">
       <CardHeader className="pb-3">
@@ -98,13 +99,20 @@ export function EmployeeApplicationCard({
                 {application.name}
               </h3>
               <p className="text-sm text-muted-foreground">#{application.id}</p>
-              {application.user?.role && (
+              {application.designation && (
+                <div className="mt-1">
+                  <Badge variant="secondary" className="text-xs">
+                    {application.designation}
+                  </Badge>
+                </div>
+              )}
+              {/* {application.user?.role && (
                 <div className="mt-1">
                   <Badge variant="outline" className="text-xs capitalize">
                     {application.user.role}
                   </Badge>
                 </div>
-              )}
+              )} */}
               <div className="flex items-center space-x-1 mt-1">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 <span className="text-sm font-medium">

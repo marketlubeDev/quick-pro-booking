@@ -335,6 +335,7 @@ export const authApi = {
       city?: string;
       state?: string;
       postalCode?: string;
+      expectedSalary?: number;
     }
   ): Promise<AuthResponse> {
     return api.post<AuthResponse>("/api/auth/register", {

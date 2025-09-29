@@ -256,6 +256,7 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
       name: profile.fullName || profile.user?.name || "Unknown",
       email: profile.email || profile.user?.email || "",
       phone: profile.phone || "",
+      designation: profile.designation || "",
       skills: profile.skills || [],
       experienceLevel: profile.level || "Beginner",
       rating: profile.rating || 0,

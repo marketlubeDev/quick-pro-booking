@@ -221,12 +221,22 @@ export function EmployeeDetailModal({
                     </label>
                     <p className="text-sm">{application.email}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Phone
-                    </label>
-                    <p className="text-sm">{application.phone}</p>
-                  </div>
+                  {application.phone && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Phone
+                      </label>
+                      <p className="text-sm">{application.phone}</p>
+                    </div>
+                  )}
+                  {application.designation && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Designation
+                      </label>
+                      <p className="text-sm">{application.designation}</p>
+                    </div>
+                  )}
                   {/* <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Location
@@ -270,7 +280,7 @@ export function EmployeeDetailModal({
                     </div>
                   )}
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">
+                    <label className="text-sm font-medium text-muted-foreground pr-2">
                       Experience Level
                     </label>
                     <Badge
@@ -331,13 +341,17 @@ export function EmployeeDetailModal({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {application.skills.map((skill) => (
-                    <Badge key={skill} variant="secondary">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
+                {application.skills && application.skills.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {application.skills.map((skill) => (
+                      <Badge key={skill} variant="secondary">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No data</p>
+                )}
               </CardContent>
             </Card>
 

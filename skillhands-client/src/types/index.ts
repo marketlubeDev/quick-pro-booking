@@ -122,6 +122,7 @@ export interface EmployeeApplication {
   name: string;
   email: string;
   phone: string;
+  designation?: string;
   skills: string[];
   experienceLevel: string;
   rating: number;
