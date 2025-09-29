@@ -655,6 +655,7 @@ export const sendNewEmployeeEmail = async ({
   email,
   role,
   designation,
+  expectedSalary,
   address,
   city,
   state,
@@ -674,6 +675,10 @@ export const sendNewEmployeeEmail = async ({
       name || "(not provided)"
     }\nEmail: ${email}\nRole: ${role}${
       designation ? `\nDesignation: ${designation}` : ""
+    }${
+      expectedSalary !== undefined && expectedSalary !== null
+        ? `\nExpected Salary: ${expectedSalary} AED`
+        : ""
     }${
       address || city || state || postalCode
         ? `\nAddress: ${address || ""}${city ? `, ${city}` : ""}${
@@ -740,6 +745,15 @@ export const sendNewEmployeeEmail = async ({
                 </div>`
                     : ""
                 }
+              ${
+                expectedSalary !== undefined && expectedSalary !== null
+                  ? `
+                <div class="item">
+                  <div class="label">Expected Salary</div>
+                  <div class="value">${expectedSalary} AED</div>
+                </div>`
+                  : ""
+              }
               </div>
             </div>
 
