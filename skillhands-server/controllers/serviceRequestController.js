@@ -48,6 +48,14 @@ export const createServiceRequest = async (req, res) => {
       };
     }
 
+    // Auto-determine urgency based on preferred time
+    let autoUrgency = urgency || "routine";
+    if (preferredTime && preferredTime.toLowerCase().includes("emergency")) {
+      autoUrgency = "emergency";
+    } else if (preferredTime && (preferredTime.toLowerCase().includes("asap") || preferredTime.toLowerCase().includes("urgent"))) {
+      autoUrgency = "urgent";
+    }
+
     const doc = await ServiceRequest.create({
       service,
       description,
@@ -63,7 +71,7 @@ export const createServiceRequest = async (req, res) => {
       attachment,
       assignedEmployee: assignedEmployee || null,
       serviceCategory: serviceCategory || "other",
-      urgency: urgency || "routine",
+      urgency: autoUrgency,
       customerNotes: customerNotes || "",
       estimatedCost: estimatedCost || 0,
       estimatedDuration: estimatedDuration || 0,
@@ -248,6 +256,18 @@ export const updateServiceRequest = async (req, res) => {
         size: req.file.size,
       };
     }
+
+    // Auto-determine urgency based on preferred time if it's being updated
+    if (updates.preferredTime) {
+      let autoUrgency = updates.urgency || "routine";
+      if (updates.preferredTime.toLowerCase().includes("emergency")) {
+        autoUrgency = "emergency";
+      } else if (updates.preferredTime.toLowerCase().includes("asap") || updates.preferredTime.toLowerCase().includes("urgent")) {
+        autoUrgency = "urgent";
+      }
+      updates.urgency = autoUrgency;
+    }
+
     const previous = await ServiceRequest.findById(id);
     const doc = await ServiceRequest.findByIdAndUpdate(id, updates, {
       new: true,

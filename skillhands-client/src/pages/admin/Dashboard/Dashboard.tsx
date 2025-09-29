@@ -137,6 +137,7 @@ export function Dashboard() {
           icon={Users}
           trend={{ value: 8, isPositive: true }}
         />
+ 
       </div>
 
       {/* Recent Activity */}

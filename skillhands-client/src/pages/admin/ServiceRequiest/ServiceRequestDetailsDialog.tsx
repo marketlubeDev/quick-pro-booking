@@ -135,12 +135,12 @@ export function ServiceRequestDetailsDialog({
                   {request.status}
                 </Badge>
               </div>
-              <div>
+              {/* <div>
                 <p className="text-sm text-muted-foreground">Priority</p>
                 <Badge className={getPriorityColor(request.priority)}>
                   {request.priority}
                 </Badge>
-              </div>
+              </div> */}
               <div>
                 <p className="text-sm text-muted-foreground">Urgency</p>
                 <Badge
@@ -149,14 +149,14 @@ export function ServiceRequestDetailsDialog({
                   {request.urgency || "routine"}
                 </Badge>
               </div>
-              {request.estimatedCost && (
+              {/* {request.estimatedCost && (
                 <div>
                   <p className="text-sm text-muted-foreground">
                     Estimated Cost
                   </p>
                   <p className="text-foreground">${request.estimatedCost}</p>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
 

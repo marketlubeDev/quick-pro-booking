@@ -1,6 +1,7 @@
 import express from "express";
 import { upload } from "../middleware/uploads.js";
 import { submitContact } from "../controllers/contactController.js";
+import { runUrgencyMigration } from "../controllers/migrationController.js";
 import serviceRequestsRouter from "./serviceRequests.js";
 import authRouter from "./auth.js";
 import usersRouter from "./users.js";
@@ -29,6 +30,9 @@ router.get("/ping", (req, res) => {
 });
 
 router.post("/contact", upload.single("image"), submitContact);
+
+// Migration endpoint
+router.post("/migrate/urgency", runUrgencyMigration);
 
 router.use("/service-requests", serviceRequestsRouter);
 router.use("/auth", authRouter);
