@@ -126,5 +126,4 @@ app.use(errorHandler);
 // 404 handler
 app.use("*", notFound);
 
-// Export for Vercel serverless deployment
 export default app;
