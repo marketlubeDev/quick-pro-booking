@@ -110,16 +110,23 @@ export const getRecentEmployeeApplications = async (req, res) => {
     const { limit = 3 } = req.query;
 
     const recentApplications = await Profile.find()
-      .populate("user", "name email role isActive createdAt")
+      .populate({
+        path: "user",
+        select: "name email role isActive createdAt",
+        match: { role: { $ne: "admin" } } // Exclude admin users
+      })
       .sort({ appliedDate: -1, createdAt: -1 })
       .limit(parseInt(limit))
       .select(
         "_id fullName phone email skills level rating totalJobs certifications expectedSalary status appliedDate city user"
       );
 
+    // Filter out any profiles where the populated user is null (admin users)
+    const filteredApplications = recentApplications.filter(app => app.user !== null);
+
     return res.json({
       success: true,
-      data: recentApplications,
+      data: filteredApplications,
     });
   } catch (error) {
     console.error("getRecentEmployeeApplications error:", error);
@@ -197,12 +204,19 @@ export const getDashboardOverview = async (req, res) => {
       );
 
     const recentApplications = await Profile.find()
-      .populate("user", "name email role isActive createdAt")
+      .populate({
+        path: "user",
+        select: "name email role isActive createdAt",
+        match: { role: { $ne: "admin" } } // Exclude admin users
+      })
       .sort({ appliedDate: -1, createdAt: -1 })
       .limit(3)
       .select(
         "_id fullName phone email skills level rating totalJobs certifications expectedSalary status appliedDate city user"
       );
+
+    // Filter out any profiles where the populated user is null (admin users)
+    const filteredApplications = recentApplications.filter(app => app.user !== null);
 
     return res.json({
       success: true,
@@ -216,7 +230,7 @@ export const getDashboardOverview = async (req, res) => {
           activeEmployees,
         },
         recentRequests,
-        recentApplications,
+        recentApplications: filteredApplications,
       },
     });
   } catch (error) {
