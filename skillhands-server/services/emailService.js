@@ -1086,7 +1086,8 @@ export const sendEmployeeApplicationApprovalEmail = async ({
   to,
   name,
   designation,
-  experienceLevel,
+  address,
+  postalCode,
   skills,
   expectedSalary,
   verificationNotes,
@@ -1101,7 +1102,8 @@ Congratulations! We are pleased to inform you that your application to join Skil
 Application Details:
 - Name: ${name || "N/A"}
 - Designation: ${designation || "N/A"}
-- Experience Level: ${experienceLevel || "N/A"}
+- Address: ${address || "N/A"}
+- Zip Code: ${postalCode || "N/A"}
 - Expected Salary: ${expectedSalary ? `${expectedSalary} AED` : "N/A"}
 - Skills: ${skills ? skills.join(", ") : "N/A"}
 
@@ -1183,8 +1185,12 @@ Welcome aboard!
                   <div class="value">${designation || "N/A"}</div>
                 </div>
                 <div class="item">
-                  <div class="label">Experience Level</div>
-                  <div class="value">${experienceLevel || "N/A"}</div>
+                  <div class="label">Address</div>
+                  <div class="value">${address || "N/A"}</div>
+                </div>
+                <div class="item">
+                  <div class="label">Zip Code</div>
+                  <div class="value">${postalCode || "N/A"}</div>
                 </div>
                 <div class="item">
                   <div class="label">Expected Salary</div>
