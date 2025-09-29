@@ -110,8 +110,13 @@ app.get("/api/debug", (req, res) => {
 // Database connection middleware for production (serverless)
 if (process.env.NODE_ENV === "production") {
   app.use("/api", async (req, res, next) => {
-    // Skip database connection for health checks
-    if (req.path === "/health" || req.path === "/ping") {
+    // Skip database connection for health checks and non-db routes
+    if (
+      req.path === "/health" ||
+      req.path === "/ping" ||
+      req.path === "/cors-test" ||
+      req.path === "/debug"
+    ) {
       return next();
     }
 
@@ -120,11 +125,13 @@ if (process.env.NODE_ENV === "production") {
       next();
     } catch (error) {
       console.error("Database connection failed:", error);
-      res.status(500).json({
+      // Return a more graceful error response
+      res.status(503).json({
         success: false,
-        message: "Database connection failed",
-        error:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
+        message:
+          "Service temporarily unavailable. Please try again in a moment.",
+        error: "Database connection failed",
+        retryAfter: 5, // seconds
       });
     }
   });

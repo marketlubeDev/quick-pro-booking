@@ -27,7 +27,7 @@ export const connectDatabase = async () => {
 
   // Create new connection with optimized settings for serverless
   const opts = {
-    bufferCommands: false,
+    bufferCommands: false, // Disable buffering for serverless
     maxPoolSize: 1, // Reduced for serverless
     minPoolSize: 0, // Allow connection to close when idle
     maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
