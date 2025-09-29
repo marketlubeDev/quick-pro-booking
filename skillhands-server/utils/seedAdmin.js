@@ -4,7 +4,7 @@ import Profile from "../models/Profile.js";
 
 export const seedAdminUser = async () => {
   const adminEmail = (
-    process.env.ADMIN_EMAIL || "admin@example.com"
+    process.env.ADMIN_EMAIL || "admin@skillhands.com"
   ).toLowerCase();
   const adminPassword = process.env.ADMIN_PASSWORD || "ChangeMe123!";
   const adminName = process.env.ADMIN_NAME || "Administrator";

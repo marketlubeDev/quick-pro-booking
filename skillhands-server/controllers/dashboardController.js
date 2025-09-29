@@ -22,10 +22,18 @@ export const getDashboardStats = async (req, res) => {
       statusCountsObj[item._id] = item.count;
     });
 
-    // Get urgent requests (high priority)
+    // Get urgent requests (high priority OR Emergency ASAP)
     const urgentRequests = await ServiceRequest.countDocuments({
-      priority: { $in: ["high", "urgent"] },
-      status: { $in: ["pending", "in-progress"] },
+      $and: [
+        { status: { $in: ["pending", "in-progress", "in-process"] } },
+        {
+          $or: [
+            { priority: { $in: ["high", "urgent"] } },
+            { preferredTime: "Emergency (ASAP)" },
+            { urgency: { $in: ["urgent", "emergency"] } }
+          ]
+        }
+      ]
     });
 
     // Get completed today
@@ -47,9 +55,10 @@ export const getDashboardStats = async (req, res) => {
       $or: [{ status: "pending" }, { verificationStatus: "pending" }],
     });
 
-    // Get active employees (fallback to verificationStatus if status doesn't exist)
-    const activeEmployees = await Profile.countDocuments({
-      $or: [{ status: "approved" }, { verificationStatus: "approved" }],
+    // Get total employees (users with role 'employee')
+    const activeEmployees = await User.countDocuments({
+      role: "employee",
+      isActive: true,
     });
 
     const stats = {
@@ -149,8 +158,16 @@ export const getDashboardOverview = async (req, res) => {
     });
 
     const urgentRequests = await ServiceRequest.countDocuments({
-      priority: "high",
-      status: { $in: ["pending", "in-progress"] },
+      $and: [
+        { status: { $in: ["pending", "in-progress", "in-process"] } },
+        {
+          $or: [
+            { priority: { $in: ["high", "urgent"] } },
+            { preferredTime: "Emergency (ASAP)" },
+            { urgency: { $in: ["urgent", "emergency"] } }
+          ]
+        }
+      ]
     });
 
     const today = new Date();
@@ -167,8 +184,9 @@ export const getDashboardOverview = async (req, res) => {
     const employeeApplications = await Profile.countDocuments({
       $or: [{ status: "pending" }, { verificationStatus: "pending" }],
     });
-    const activeEmployees = await Profile.countDocuments({
-      $or: [{ status: "approved" }, { verificationStatus: "approved" }],
+    const activeEmployees = await User.countDocuments({
+      role: "employee",
+      isActive: true,
     });
 
     const recentRequests = await ServiceRequest.find()

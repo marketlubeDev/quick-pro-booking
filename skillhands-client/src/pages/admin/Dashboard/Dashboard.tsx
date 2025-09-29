@@ -132,13 +132,7 @@ export function Dashboard() {
         />
 
         <StatCard
-          title="Employee Applications"
-          value={stats?.employeeApplications || 0}
-          icon={UserPlus}
-          trend={{ value: 20, isPositive: true }}
-        />
-        <StatCard
-          title="Active Employees"
+          title="Total Employees"
           value={stats?.activeEmployees || 0}
           icon={Users}
           trend={{ value: 8, isPositive: true }}
