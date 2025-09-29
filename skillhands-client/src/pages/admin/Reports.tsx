@@ -115,10 +115,10 @@ export function Reports() {
       {/* Simple Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Reports</h1>
+          {/* <h1 className="text-3xl font-bold">Reports</h1>
           <p className="text-muted-foreground">
             Service requests and employee performance
-          </p>
+          </p> */}
         </div>
         <div className="flex gap-3">
           <Select value={timePeriod} onValueChange={setTimePeriod}>

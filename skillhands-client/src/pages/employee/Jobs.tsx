@@ -313,7 +313,7 @@ const EmployeeJobs = () => {
                       <CardContent className="space-y-3">
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
                           <div className="flex items-center gap-4">
-                            {job.scheduledDate &&
+                            {/* {job.scheduledDate &&
                               (job as any).scheduledTime && (
                                 <div className="flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
@@ -324,12 +324,17 @@ const EmployeeJobs = () => {
                                     at {(job as any).scheduledTime}
                                   </span>
                                 </div>
-                              )}
-                            {job.estimatedCost && job.estimatedCost > 0 && (
+                              )} */}
+                            {/* {job.estimatedCost && job.estimatedCost > 0 && (
                               <div className="flex items-center gap-1">
                                 <span>${job.estimatedCost}</span>
                               </div>
-                            )}
+                            )} */}
+                            {job.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {job.description}
+                              </p>
+                            )}{" "}
                           </div>
                           <Button
                             onClick={() => handleViewJob(job)}
@@ -341,11 +346,6 @@ const EmployeeJobs = () => {
                             View Details
                           </Button>
                         </div>
-                        {job.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {job.description}
-                          </p>
-                        )}
                       </CardContent>
                     </UICard>
                   );

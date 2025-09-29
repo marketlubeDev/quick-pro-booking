@@ -259,7 +259,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           "house cleaning": "house cleaning",
           "ac repair": "ac repair",
           "appliance repair": "appliance repair",
-          painting: "painting",
+          painter: "painter",
           handyman: "handyman",
           "pest control": "pest control",
           "lawn care": "lawn care",

@@ -63,7 +63,7 @@ const Request = () => {
       "appliance-repairs": "Appliance Repairs",
       "electrical-plumbing": "Electrical & Plumbing",
       "ac-hvac": "AC & HVAC",
-      painting: "Painting",
+      painter: "painter",
       "roof-gutter": "Roof & Gutter",
       "lawn-care": "Lawn Care",
       "pest-control": "Pest Control",
