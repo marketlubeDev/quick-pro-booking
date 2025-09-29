@@ -549,6 +549,10 @@ export const markJobAsDone = async (req, res) => {
 
     await job.save();
 
+    // Update employee's total jobs count
+    profile.totalJobs = (profile.totalJobs || 0) + 1;
+    await profile.save();
+
     // Send completion notification to customer
     try {
       if (job.email) {
@@ -621,6 +625,10 @@ export const completeJob = async (req, res) => {
     }
 
     await job.save();
+
+    // Update employee's total jobs count
+    profile.totalJobs = (profile.totalJobs || 0) + 1;
+    await profile.save();
 
     // Send completion notification to customer
     try {
