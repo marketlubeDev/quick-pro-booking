@@ -37,19 +37,26 @@ export const submitContact = async (req, res) => {
       };
     }
 
-    const emailResult = await sendEmail({
-      service,
-      description,
-      preferredDate,
-      preferredTime,
-      name,
-      phone,
-      email,
-      address,
-      city,
-      zip,
-      fileData,
-    });
+    // Try to send email, but don't fail the request if email fails
+    let emailResult = null;
+    try {
+      emailResult = await sendEmail({
+        service,
+        description,
+        preferredDate,
+        preferredTime,
+        name,
+        phone,
+        email,
+        address,
+        city,
+        zip,
+        fileData,
+      });
+    } catch (emailError) {
+      console.warn("Email sending failed:", emailError.message);
+      // Continue with success response even if email fails
+    }
 
     return res.json({
       success: true,

@@ -16,47 +16,78 @@ function getAuthToken(): string | null {
 
 console.log(API_BASE_URL, "sdkgfkjshkgdj");
 
-// Generic fetch function for API calls
+// Generic fetch function for API calls with retry logic
 export async function apiFetch<T = unknown>(
   endpoint: string,
   options: {
     method?: string;
     body?: unknown;
     signal?: AbortSignal;
+    retries?: number;
   } = {}
 ): Promise<T> {
-  const { method = "GET", body, signal } = options;
+  const { method = "GET", body, signal, retries = 2 } = options;
 
-  try {
-    const config: RequestInit = {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        ...(getAuthToken()
-          ? { Authorization: `Bearer ${getAuthToken()}` }
-          : {}),
-      },
-      signal,
-    };
+  const attemptRequest = async (attempt: number): Promise<T> => {
+    try {
+      const config: RequestInit = {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          ...(getAuthToken()
+            ? { Authorization: `Bearer ${getAuthToken()}` }
+            : {}),
+        },
+        signal,
+      };
 
-    if (body && method !== "GET") {
-      config.body = JSON.stringify(body);
+      if (body && method !== "GET") {
+        config.body = JSON.stringify(body);
+      }
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Retry on 5xx errors or 503 (Service Unavailable)
+        if (
+          (response.status >= 500 || response.status === 503) &&
+          attempt < retries
+        ) {
+          console.warn(
+            `API request failed with ${response.status}, retrying... (attempt ${
+              attempt + 1
+            }/${retries + 1})`
+          );
+          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+          return attemptRequest(attempt + 1);
+        }
+
+        throw new Error(
+          result.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      return result;
+    } catch (error) {
+      // Retry on network errors
+      if (
+        attempt < retries &&
+        (error instanceof TypeError || error.name === "NetworkError")
+      ) {
+        console.warn(
+          `Network error, retrying... (attempt ${attempt + 1}/${retries + 1})`
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+        return attemptRequest(attempt + 1);
+      }
+
+      console.error("API Error:", error);
+      throw error;
     }
+  };
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        result.message || `HTTP error! status: ${response.status}`
-      );
-    }
-
-    return result;
-  } catch (error) {
-    console.error("API Error:", error);
-    throw error;
-  }
+  return attemptRequest(0);
 }
 
 export interface ContactFormData {

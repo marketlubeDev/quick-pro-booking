@@ -28,10 +28,15 @@ export const connectDatabase = async () => {
   // Create new connection with optimized settings for serverless
   const opts = {
     bufferCommands: false,
-    maxPoolSize: 10,
-    serverSelectionTimeoutMS: 5000,
+    maxPoolSize: 1, // Reduced for serverless
+    minPoolSize: 0, // Allow connection to close when idle
+    maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
+    serverSelectionTimeoutMS: 10000, // Increased timeout
     socketTimeoutMS: 45000,
+    connectTimeoutMS: 10000, // Connection timeout
     family: 4,
+    retryWrites: true,
+    retryReads: true,
   };
 
   cached.promise = mongoose
