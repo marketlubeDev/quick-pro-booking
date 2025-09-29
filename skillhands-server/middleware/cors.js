@@ -14,6 +14,8 @@ export const applyCors = (app) => {
         "http://localhost:3000",
         "https://www.skillhands.us",
         "https://skillhands.us",
+        // Add the specific Vercel deployment URL from the image
+        "https://quick-pro-booking-we8z.vercel.app",
       ];
 
   // Include Vercel deployment URL if available
@@ -81,6 +83,15 @@ export const applyCors = (app) => {
           console.log("CORS Debug - Vercel URL detected, allowing:", origin);
           isAllowed = true;
         }
+      }
+
+      // Additional check for skillhands.us subdomains
+      if (!isAllowed && origin && origin.includes("skillhands.us")) {
+        console.log(
+          "CORS Debug - SkillHands domain detected, allowing:",
+          origin
+        );
+        isAllowed = true;
       }
 
       console.log("CORS Debug - Is Allowed:", isAllowed);

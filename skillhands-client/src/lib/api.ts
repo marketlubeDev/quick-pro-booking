@@ -1,7 +1,10 @@
 import { EmployeeApplication, ServiceRequest } from "@/types";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = (() => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  // Remove trailing slash to prevent double slashes when concatenating with endpoints
+  return baseUrl.replace(/\/$/, "");
+})();
 
 function getAuthToken(): string | null {
   try {

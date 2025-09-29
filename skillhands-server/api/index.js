@@ -30,19 +30,8 @@ const app = express();
 // Security middleware
 applySecurity(app);
 
-// CORS
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:8080",
-      "https://www.skillhands.us",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    // allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// CORS - Use the advanced CORS configuration
+applyCors(app);
 
 // Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
@@ -72,6 +61,21 @@ app.get("/api/cors-test", (req, res) => {
     success: true,
     message: "CORS is working!",
     origin: req.headers.origin,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Additional debug endpoint
+app.get("/api/debug", (req, res) => {
+  res.json({
+    success: true,
+    message: "Debug endpoint",
+    headers: {
+      origin: req.headers.origin,
+      userAgent: req.headers["user-agent"],
+      authorization: req.headers.authorization ? "Present" : "Not present",
+    },
+    environment: process.env.NODE_ENV,
     timestamp: new Date().toISOString(),
   });
 });

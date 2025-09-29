@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             const response = await fetch(
               `${
-                import.meta.env.VITE_API_URL || "http://localhost:3001"
+                import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
               }/api/auth/me`,
               {
                 headers: {

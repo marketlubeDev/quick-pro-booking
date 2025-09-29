@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { applySecurity } from "./middleware/security.js";
+import { applyCors } from "./middleware/cors.js";
 import { multerErrorHandler } from "./middleware/uploads.js";
 import { errorHandler, notFound } from "./middleware/errors.js";
 import apiRoutes from "./routes/index.js";
@@ -25,21 +26,10 @@ dotenv.config();
 // }
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 
-// CORS middleware
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:8080",
-      "https://www.skillhands.us",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    // allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// CORS middleware - Use the advanced CORS configuration
+applyCors(app);
 
 // Security middleware
 // applySecurity(app);
@@ -80,6 +70,21 @@ app.get("/api/cors-test", (req, res) => {
     success: true,
     message: "CORS is working!",
     origin: req.headers.origin,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Additional debug endpoint
+app.get("/api/debug", (req, res) => {
+  res.json({
+    success: true,
+    message: "Debug endpoint",
+    headers: {
+      origin: req.headers.origin,
+      userAgent: req.headers["user-agent"],
+      authorization: req.headers.authorization ? "Present" : "Not present",
+    },
+    environment: process.env.NODE_ENV,
     timestamp: new Date().toISOString(),
   });
 });
