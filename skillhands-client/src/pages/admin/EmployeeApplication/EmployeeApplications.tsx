@@ -33,7 +33,7 @@ export function EmployeeApplications() {
     string | null
   >(null);
 
-  const { applications, loading, error, updateStatus } =
+  const { applications, loading, error, updateStatus, refetch } =
     useEmployeeApplications();
   const { toast } = useToast();
 
@@ -65,9 +65,11 @@ export function EmployeeApplications() {
     setIsDetailModalOpen(true);
   };
 
-  const handleCloseDetailModal = () => {
+  const handleCloseDetailModal = async () => {
     setIsDetailModalOpen(false);
     setSelectedApplication(null);
+    // Ensure updates like rating reflect in the list
+    await refetch();
   };
 
   const handleApprove = async (applicationId: string) => {

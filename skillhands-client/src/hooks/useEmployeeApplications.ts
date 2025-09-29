@@ -52,6 +52,11 @@ export function useEmployeeApplications(): UseEmployeeApplicationsReturn {
     }
   };
 
+  // Helper to refresh list externally after actions like rating update
+  const refetch = async () => {
+    await fetchApplications();
+  };
+
   useEffect(() => {
     fetchApplications();
   }, []);
@@ -60,7 +65,7 @@ export function useEmployeeApplications(): UseEmployeeApplicationsReturn {
     applications,
     loading,
     error,
-    refetch: fetchApplications,
+    refetch,
     updateStatus,
   };
 }

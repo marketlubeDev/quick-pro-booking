@@ -396,3 +396,43 @@ export const updateEmployeeStatus = async (req, res, next) => {
     next(err);
   }
 };
+
+// Update employee rating (admin only)
+export const updateEmployeeRating = async (req, res, next) => {
+  try {
+    const { profileId } = req.params;
+    let { rating } = req.body;
+
+    if (rating === undefined || rating === null || isNaN(Number(rating))) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating is required and must be a number",
+      });
+    }
+
+    rating = Math.max(0, Math.min(5, Number(rating)));
+
+    const profile = await Profile.findById(profileId).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    profile.rating = rating;
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Employee rating updated successfully",
+      data: profile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

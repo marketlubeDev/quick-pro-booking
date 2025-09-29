@@ -8,6 +8,7 @@ import {
   getAllEmployeeProfiles,
   getEmployeeProfileById,
   updateEmployeeStatus,
+  updateEmployeeRating,
 } from "../controllers/profileController.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { upload } from "../middleware/uploads.js";
@@ -33,5 +34,6 @@ router.post(
 router.get("/all", requireRole("admin"), getAllEmployeeProfiles);
 router.get("/employee/:userId", requireRole("admin"), getEmployeeProfileById);
 router.patch("/:profileId/status", requireRole("admin"), updateEmployeeStatus);
+router.patch("/:profileId/rating", requireRole("admin"), updateEmployeeRating);
 
 export default router;

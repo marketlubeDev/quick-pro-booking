@@ -521,6 +521,19 @@ export const adminApi = {
       }
     );
   },
+
+  async updateEmployeeRating(
+    profileId: string,
+    rating: number
+  ): Promise<ApiResponse<EmployeeProfileData>> {
+    return apiFetch<ApiResponse<EmployeeProfileData>>(
+      `/api/profile/${profileId}/rating`,
+      {
+        method: "PATCH",
+        body: { rating },
+      }
+    );
+  },
 };
 
 // Dashboard API

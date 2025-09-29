@@ -311,18 +311,6 @@ export function ServiceRequestDetailsDialog({
                         </p>
                       </div>
                     )}
-                    <div>
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge
-                        className={
-                          request.employeeAccepted
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }
-                      >
-                        {request.employeeAccepted ? "Accepted" : "Pending"}
-                      </Badge>
-                    </div>
                   </div>
                   {request.employeeRemarks && (
                     <div>

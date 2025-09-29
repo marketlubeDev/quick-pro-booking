@@ -29,6 +29,7 @@ import {
 import { EmployeeApplication, WorkExperience } from "@/types";
 import { fetchEmployeeJobs, type EmployeeJob } from "@/lib/api.employeeJobs";
 import { adminApi, type EmployeeProfileData } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EmployeeDetailModalProps {
@@ -112,6 +113,9 @@ export function EmployeeDetailModal({
   );
   const [employeeProfile, setEmployeeProfile] =
     useState<EmployeeProfileData | null>(null);
+  const [editingRating, setEditingRating] = useState<number | null>(null);
+  const [savingRating, setSavingRating] = useState(false);
+  const { toast } = useToast();
 
   console.log(application, "dsfdffasfsadsadas");
 
@@ -162,6 +166,37 @@ export function EmployeeDetailModal({
       );
     } finally {
       setWorkExperienceLoading(false);
+    }
+  };
+
+  const selectedProfileId = application?.id; // maps to profileId in admin APIs
+
+  const handleStarClick = (value: number) => {
+    setEditingRating(value);
+  };
+
+  const handleSaveRating = async () => {
+    if (!selectedProfileId || editingRating === null) return;
+    try {
+      setSavingRating(true);
+      await adminApi.updateEmployeeRating(selectedProfileId, editingRating);
+      toast({
+        title: "Rating updated",
+        description: `Saved ${editingRating}/5`,
+      });
+      // Update local app/application rating display
+      if (employeeProfile) {
+        setEmployeeProfile({ ...employeeProfile, rating: editingRating });
+      }
+    } catch (err) {
+      toast({
+        title: "Failed to update rating",
+        description:
+          err instanceof Error ? err.message : "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingRating(false);
     }
   };
 
@@ -310,14 +345,51 @@ export function EmployeeDetailModal({
                   <label className="text-sm font-medium text-muted-foreground">
                     Rating
                   </label>
-                  <div className="flex items-center space-x-1 mt-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <div className="flex items-center space-x-2 mt-1">
+                    <div className="flex items-center">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => handleStarClick(value)}
+                          className="p-0.5"
+                          aria-label={`Set rating to ${value}`}
+                        >
+                          <Star
+                            className={`h-5 w-5 ${
+                              (editingRating ??
+                                employeeProfile?.rating ??
+                                application.rating) >= value
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
                     <span className="text-sm font-medium">
-                      {application.rating}
+                      {(editingRating ??
+                        employeeProfile?.rating ??
+                        application.rating) ||
+                        0}
                     </span>
                     <span className="text-sm text-muted-foreground">
                       ({application.previousJobCount} jobs)
                     </span>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveRating}
+                      disabled={savingRating || editingRating === null}
+                    >
+                      {savingRating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                          Saving
+                        </>
+                      ) : (
+                        "Save"
+                      )}
+                    </Button>
                   </div>
                 </div>
 
