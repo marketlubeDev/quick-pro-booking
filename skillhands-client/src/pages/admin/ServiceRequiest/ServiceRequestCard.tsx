@@ -87,6 +87,26 @@ function formatDate(dateString: string) {
   });
 }
 
+function formatDateDMY(dateString: string) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).formatToParts(date);
+
+  const day = parts.find((p) => p.type === "day")?.value ?? "";
+  let month = parts.find((p) => p.type === "month")?.value ?? "";
+  const year = parts.find((p) => p.type === "year")?.value ?? "";
+
+  // Normalize month to 3-letter, lowercase, without trailing dot (e.g., "Sept." -> "sep")
+  month = month.replace(".", "").slice(0, 3).toLowerCase();
+
+  return day && month && year ? `${day} ${month} ${year}` : dateString;
+}
+
 export function ServiceRequestCard({
   request,
   employees = [],
@@ -222,7 +242,8 @@ export function ServiceRequestCard({
             <div className="flex items-center space-x-1 text-sm">
               <Calendar className="h-3 w-3 text-muted-foreground" />
               <span className="text-foreground">
-                {request.preferredDate} {request.preferredTime}
+                {formatDateDMY(request.preferredDate)}
+                , {request.preferredTime}
               </span>
             </div>
           </div>
