@@ -42,6 +42,26 @@ function formatDate(dateString: string) {
   });
 }
 
+function formatDateDMYNumeric(dateString: string) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).formatToParts(date);
+
+  const day = parts.find((p) => p.type === "day")?.value ?? "";
+  let month = parts.find((p) => p.type === "month")?.value ?? "";
+  const year = parts.find((p) => p.type === "year")?.value ?? "";
+
+  month = month.replace(".", "").slice(0, 3).toLowerCase();
+  month = month.charAt(0).toUpperCase() + month.slice(1);
+
+  return day && month && year ? `${day} ${month} ${year}` : dateString;
+}
+
 const getPriorityColor = (priority: string) => {
   switch (priority) {
     case "urgent":
@@ -200,7 +220,9 @@ export function ServiceRequestDetailsDialog({
               <div>
                 <p className="text-sm text-muted-foreground">Preferred Date</p>
                 <p className="text-foreground">
-                  {request.preferredDate || "Not specified"}
+                  {request.preferredDate
+                    ? formatDateDMYNumeric(request.preferredDate)
+                    : "Not specified"}
                 </p>
               </div>
               <div>

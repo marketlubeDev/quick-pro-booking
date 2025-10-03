@@ -413,11 +413,11 @@ const EmployeeJobs = () => {
                                   </span>
                                 </div>
                               )}
-                            {job.estimatedCost && job.estimatedCost > 0 && (
+                            {/* {job.estimatedCost && job.estimatedCost > 0 && (
                               <div className="flex items-center gap-1">
                                 <span>${job.estimatedCost}</span>
                               </div>
-                            )}
+                            )} */}
                           </div>
                           <Button
                             onClick={() => handleViewJob(job)}
@@ -501,11 +501,11 @@ const EmployeeJobs = () => {
                                   </span>
                                 </div>
                               )}
-                            {job.estimatedCost && job.estimatedCost > 0 && (
+                            {/* {job.estimatedCost && job.estimatedCost > 0 && (
                               <div className="flex items-center gap-1">
                                 <span>${job.estimatedCost}</span>
                               </div>
-                            )}
+                            )} */}
                           </div>
                           <Button
                             onClick={() => handleViewJob(job)}
@@ -589,11 +589,11 @@ const EmployeeJobs = () => {
                                   </span>
                                 </div>
                               )}
-                            {job.estimatedCost && job.estimatedCost > 0 && (
+                            {/* {job.estimatedCost && job.estimatedCost > 0 && (
                               <div className="flex items-center gap-1">
                                 <span>${job.estimatedCost}</span>
                               </div>
-                            )}
+                            )} */}
                           </div>
                           <Button
                             onClick={() => handleViewJob(job)}

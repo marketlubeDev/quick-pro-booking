@@ -101,8 +101,9 @@ function formatDateDMY(dateString: string) {
   let month = parts.find((p) => p.type === "month")?.value ?? "";
   const year = parts.find((p) => p.type === "year")?.value ?? "";
 
-  // Normalize month to 3-letter, lowercase, without trailing dot (e.g., "Sept." -> "sep")
+  // Normalize month to 3-letter, capitalize first letter, without trailing dot (e.g., "Sept." -> "Sep")
   month = month.replace(".", "").slice(0, 3).toLowerCase();
+  month = month.charAt(0).toUpperCase() + month.slice(1);
 
   return day && month && year ? `${day} ${month} ${year}` : dateString;
 }
@@ -119,6 +120,8 @@ export function ServiceRequestCard({
   isLoadingComplete = false,
   isLoadingReject = false,
 }: ServiceRequestCardProps) {
+  console.log(request, "request");
+
   return (
     <Card className="hover:shadow-md transition-all duration-200 border-border/50">
       <CardHeader className="pb-3">
@@ -128,9 +131,10 @@ export function ServiceRequestCard({
             <p className="text-sm text-muted-foreground">#{request._id}</p>
           </div>
           <div className="flex items-center space-x-2">
-            <AlertTriangle
-              className={cn("h-4 w-4", getPriorityColor(request.priority))}
-            />
+            {request.preferredTime?.toLowerCase().includes("emergency") &&
+              request.preferredTime?.toLowerCase().includes("asap") && (
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+              )}
             <Badge variant={getStatusBadgeVariant(request.status)}>
               {request.status}
             </Badge>

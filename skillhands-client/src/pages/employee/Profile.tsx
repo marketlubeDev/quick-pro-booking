@@ -177,10 +177,13 @@ const EmployeeProfile = () => {
                     <Mail className="h-4 w-4" />
                     <span>{form.email || "name@email.com"}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    <span>{form.phone || "Your phone number"}</span>
-                  </div>
+                  {form.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      <span>{form.phone || "Your phone number"}</span>
+                    </div>
+                  )}
+
                   {form.city && (
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4" />
@@ -196,9 +199,9 @@ const EmployeeProfile = () => {
                 </div>
                 {form.expectedSalary && (
                   <div className="flex items-center gap-2 mt-2 text-white/90">
-                    <DollarSign className="h-4 w-4" />
-                    <span>
-                      Expected: ${form.expectedSalary.toLocaleString()}
+                    <span className="flex items-center gap-1">
+                      Expected: <DollarSign className="h-4 w-4" />
+                      {form.expectedSalary.toLocaleString()}
                     </span>
                   </div>
                 )}

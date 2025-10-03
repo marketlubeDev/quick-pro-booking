@@ -113,6 +113,13 @@ export function JobDetailModal({
   const canComplete = job.employeeAccepted && job.status === "in-progress";
   const isCompleted = job.status === "completed";
 
+  const formatDate = (date: string | number | Date) =>
+    new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -196,7 +203,7 @@ export function JobDetailModal({
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span>
-                    {new Date(job.scheduledDate).toLocaleDateString()} at{" "}
+                    {formatDate(job.scheduledDate)} at{" "}
                     {(job as any).scheduledTime}
                   </span>
                 </div>
@@ -205,8 +212,7 @@ export function JobDetailModal({
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span>
-                    Preferred:{" "}
-                    {new Date(job.preferredDate).toLocaleDateString()} at{" "}
+                    Preferred: {formatDate(job.preferredDate)} at{" "}
                     {job.preferredTime}
                   </span>
                 </div>
