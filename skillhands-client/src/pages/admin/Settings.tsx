@@ -289,9 +289,9 @@ export function Settings() {
             </div>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Employee Applications</Label>
+                <Label>Pro Applications</Label>
                 <p className="text-sm text-muted-foreground">
-                  Get notified when new employee applications are submitted
+                  Get notified when new pro applications are submitted
                 </p>
               </div>
               <Switch

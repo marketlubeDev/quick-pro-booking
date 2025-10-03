@@ -248,7 +248,7 @@ export function JobDetailModal({
             </Card>
           )}
 
-          {/* Employee Remarks */}
+          {/* Pro Remarks */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Your Remarks</CardTitle>

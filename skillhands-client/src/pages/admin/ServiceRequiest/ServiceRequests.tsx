@@ -282,7 +282,7 @@ export function ServiceRequests() {
           </SelectContent>
         </Select>
 
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+        {/* <Select value={priorityFilter} onValueChange={setPriorityFilter}>
           <SelectTrigger className="w-full sm:w-40">
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
@@ -292,7 +292,7 @@ export function ServiceRequests() {
             <SelectItem value="medium">Medium</SelectItem>
             <SelectItem value="low">Low</SelectItem>
           </SelectContent>
-        </Select>
+        </Select> */}
       </div>
 
       {/* Loading / Error */}

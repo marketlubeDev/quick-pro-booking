@@ -165,9 +165,7 @@ export function ServiceRequestCard({
 
         {/* Assigned Employee */}
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground mb-1">
-            Assigned Employee
-          </p>
+          <p className="text-xs text-muted-foreground mb-1">Assigned Pro</p>
           {request.assignedEmployee ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 text-sm">
@@ -176,7 +174,7 @@ export function ServiceRequestCard({
                   {typeof request.assignedEmployee === "object" &&
                   request.assignedEmployee?.fullName
                     ? request.assignedEmployee.fullName
-                    : "Unknown Employee"}
+                    : "Unknown Pro"}
                 </span>
               </div>
               <Select
@@ -242,8 +240,7 @@ export function ServiceRequestCard({
             <div className="flex items-center space-x-1 text-sm">
               <Calendar className="h-3 w-3 text-muted-foreground" />
               <span className="text-foreground">
-                {formatDateDMY(request.preferredDate)}
-                , {request.preferredTime}
+                {formatDateDMY(request.preferredDate)}, {request.preferredTime}
               </span>
             </div>
           </div>

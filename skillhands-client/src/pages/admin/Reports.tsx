@@ -294,15 +294,15 @@ export function Reports() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Employee Performance
+                Pro Performance
               </CardTitle>
-              <CardDescription>Employee performance metrics</CardDescription>
+              <CardDescription>Pro performance metrics</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {employees.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No employee performance data available for the selected
+                    No pro performance data available for the selected
                     period.
                   </div>
                 ) : (

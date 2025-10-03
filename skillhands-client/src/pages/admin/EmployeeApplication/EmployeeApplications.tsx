@@ -137,7 +137,7 @@ export function EmployeeApplications() {
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <div className="flex items-center space-x-2">
           <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading employee applications...</span>
+          <span>Loading pro applications...</span>
         </div>
       </div>
     );
@@ -148,7 +148,7 @@ export function EmployeeApplications() {
       <div className="p-6">
         <Alert variant="destructive">
           <AlertDescription>
-            Error loading employee applications: {error}
+            Error loading pro applications: {error}
           </AlertDescription>
         </Alert>
       </div>
@@ -251,7 +251,7 @@ export function EmployeeApplications() {
           <div className="text-muted-foreground text-sm mt-1">
             {searchQuery || statusFilter !== "all" || experienceFilter !== "all"
               ? "Try adjusting your search or filters"
-              : "Employee applications will appear here when people apply for positions"}
+              : "Pro applications will appear here when people apply for positions"}
           </div>
         </div>
       )}

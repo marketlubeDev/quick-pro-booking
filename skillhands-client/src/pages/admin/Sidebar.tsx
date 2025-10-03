@@ -21,7 +21,7 @@ const navigationItems: NavigationItem[] = [
     icon: ClipboardList,
   },
   {
-    name: "Employee Applications",
+    name: "Pro Applications",
     path: "/admin/employee-applications",
     icon: Users,
   },

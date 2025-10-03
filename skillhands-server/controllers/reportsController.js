@@ -143,18 +143,19 @@ const getEmployeePerformanceData = async (startDate, endDate) => {
     const employeePerformance = [];
 
     for (const employee of employees) {
-      const userId = employee.user._id;
+      // IMPORTANT: ServiceRequest.assignedEmployee references Profile, not User
+      const profileId = employee._id;
 
       // Get completed jobs for the period
       const completedJobs = await ServiceRequest.countDocuments({
-        assignedEmployee: userId,
+        assignedEmployee: profileId,
         status: "completed",
         updatedAt: { $gte: startDate, $lte: endDate },
       });
 
       // Get total jobs for the period
       const totalJobs = await ServiceRequest.countDocuments({
-        assignedEmployee: userId,
+        assignedEmployee: profileId,
         createdAt: { $gte: startDate, $lte: endDate },
       });
 
@@ -164,7 +165,7 @@ const getEmployeePerformanceData = async (startDate, endDate) => {
 
       // Get overall completed jobs count
       const overallCompletedJobs = await ServiceRequest.countDocuments({
-        assignedEmployee: userId,
+        assignedEmployee: profileId,
         status: "completed",
       });
 

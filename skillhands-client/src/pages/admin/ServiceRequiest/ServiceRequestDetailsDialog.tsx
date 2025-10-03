@@ -289,7 +289,7 @@ export function ServiceRequestDetailsDialog({
               <>
                 <Separator />
                 <div className="space-y-3">
-                  <h3 className="text-lg font-semibold">Assigned Employee</h3>
+                  <h3 className="text-lg font-semibold">Assigned Pro</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Name</p>
@@ -315,7 +315,7 @@ export function ServiceRequestDetailsDialog({
                   {request.employeeRemarks && (
                     <div>
                       <p className="text-sm text-muted-foreground">
-                        Employee Remarks
+                        Pro Remarks
                       </p>
                       <p className="text-foreground">
                         {request.employeeRemarks}

@@ -204,7 +204,7 @@ export function EmployeeApplicationCard({
             <div className="flex items-center space-x-1 text-sm">
               <DollarSign className="h-3 w-3 text-muted-foreground" />
               <span className="font-medium text-foreground">
-                {application.expectedSalary} AED
+                {application.expectedSalary}
               </span>
             </div>
           </div>

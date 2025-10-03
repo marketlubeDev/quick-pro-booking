@@ -14,8 +14,8 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
     subtitle: "Manage and track all service requests from customers.",
   },
   "/admin/employee-applications": {
-    title: "Employee Applications",
-    subtitle: "Review and manage employee applications and profiles.",
+    title: "Pro Applications",
+    subtitle: "Review and manage pro applications and profiles.",
   },
   "/admin/reports": {
     title: "Reports",

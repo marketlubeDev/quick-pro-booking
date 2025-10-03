@@ -220,7 +220,7 @@ export function EmployeeDetailModal({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <User className="h-5 w-5" />
-            <span>Employee Details - {application.name}</span>
+            <span>Pro Details - {application.name}</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -336,7 +336,7 @@ export function EmployeeDetailModal({
                     </label>
                     <p className="text-sm flex items-center space-x-1">
                       <DollarSign className="h-3 w-3" />
-                      <span>{application.expectedSalary} AED</span>
+                      <span>{application.expectedSalary}</span>
                     </p>
                   </div>
                 </div>
@@ -715,7 +715,7 @@ export function EmployeeDetailModal({
                                 </span>
                               </p>
                             </div>
-                            <div>
+                            {/* <div>
                               <label className="text-muted-foreground">
                                 Cost
                               </label>
@@ -727,13 +727,13 @@ export function EmployeeDetailModal({
                                     : "Not estimated"}
                                 </span>
                               </p>
-                            </div>
+                            </div> */}
                           </div>
 
                           {job.employeeRemarks && (
                             <div className="mt-3 pt-3 border-t">
                               <label className="text-sm text-muted-foreground">
-                                Employee Remarks
+                                Pro Remarks
                               </label>
                               <p className="text-sm mt-1">
                                 {job.employeeRemarks}

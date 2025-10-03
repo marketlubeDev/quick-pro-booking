@@ -132,12 +132,11 @@ export function Dashboard() {
         />
 
         <StatCard
-          title="Total Employees"
+          title="Total Pro Applications"
           value={stats?.activeEmployees || 0}
           icon={Users}
           trend={{ value: 8, isPositive: true }}
         />
- 
       </div>
 
       {/* Recent Activity */}
@@ -212,7 +211,7 @@ export function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-lg font-semibold">
-              Recent Employee Applications
+              Recent Pro Applications
             </CardTitle>
             <Button
               variant="outline"
@@ -225,7 +224,7 @@ export function Dashboard() {
           <CardContent className="space-y-4">
             {recentApplications.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                No recent employee applications
+                No recent pro applications
               </div>
             ) : (
               recentApplications.map((application) => (
