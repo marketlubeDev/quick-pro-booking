@@ -178,21 +178,17 @@ const SignUp = () => {
                     <SelectValue placeholder="Select designation" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="plumbing">Plumbing</SelectItem>
-                    <SelectItem value="electrical">Electrical</SelectItem>
-                    <SelectItem value="house cleaning">
-                      House cleaning
-                    </SelectItem>
-                    <SelectItem value="ac repair">AC repair</SelectItem>
-                    <SelectItem value="appliance repair">
-                      Appliance repair
-                    </SelectItem>
-                    <SelectItem value="painting">Painting</SelectItem>
+                    <SelectItem value="plumber">Plumber</SelectItem>
+                    <SelectItem value="electrician">Electrician</SelectItem>
+                    <SelectItem value="house cleaner">House Cleaner</SelectItem>
+                    <SelectItem value="ac technician">AC Technician</SelectItem>
+                    <SelectItem value="appliance repair">Appliance Repair</SelectItem>
+                    <SelectItem value="painter">Painter</SelectItem>
                     <SelectItem value="handyman">Handyman</SelectItem>
-                    <SelectItem value="pest control">Pest control</SelectItem>
-                    <SelectItem value="lawn care">Lawn care</SelectItem>
-                    <SelectItem value="moving">Moving</SelectItem>
-                    <SelectItem value="roofing">Roofing</SelectItem>
+                    <SelectItem value="pest control specialist">Pest Control Specialist</SelectItem>
+                    <SelectItem value="landscaper">Landscaper</SelectItem>
+                    <SelectItem value="moving specialist">Moving Specialist</SelectItem>
+                    <SelectItem value="roofer">Roofer</SelectItem>
                   </SelectContent>
                 </Select>
                 <input
@@ -203,7 +199,7 @@ const SignUp = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="expectedSalary">Expected Salary (AED)</Label>
+                <Label htmlFor="expectedSalary">Expected Salary ($)</Label>
                 <Input
                   id="expectedSalary"
                   type="number"

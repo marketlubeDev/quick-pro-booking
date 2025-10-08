@@ -164,19 +164,36 @@ export function ServiceRequests() {
     () =>
       serviceRequests.filter((request) => {
         const normalizedQuery = searchQuery.trim().toLowerCase();
-        const fieldsToSearch = [
-          request.customerName,
-          request.serviceType,
-          request.description,
-          request.address,
-          request.id,
-        ];
+
+        // Build a comprehensive list of searchable string fields
+        const fieldsToSearch = (
+          [
+            request._id,
+            request.id,
+            request.name,
+            request.customerName,
+            request.service,
+            request.serviceType,
+            request.description,
+            request.address,
+            request.city,
+            request.state,
+            request.zip,
+            request.phone,
+            request.email,
+            Array.isArray(request.tags) ? request.tags.join(" ") : undefined,
+            typeof request.assignedEmployee === "object"
+              ? request.assignedEmployee?.fullName
+              : undefined,
+          ] as Array<string | undefined | null>
+        )
+          .filter(Boolean)
+          .map((value) => String(value));
+
         const matchesSearch =
           normalizedQuery === "" ||
-          fieldsToSearch.some(
-            (value) =>
-              typeof value === "string" &&
-              value.toLowerCase().includes(normalizedQuery)
+          fieldsToSearch.some((value) =>
+            value.toLowerCase().includes(normalizedQuery)
           );
 
         const normalizedStatus = request.status;
@@ -262,7 +279,7 @@ export function ServiceRequests() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by customer name, service type, or location..."
+            placeholder="Search by ID, name, service, or location..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -297,8 +314,11 @@ export function ServiceRequests() {
 
       {/* Loading / Error */}
       {isLoading && (
-        <div className="text-center text-muted-foreground">
-          Loading service requests...
+        <div className="p-6 flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Loading service requests...</span>
+          </div>
         </div>
       )}
       {isError && (

@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import Profile from "../models/Profile.js";
+import ServiceRequest from "../models/ServiceRequest.js";
 import {
   sendEmployeeApplicationApprovalEmail,
   sendEmployeeApplicationRejectionEmail,
@@ -250,6 +251,16 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
       .populate("user", "name email role isActive createdAt")
       .sort({ createdAt: -1 });
 
+    // Pre-compute completed jobs per assigned employee (profile._id)
+    const completedCounts = await ServiceRequest.aggregate([
+      { $match: { status: "completed" } },
+      { $group: { _id: "$assignedEmployee", count: { $sum: 1 } } },
+    ]);
+    const completedCountByProfileId = completedCounts.reduce((acc, item) => {
+      if (item._id) acc[String(item._id)] = item.count || 0;
+      return acc;
+    }, {});
+
     // Transform profiles to match EmployeeApplication interface
     const employeeApplications = profiles.map((profile) => ({
       id: profile._id.toString(),
@@ -260,7 +271,10 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
       skills: profile.skills || [],
       experienceLevel: profile.level || "Beginner",
       rating: profile.rating || 0,
-      previousJobCount: profile.totalJobs || 0,
+      previousJobCount:
+        (typeof profile.totalJobs === "number" && profile.totalJobs > 0
+          ? profile.totalJobs
+          : completedCountByProfileId[profile._id.toString()] || 0),
       certifications: (profile.certifications || []).map(
         (cert) => cert.name || cert
       ),

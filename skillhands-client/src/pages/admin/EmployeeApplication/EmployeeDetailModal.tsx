@@ -204,7 +204,9 @@ export function EmployeeDetailModal({
 
   console.log(jobs, "jobsasdasdas");
 
-  const completedJobs = jobs.filter((job) => job.status === "completed");
+  const completedJobs = jobs.filter(
+    (job) => (job.status || "").toLowerCase() === "completed"
+  );
   const activeJobs = jobs.filter(
     (job) =>
       job.status === "in-process" ||
@@ -374,7 +376,7 @@ export function EmployeeDetailModal({
                         0}
                     </span>
                     <span className="text-sm text-muted-foreground">
-                      ({application.previousJobCount} jobs)
+                      ({(application.previousJobCount && application.previousJobCount > 0 ? application.previousJobCount : workExperience.length) || 0} jobs)
                     </span>
                     <Button
                       size="sm"
@@ -649,7 +651,9 @@ export function EmployeeDetailModal({
                   <Card>
                     <CardContent className="p-4 text-center">
                       <div className="text-2xl font-bold text-green-600">
-                        {completedJobs.length}
+                        {completedJobs.length > 0
+                          ? completedJobs.length
+                          : Math.max(0, employeeProfile?.totalJobs ?? 0)}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Completed

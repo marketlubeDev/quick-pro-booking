@@ -51,6 +51,33 @@ const EmployeeProfile = () => {
   // Update form when profile data is loaded
   React.useEffect(() => {
     if (profile) {
+      // Normalize legacy designation values to match current allowed options
+      const normalizeDesignation = (value: string | undefined | null) => {
+        const v = (value || "").toLowerCase().trim();
+        switch (v) {
+          case "plumbing":
+            return "plumber";
+          case "electrical":
+            return "electrician";
+          case "house cleaning":
+            return "house cleaner";
+          case "ac repair":
+            return "ac technician";
+          case "painting":
+            return "painter";
+          case "pest control":
+            return "pest control specialist";
+          case "lawn care":
+            return "landscaper";
+          case "moving":
+            return "moving specialist";
+          case "roofing":
+            return "roofer";
+          default:
+            return v;
+        }
+      };
+
       setForm({
         fullName: profile.fullName || profile.user?.name || "",
         email: profile.email || profile.user?.email || "",
@@ -66,7 +93,7 @@ const EmployeeProfile = () => {
         workExperience: profile.workExperience || [],
         expectedSalary: profile.expectedSalary,
         verified: profile.verified || false,
-        designation: profile.designation || "",
+        designation: normalizeDesignation(profile.designation) || "",
       });
     }
   }, [profile]);

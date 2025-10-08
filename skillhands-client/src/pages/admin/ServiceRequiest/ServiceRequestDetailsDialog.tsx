@@ -62,6 +62,18 @@ function formatDateDMYNumeric(dateString: string) {
   return day && month && year ? `${day} ${month} ${year}` : dateString;
 }
 
+function formatDateDMYWithComma(dateString: string) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  const formatted = new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+  return `${formatted},`;
+}
+
 const getPriorityColor = (priority: string) => {
   switch (priority) {
     case "urgent":
@@ -406,14 +418,14 @@ export function ServiceRequestDetailsDialog({
               <div>
                 <p className="text-sm text-muted-foreground">Created At</p>
                 <p className="text-foreground">
-                  {new Date(request.createdAt).toLocaleString()}
+                  {formatDateDMYWithComma(request.createdAt)}
                 </p>
               </div>
               {request.updatedAt && (
                 <div>
                   <p className="text-sm text-muted-foreground">Last Updated</p>
                   <p className="text-foreground">
-                    {new Date(request.updatedAt).toLocaleString()}
+                    {formatDateDMYWithComma(request.updatedAt)}
                   </p>
                 </div>
               )}

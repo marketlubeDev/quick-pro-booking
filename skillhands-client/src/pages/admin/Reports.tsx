@@ -29,23 +29,13 @@ import {
 import { useReports, useExportReports } from "@/hooks/useReports";
 import { ServiceRequest } from "@/types";
 
-// Helper function to format date
+// Helper function to format date as "3 Oct 2025,"
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  const now = new Date();
-  const diffInHours = Math.floor(
-    (now.getTime() - date.getTime()) / (1000 * 60 * 60)
-  );
-
-  if (diffInHours < 1) return "Just now";
-  if (diffInHours < 24)
-    return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
-
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7)
-    return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
-
-  return date.toLocaleDateString();
+  const day = date.getDate();
+  const month = date.toLocaleString("en-GB", { month: "short" });
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
 };
 
 // Helper function to get status badge variant
@@ -230,7 +220,8 @@ export function Reports() {
           </div>
 
           {/* Service Requests */}
-          <Card>
+          <div className="flex flex-col lg:flex-row gap-6">
+          <Card className="w-full lg:w-1/2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
@@ -241,7 +232,7 @@ export function Reports() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[520px] overflow-y-auto pr-2 no-scrollbar">
                 {serviceRequests.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     No service requests found for the selected period.
@@ -290,7 +281,7 @@ export function Reports() {
           </Card>
 
           {/* Employee Performance */}
-          <Card>
+          <Card className="w-full lg:w-1/2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -299,7 +290,7 @@ export function Reports() {
               <CardDescription>Pro performance metrics</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[520px] overflow-y-auto pr-2 no-scrollbar">
                 {employees.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     No pro performance data available for the selected
@@ -358,6 +349,7 @@ export function Reports() {
               </div>
             </CardContent>
           </Card>
+          </div>
         </>
       )}
     </div>

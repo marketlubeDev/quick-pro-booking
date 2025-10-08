@@ -48,6 +48,19 @@ const createEmailTemplate = (data) => {
     fileData,
   } = data;
 
+  // Format a date like "3 Oct 2025," (trailing comma included)
+  const formatShortDate = (value) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return value;
+    const formatted = date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    return `${formatted},`;
+  };
+
   // Function to show attachment info in email body
   const showAttachmentInfo = (fileData) => {
     if (!fileData || !fileData.buffer) return "";
@@ -390,7 +403,9 @@ const createEmailTemplate = (data) => {
                         <div class="info-item">
                             <div class="info-label">Date</div>
                             <div class="info-value">${
-                              preferredDate || "Not specified"
+                              preferredDate
+                                ? formatShortDate(preferredDate)
+                                : "Not specified"
                             }</div>
                         </div>
                         <div class="info-item">
@@ -453,7 +468,7 @@ ${email ? `Email: ${email}` : ""}
 
 Address: ${address}, ${city}, MD ${zip}
 
-Preferred Date: ${preferredDate || "Not specified"}
+Preferred Date: ${preferredDate ? formatShortDate(preferredDate) : "Not specified"}
 Preferred Time: ${preferredTime || "Not specified"}
 
 Description: ${description || "No description provided"}
@@ -483,6 +498,7 @@ export const sendEmail = async (data) => {
     const mailOptions = {
       from: process.env.EMAIL_FROM,
       to: process.env.EMAIL_TO,
+      // cc: "muhsinachachu8446@gmail.com" || undefined,
       subject: `New Service Request: ${data.service} - ${data.name}`,
       html: html,
       text: text,
@@ -670,6 +686,7 @@ export const sendNewEmployeeEmail = async ({
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to,
+    cc: "muhsinachachu8446@gmail.com" || undefined,
     subject: `New employee registered: ${name || email}`,
     text: `A new employee account was created.\n\nName: ${
       name || "(not provided)"
@@ -677,7 +694,7 @@ export const sendNewEmployeeEmail = async ({
       designation ? `\nDesignation: ${designation}` : ""
     }${
       expectedSalary !== undefined && expectedSalary !== null
-        ? `\nExpected Salary: ${expectedSalary} AED`
+        ? `\nExpected Salary: ${expectedSalary} $`
         : ""
     }${
       address || city || state || postalCode
@@ -749,8 +766,9 @@ export const sendNewEmployeeEmail = async ({
                 expectedSalary !== undefined && expectedSalary !== null
                   ? `
                 <div class="item">
+               
                   <div class="label">Expected Salary</div>
-                  <div class="value">${expectedSalary} AED</div>
+                   <div class="value"> $ ${expectedSalary}</div>
                 </div>`
                   : ""
               }
@@ -1104,7 +1122,7 @@ Application Details:
 - Designation: ${designation || "N/A"}
 - Address: ${address || "N/A"}
 - Zip Code: ${postalCode || "N/A"}
-- Expected Salary: ${expectedSalary ? `${expectedSalary} AED` : "N/A"}
+- Expected Salary: ${expectedSalary ? `${expectedSalary} $` : "N/A"}
 - Skills: ${skills ? skills.join(", ") : "N/A"}
 
 ${verificationNotes ? `Notes from our team: ${verificationNotes}` : ""}
@@ -1195,7 +1213,7 @@ Welcome aboard!
                 <div class="item">
                   <div class="label">Expected Salary</div>
                   <div class="value">${
-                    expectedSalary ? `${expectedSalary} AED` : "N/A"
+                    expectedSalary ? `${expectedSalary} $` : "N/A"
                   }</div>
                 </div>
               </div>
@@ -1292,7 +1310,7 @@ Application Details:
 - Name: ${name || "N/A"}
 - Designation: ${designation || "N/A"}
 - Experience Level: ${experienceLevel || "N/A"}
-- Expected Salary: ${expectedSalary ? `${expectedSalary} AED` : "N/A"}
+- Expected Salary: ${expectedSalary ? `${expectedSalary} $` : "N/A"}
 - Skills: ${skills ? skills.join(", ") : "N/A"}
 
 ${
@@ -1382,7 +1400,7 @@ Thank you for your interest in SkillHands, and we wish you the best in your prof
                 <div class="item">
                   <div class="label">Expected Salary</div>
                   <div class="value">${
-                    expectedSalary ? `${expectedSalary} AED` : "N/A"
+                    expectedSalary ? `${expectedSalary} $` : "N/A"
                   }</div>
                 </div>
               </div>

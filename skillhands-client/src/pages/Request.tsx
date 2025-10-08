@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import PrimaryButton from "@/components/PrimaryButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +46,13 @@ function isValidUSPhoneNumber(phone: string) {
   }
 
   return false;
+}
+
+function formatDateDMYNumeric(dateString: string) {
+  if (!dateString) return "";
+  const [year, month, day] = dateString.split("-"); // expect YYYY-MM-DD
+  if (!year || !month || !day) return dateString;
+  return `${day}/${month}/${year}`;
 }
 
 const Request = () => {
@@ -788,7 +794,7 @@ const Request = () => {
   if (step === 4) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+       
 
         <section className="py-16 lg:py-24">
           <div className="container mx-auto px-4">
@@ -824,7 +830,7 @@ const Request = () => {
           </div>
         </section>
 
-        <Footer />
+       
         <FloatingWhatsApp />
       </div>
     );
@@ -832,7 +838,7 @@ const Request = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+     
 
       <section className="py-16">
         <div className="container mx-auto px-4">
@@ -985,6 +991,7 @@ const Request = () => {
                           <Input
                             id="date"
                             type="date"
+                            lang="en-GB"
                             value={formData.preferredDate}
                             onChange={(e) =>
                               handleInputChange("preferredDate", e.target.value)
@@ -1218,7 +1225,7 @@ const Request = () => {
                             <strong>Service:</strong> {formData.service}
                           </li>
                           <li>
-                            <strong>Date:</strong> {formData.preferredDate}
+                            <strong>Date:</strong> {formatDateDMYNumeric(formData.preferredDate)}
                           </li>
                           <li>
                             <strong>Time:</strong> {formData.preferredTime}
@@ -1307,7 +1314,7 @@ const Request = () => {
         </div>
       </section>
 
-      <Footer />
+     
       <FloatingWhatsApp />
     </div>
   );

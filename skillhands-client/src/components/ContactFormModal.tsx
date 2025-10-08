@@ -226,6 +226,16 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     return false;
   }
 
+  function formatDateDMYNumeric(dateString: string) {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const yyyy = date.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
   // ZIP codes data imported from data module
 
   // Filter ZIP codes based on input
@@ -696,6 +706,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 <Input
                   id="date"
                   type="date"
+                  lang="en-GB"
                   value={formData.preferredDate}
                   onChange={(e) =>
                     handleInputChange("preferredDate", e.target.value)
@@ -967,7 +978,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <strong>Service:</strong> {formData.service}
                 </li>
                 <li>
-                  <strong>Date:</strong> {formData.preferredDate}
+                  <strong>Date:</strong> {formatDateDMYNumeric(formData.preferredDate)}
                 </li>
                 <li>
                   <strong>Time:</strong> {formData.preferredTime}

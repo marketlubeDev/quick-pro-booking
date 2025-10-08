@@ -86,6 +86,10 @@ export function EmployeeApplicationCard({
   isRejecting = false,
 }: EmployeeApplicationCardProps) {
   console.log(application, "asjdgksgs");
+  const displayedPreviousJobs =
+    application.previousJobCount && application.previousJobCount > 0
+      ? application.previousJobCount
+      : application.workExperience?.length ?? 0;
   return (
     <Card className="hover:shadow-md transition-all duration-200 border-border/50">
       <CardHeader className="pb-3">
@@ -119,7 +123,7 @@ export function EmployeeApplicationCard({
                   {application.rating}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  ({application.previousJobCount} jobs)
+                  ({displayedPreviousJobs} jobs)
                 </span>
               </div>
             </div>
