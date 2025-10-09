@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Search, Filter, Plus, Users, Loader2 } from "lucide-react";
 import { EmployeeApplicationCard } from "./EmployeeApplicationCard";
 import { EmployeeDetailModal } from "./EmployeeDetailModal";
@@ -13,9 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEmployeeApplications } from "@/hooks/useEmployeeApplications";
+// import { useEmployeeApplications } from "@/hooks/useEmployeeApplications";
+import { useInfiniteEmployeeApplications } from "@/hooks/useEmployeeApplicationsInfinite";
+import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { adminApi } from "@/lib/api";
 
 export function EmployeeApplications() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,14 +36,35 @@ export function EmployeeApplications() {
     string | null
   >(null);
 
-  const { applications, loading, error, updateStatus, refetch } =
-    useEmployeeApplications();
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = useInfiniteEmployeeApplications(10);
   const { toast } = useToast();
 
+  // Intersection observer for infinite scroll
+  const loadMoreRef = useIntersectionObserver({
+    onIntersect: useCallback(() => {
+      if (hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]),
+    enabled: hasNextPage && !isFetchingNextPage,
+  });
+
   // Filter applications based on search and filters
+  const applications = useMemo(() => data?.pages.flatMap((p) => p.data) ?? [], [data]);
   const visibleApplications = applications.filter(
     (application) => application.user?.role?.toLowerCase() !== "admin"
   );
+
+  console.log(`Total applications: ${applications.length}, Visible (non-admin): ${visibleApplications.length}`);
 
   const filteredApplications = visibleApplications.filter((application) => {
     const matchesSearch =
@@ -91,7 +115,8 @@ export function EmployeeApplications() {
     try {
       setIsApproving(true);
       setApprovingApplicationId(applicationId);
-      await updateStatus(applicationId, "approved");
+      await adminApi.updateEmployeeStatus(applicationId, "approved");
+      await refetch();
       toast({
         title: "Application Approved",
         description: "Employee application has been approved successfully.",
@@ -122,7 +147,12 @@ export function EmployeeApplications() {
 
     try {
       setIsRejecting(true);
-      await updateStatus(applicationToReject.id, "rejected", rejectionReason);
+      await adminApi.updateEmployeeStatus(
+        applicationToReject.id,
+        "rejected",
+        rejectionReason
+      );
+      await refetch();
       toast({
         title: "Application Rejected",
         description:
@@ -147,7 +177,7 @@ export function EmployeeApplications() {
     setApplicationToReject(null);
   };
 
-  if (loading) {
+  if (isLoading && !data) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <div className="flex items-center space-x-2">
@@ -158,12 +188,12 @@ export function EmployeeApplications() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="p-6">
         <Alert variant="destructive">
           <AlertDescription>
-            Error loading pro applications: {error}
+            Error loading pro applications: {(error as Error)?.message}
           </AlertDescription>
         </Alert>
       </div>
@@ -257,6 +287,27 @@ export function EmployeeApplications() {
           />
         ))}
       </div>
+
+      {/* Infinite Scroll Loading Indicator */}
+      {hasNextPage && (
+        <div ref={loadMoreRef} className="flex justify-center py-8">
+          {isFetchingNextPage ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading more applications...</span>
+            </div>
+          ) : (
+            <div className="text-muted-foreground text-sm">Scroll down to load more</div>
+          )}
+        </div>
+      )}
+
+      {/* End of results indicator */}
+      {!hasNextPage && applications.length > 0 && (
+        <div className="text-center py-8 text-muted-foreground text-sm">
+          You've reached the end of the results
+        </div>
+      )}
 
       {filteredApplications.length === 0 && (
         <div className="text-center py-12">

@@ -260,7 +260,7 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
       sortBy = "createdAt",
       sortOrder = "desc",
       page = 1,
-      limit = 10,
+      limit = 1000, // Increased limit to show all employees by default
     } = req.query;
 
     // Build filter object

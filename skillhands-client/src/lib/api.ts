@@ -499,7 +499,7 @@ export const adminApi = {
   async getAllEmployeeApplications(): Promise<
     ApiResponse<EmployeeApplication[]>
   > {
-    return api.get<EmployeeApplication[]>("/api/profile/all");
+    return api.get<EmployeeApplication[]>("/api/profile/all?limit=1000");
   },
 
   async getEmployeeProfile(

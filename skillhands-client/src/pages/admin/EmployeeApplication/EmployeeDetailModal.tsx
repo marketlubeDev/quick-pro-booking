@@ -230,6 +230,10 @@ export function EmployeeDetailModal({
 
   const handleStarClick = (value: number) => {
     setEditingRating(value);
+    // Automatically enter edit mode when rating is clicked
+    if (!isEditingDetails) {
+      setIsEditingDetails(true);
+    }
   };
 
   const handleSaveRating = async () => {

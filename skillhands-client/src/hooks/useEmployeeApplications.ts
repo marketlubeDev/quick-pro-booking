@@ -25,6 +25,7 @@ export function useEmployeeApplications(): UseEmployeeApplicationsReturn {
       setError(null);
       const response = await adminApi.getAllEmployeeApplications();
       if (response.success && response.data) {
+        console.log(`Fetched ${response.data.length} employee applications`);
         setApplications(response.data);
       } else {
         setError(response.message || "Failed to fetch applications");
