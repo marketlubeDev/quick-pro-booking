@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { Search, Filter, Plus, Users, Loader2 } from "lucide-react";
 import { EmployeeApplicationCard } from "./EmployeeApplicationCard";
 import { EmployeeDetailModal } from "./EmployeeDetailModal";
@@ -19,9 +19,11 @@ import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { adminApi } from "@/lib/api";
+import { useSearchParams } from "react-router-dom";
 
 export function EmployeeApplications() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [experienceFilter, setExperienceFilter] = useState<string>("all");
   const [selectedApplication, setSelectedApplication] =
@@ -48,6 +50,29 @@ export function EmployeeApplications() {
   } = useInfiniteEmployeeApplications(10);
   const { toast } = useToast();
 
+  // Keep local search in sync with global ?q
+  useEffect(() => {
+    const current = searchParams.get("q") || "";
+    if (current !== searchQuery) {
+      setSearchQuery(current);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // When local search changes, update ?q
+  const updateGlobalSearch = useCallback(
+    (value: string) => {
+      const next = new URLSearchParams(searchParams);
+      if (value && value.trim() !== "") {
+        next.set("q", value.trim());
+      } else {
+        next.delete("q");
+      }
+      setSearchParams(next, { replace: false });
+    },
+    [searchParams, setSearchParams]
+  );
+
   // Intersection observer for infinite scroll
   const loadMoreRef = useIntersectionObserver({
     onIntersect: useCallback(() => {
@@ -67,13 +92,27 @@ export function EmployeeApplications() {
   console.log(`Total applications: ${applications.length}, Visible (non-admin): ${visibleApplications.length}`);
 
   const filteredApplications = visibleApplications.filter((application) => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const fieldsToSearch = (
+      [
+        (application as any)._id,
+        application.id,
+        application.name,
+        application.location,
+        (application as any).email,
+        (application as any).phone,
+        application.user?.name,
+        application.user?.email,
+        Array.isArray(application.skills) ? application.skills.join(" ") : undefined,
+        Array.isArray((application as any).tags) ? (application as any).tags.join(" ") : undefined,
+      ] as Array<string | undefined | null>
+    )
+      .filter(Boolean)
+      .map((v) => String(v));
+
     const matchesSearch =
-      searchQuery === "" ||
-      application.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      application.skills.some((skill) =>
-        skill.toLowerCase().includes(searchQuery.toLowerCase())
-      ) ||
-      application.location.toLowerCase().includes(searchQuery.toLowerCase());
+      normalizedQuery === "" ||
+      fieldsToSearch.some((value) => value.toLowerCase().includes(normalizedQuery));
 
     const matchesStatus =
       statusFilter === "all" || application.status === statusFilter;
@@ -207,9 +246,12 @@ export function EmployeeApplications() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name, skills, or location..."
+            placeholder="Search by ID, name, skills, or location..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              updateGlobalSearch(e.target.value);
+            }}
             className="pl-9"
           />
         </div>

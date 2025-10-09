@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 interface HeaderProps {
@@ -22,6 +22,7 @@ interface HeaderProps {
 export function Header({ title, subtitle }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, logout } = useAuth();
 
   // Handle logout with proper cleanup
@@ -64,6 +65,38 @@ export function Header({ title, subtitle }: HeaderProps) {
               )}
             </div>
           )}
+        </div>
+
+        {/* Global Search */}
+        <div className="relative w-[260px] hidden md:block">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search..."
+            defaultValue={searchParams.get("q") || ""}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const value = (e.target as HTMLInputElement).value;
+                const next = new URLSearchParams(searchParams);
+                if (value && value.trim() !== "") {
+                  next.set("q", value.trim());
+                } else {
+                  next.delete("q");
+                }
+                setSearchParams(next, { replace: false });
+              }
+            }}
+            onBlur={(e) => {
+              const value = e.target.value;
+              const next = new URLSearchParams(searchParams);
+              if (value && value.trim() !== "") {
+                next.set("q", value.trim());
+              } else {
+                next.delete("q");
+              }
+              setSearchParams(next, { replace: false });
+            }}
+            className="pl-9"
+          />
         </div>
 
         {/* Action Button */}

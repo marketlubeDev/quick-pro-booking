@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Filter, Plus, Loader2 } from "lucide-react";
 import { ServiceRequestCard } from "./ServiceRequestCard";
@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useInfiniteServiceRequests } from "../../../hooks/useInfiniteServiceRequests";
+import { useSearchParams } from "react-router-dom";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import {
   updateServiceRequest,
@@ -26,7 +27,8 @@ import { ScheduleServiceDialog } from "./ScheduleServiceDialog";
 import { RejectServiceDialog } from "./RejectServiceDialog";
 
 export function ServiceRequests() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -45,6 +47,29 @@ export function ServiceRequests() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteServiceRequests(10);
+  // Keep local search in sync with global ?q
+  useEffect(() => {
+    const current = searchParams.get("q") || "";
+    if (current !== searchQuery) {
+      setSearchQuery(current);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // When local search changes (typing in local input), update ?q
+  const updateGlobalSearch = useCallback(
+    (value: string) => {
+      const next = new URLSearchParams(searchParams);
+      if (value && value.trim() !== "") {
+        next.set("q", value.trim());
+      } else {
+        next.delete("q");
+      }
+      setSearchParams(next, { replace: false });
+    },
+    [searchParams, setSearchParams]
+  );
+
 
   // Fetch overall summary once (if backend supports it)
   const { data: summary } = useQuery({
@@ -281,7 +306,10 @@ export function ServiceRequests() {
           <Input
             placeholder="Search by ID, name, service, or location..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              updateGlobalSearch(e.target.value);
+            }}
             className="pl-9"
           />
         </div>
@@ -312,20 +340,6 @@ export function ServiceRequests() {
         </Select> */}
       </div>
 
-      {/* Loading / Error */}
-      {isLoading && (
-        <div className="p-6 flex items-center justify-center min-h-[400px]">
-          <div className="flex items-center space-x-2">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span>Loading service requests...</span>
-          </div>
-        </div>
-      )}
-      {isError && (
-        <div className="text-center text-destructive">
-          {(error as Error)?.message || "Failed to load service requests."}
-        </div>
-      )}
 
       {/* Stats Summary */}
       <div className="grid grid-cols-5 gap-4">
@@ -360,6 +374,23 @@ export function ServiceRequests() {
           <div className="text-sm text-muted-foreground">Cancelled</div>
         </div>
       </div>
+
+
+      
+      {/* Loading / Error */}
+      {isLoading && (
+        <div className="p-6 flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Loading service requests...</span>
+          </div>
+        </div>
+      )}
+      {isError && (
+        <div className="text-center text-destructive">
+          {(error as Error)?.message || "Failed to load service requests."}
+        </div>
+      )}
 
       {/* Service Requests Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

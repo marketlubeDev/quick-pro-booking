@@ -994,7 +994,7 @@ export function EmployeeDetailModal({
                     </Button>
                   </div>
                   
-                  <div>
+                  {/* <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Status Notes
                     </label>
@@ -1004,7 +1004,7 @@ export function EmployeeDetailModal({
                       placeholder="Add notes for status update..."
                       className="mt-1"
                     />
-                  </div>
+                  </div> */}
                 </div>
 
                 {(currentApplication.verificationNotes || application.verificationNotes) && (
