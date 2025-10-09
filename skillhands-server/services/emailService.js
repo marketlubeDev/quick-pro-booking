@@ -694,7 +694,7 @@ export const sendNewEmployeeEmail = async ({
       designation ? `\nDesignation: ${designation}` : ""
     }${
       expectedSalary !== undefined && expectedSalary !== null
-        ? `\nExpected Salary: ${expectedSalary} $`
+        ? `\nExpected Salary: $${expectedSalary} `
         : ""
     }${
       address || city || state || postalCode
@@ -1122,7 +1122,7 @@ Application Details:
 - Designation: ${designation || "N/A"}
 - Address: ${address || "N/A"}
 - Zip Code: ${postalCode || "N/A"}
-- Expected Salary: ${expectedSalary ? `${expectedSalary} $` : "N/A"}
+- Expected Salary: ${expectedSalary ? `$${expectedSalary}` : "N/A"}
 - Skills: ${skills ? skills.join(", ") : "N/A"}
 
 ${verificationNotes ? `Notes from our team: ${verificationNotes}` : ""}
@@ -1213,7 +1213,7 @@ Welcome aboard!
                 <div class="item">
                   <div class="label">Expected Salary</div>
                   <div class="value">${
-                    expectedSalary ? `${expectedSalary} $` : "N/A"
+                    expectedSalary ? `$${expectedSalary}` : "N/A"
                   }</div>
                 </div>
               </div>
@@ -1310,7 +1310,7 @@ Application Details:
 - Name: ${name || "N/A"}
 - Designation: ${designation || "N/A"}
 - Experience Level: ${experienceLevel || "N/A"}
-- Expected Salary: ${expectedSalary ? `${expectedSalary} $` : "N/A"}
+- Expected Salary: ${expectedSalary ? `$${expectedSalary}` : "N/A"}
 - Skills: ${skills ? skills.join(", ") : "N/A"}
 
 ${
@@ -1400,7 +1400,7 @@ Thank you for your interest in SkillHands, and we wish you the best in your prof
                 <div class="item">
                   <div class="label">Expected Salary</div>
                   <div class="value">${
-                    expectedSalary ? `${expectedSalary} $` : "N/A"
+                    expectedSalary ? `$${expectedSalary}` : "N/A"
                   }</div>
                 </div>
               </div>

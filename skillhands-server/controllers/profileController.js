@@ -247,9 +247,67 @@ export const getProfileCompletion = async (req, res, next) => {
 // Get all employee profiles (admin only)
 export const getAllEmployeeProfiles = async (req, res, next) => {
   try {
-    const profiles = await Profile.find({})
+    const {
+      status,
+      level,
+      verified,
+      city,
+      state,
+      skills,
+      minRating,
+      maxRating,
+      search,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    // Build filter object
+    const filter = {};
+    
+    if (status) filter.status = status;
+    if (level) filter.level = level;
+    if (verified !== undefined) filter.verified = verified === "true";
+    if (city) filter.city = new RegExp(city, "i");
+    if (state) filter.state = new RegExp(state, "i");
+    if (skills) {
+      const skillsArray = Array.isArray(skills) ? skills : [skills];
+      filter.skills = { $in: skillsArray };
+    }
+    if (minRating || maxRating) {
+      filter.rating = {};
+      if (minRating) filter.rating.$gte = Number(minRating);
+      if (maxRating) filter.rating.$lte = Number(maxRating);
+    }
+    if (search) {
+      filter.$or = [
+        { fullName: new RegExp(search, "i") },
+        { email: new RegExp(search, "i") },
+        { designation: new RegExp(search, "i") },
+        { city: new RegExp(search, "i") },
+        { state: new RegExp(search, "i") },
+      ];
+    }
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+    // Calculate pagination
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get total count for pagination
+    const total = await Profile.countDocuments(filter);
+
+    // Get profiles with pagination
+    const profiles = await Profile.find(filter)
       .populate("user", "name email role isActive createdAt")
-      .sort({ createdAt: -1 });
+      .sort(sort)
+      .skip(skip)
+      .limit(limitNum);
 
     // Pre-compute completed jobs per assigned employee (profile._id)
     const completedCounts = await ServiceRequest.aggregate([
@@ -292,6 +350,9 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
     return res.json({
       success: true,
       data: employeeApplications,
+      total,
+      page: pageNum,
+      limit: limitNum,
     });
   } catch (err) {
     next(err);
@@ -445,6 +506,321 @@ export const updateEmployeeRating = async (req, res, next) => {
       success: true,
       message: "Employee rating updated successfully",
       data: profile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Update employee verification details (admin only)
+export const updateEmployeeVerification = async (req, res, next) => {
+  try {
+    const { profileId } = req.params;
+    const { verified, verificationStatus, verificationNotes } = req.body;
+
+    const profile = await Profile.findById(profileId).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    // Update verification fields
+    if (verified !== undefined) profile.verified = verified;
+    if (verificationStatus !== undefined) {
+      if (!["pending", "approved", "rejected"].includes(verificationStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid verification status. Must be pending, approved, or rejected",
+        });
+      }
+      profile.verificationStatus = verificationStatus;
+      profile.status = verificationStatus; // Keep both fields in sync
+    }
+    if (verificationNotes !== undefined) profile.verificationNotes = verificationNotes;
+
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Employee verification updated successfully",
+      data: profile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Update employee professional details (admin only)
+export const updateEmployeeProfessionalDetails = async (req, res, next) => {
+  try {
+    const { profileId } = req.params;
+    const { designation, level, expectedSalary, skills, totalJobs } = req.body;
+
+    const profile = await Profile.findById(profileId).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    // Update professional fields
+    if (designation !== undefined) profile.designation = designation;
+    if (level !== undefined) {
+      if (!["Beginner", "Intermediate", "Expert"].includes(level)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid level. Must be Beginner, Intermediate, or Expert",
+        });
+      }
+      profile.level = level;
+    }
+    if (expectedSalary !== undefined) profile.expectedSalary = expectedSalary;
+    if (skills !== undefined) profile.skills = skills;
+    if (totalJobs !== undefined) profile.totalJobs = totalJobs;
+
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Employee professional details updated successfully",
+      data: profile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Update employee personal details (admin only)
+export const updateEmployeePersonalDetails = async (req, res, next) => {
+  try {
+    const { profileId } = req.params;
+    const {
+      fullName,
+      email,
+      phone,
+      city,
+      addressLine1,
+      addressLine2,
+      state,
+      postalCode,
+      country,
+      bio,
+    } = req.body;
+
+    const profile = await Profile.findById(profileId).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    // Update personal fields
+    if (fullName !== undefined) profile.fullName = fullName;
+    if (email !== undefined) profile.email = email.toLowerCase();
+    if (phone !== undefined) profile.phone = phone;
+    if (city !== undefined) profile.city = city;
+    if (addressLine1 !== undefined) profile.addressLine1 = addressLine1;
+    if (addressLine2 !== undefined) profile.addressLine2 = addressLine2;
+    if (state !== undefined) profile.state = state;
+    if (postalCode !== undefined) profile.postalCode = postalCode;
+    if (country !== undefined) profile.country = country;
+    if (bio !== undefined) profile.bio = bio;
+
+    // Also update the user model if email or name changed
+    if (email !== undefined || fullName !== undefined) {
+      const user = await User.findById(profile.user._id);
+      if (user) {
+        if (email !== undefined) user.email = email.toLowerCase();
+        if (fullName !== undefined) user.name = fullName;
+        await user.save();
+      }
+    }
+
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Employee personal details updated successfully",
+      data: profile,
+    });
+  } catch (err) {
+    // Handle duplicate email conflict
+    if (err?.code === 11000) {
+      return res
+        .status(409)
+        .json({ success: false, message: "Email already in use" });
+    }
+    next(err);
+  }
+};
+
+// Add work experience
+export const addWorkExperience = async (req, res, next) => {
+  try {
+    const {
+      company,
+      position,
+      startDate,
+      endDate,
+      current,
+      description,
+      location,
+    } = req.body;
+
+    if (!company || !position || !startDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Company, position, and start date are required",
+      });
+    }
+
+    const profile = await Profile.findOne({ user: req.user._id });
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const newExperience = {
+      company,
+      position,
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : undefined,
+      current: current || false,
+      description: description || "",
+      location: location || "",
+    };
+
+    profile.workExperience = [...(profile.workExperience || []), newExperience];
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    const updatedProfile = await Profile.findOne({ user: req.user._id }).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    return res.json({
+      success: true,
+      message: "Work experience added successfully",
+      data: updatedProfile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Update work experience
+export const updateWorkExperience = async (req, res, next) => {
+  try {
+    const { experienceId } = req.params;
+    const {
+      company,
+      position,
+      startDate,
+      endDate,
+      current,
+      description,
+      location,
+    } = req.body;
+
+    const profile = await Profile.findOne({ user: req.user._id });
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const experienceIndex = profile.workExperience.findIndex(
+      (exp) => exp._id.toString() === experienceId
+    );
+
+    if (experienceIndex === -1) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Work experience not found" });
+    }
+
+    // Update the experience entry
+    const experience = profile.workExperience[experienceIndex];
+    if (company !== undefined) experience.company = company;
+    if (position !== undefined) experience.position = position;
+    if (startDate !== undefined) experience.startDate = new Date(startDate);
+    if (endDate !== undefined) experience.endDate = endDate ? new Date(endDate) : undefined;
+    if (current !== undefined) experience.current = current;
+    if (description !== undefined) experience.description = description;
+    if (location !== undefined) experience.location = location;
+
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    const updatedProfile = await Profile.findOne({ user: req.user._id }).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    return res.json({
+      success: true,
+      message: "Work experience updated successfully",
+      data: updatedProfile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Delete work experience
+export const deleteWorkExperience = async (req, res, next) => {
+  try {
+    const { experienceId } = req.params;
+
+    const profile = await Profile.findOne({ user: req.user._id });
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const experienceIndex = profile.workExperience.findIndex(
+      (exp) => exp._id.toString() === experienceId
+    );
+
+    if (experienceIndex === -1) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Work experience not found" });
+    }
+
+    // Remove the experience entry
+    profile.workExperience.splice(experienceIndex, 1);
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    const updatedProfile = await Profile.findOne({ user: req.user._id }).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    return res.json({
+      success: true,
+      message: "Work experience deleted successfully",
+      data: updatedProfile,
     });
   } catch (err) {
     next(err);

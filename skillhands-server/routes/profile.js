@@ -9,6 +9,12 @@ import {
   getEmployeeProfileById,
   updateEmployeeStatus,
   updateEmployeeRating,
+  updateEmployeeVerification,
+  updateEmployeeProfessionalDetails,
+  updateEmployeePersonalDetails,
+  addWorkExperience,
+  updateWorkExperience,
+  deleteWorkExperience,
 } from "../controllers/profileController.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { upload } from "../middleware/uploads.js";
@@ -30,10 +36,18 @@ router.post(
   uploadCertificates
 );
 
+// Work experience routes
+router.post("/work-experience", addWorkExperience);
+router.patch("/work-experience/:experienceId", updateWorkExperience);
+router.delete("/work-experience/:experienceId", deleteWorkExperience);
+
 // Admin-only routes for employee management
 router.get("/all", requireRole("admin"), getAllEmployeeProfiles);
 router.get("/employee/:userId", requireRole("admin"), getEmployeeProfileById);
 router.patch("/:profileId/status", requireRole("admin"), updateEmployeeStatus);
 router.patch("/:profileId/rating", requireRole("admin"), updateEmployeeRating);
+router.patch("/:profileId/verification", requireRole("admin"), updateEmployeeVerification);
+router.patch("/:profileId/professional", requireRole("admin"), updateEmployeeProfessionalDetails);
+router.patch("/:profileId/personal", requireRole("admin"), updateEmployeePersonalDetails);
 
 export default router;

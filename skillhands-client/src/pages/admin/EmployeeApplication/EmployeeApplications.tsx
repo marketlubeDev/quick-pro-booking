@@ -72,6 +72,21 @@ export function EmployeeApplications() {
     await refetch();
   };
 
+  const handleApplicationUpdate = (updatedApplication: EmployeeApplication) => {
+    // Update the selected application if it's the one being updated
+    if (selectedApplication && selectedApplication.id === updatedApplication.id) {
+      setSelectedApplication(updatedApplication);
+    }
+    
+    // Refetch the applications list to ensure consistency
+    refetch();
+    
+    toast({
+      title: "Application updated",
+      description: "Employee application has been updated successfully",
+    });
+  };
+
   const handleApprove = async (applicationId: string) => {
     try {
       setIsApproving(true);
@@ -261,6 +276,7 @@ export function EmployeeApplications() {
         application={selectedApplication}
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
+        onApplicationUpdate={handleApplicationUpdate}
       />
 
       {/* Reject Application Modal */}
