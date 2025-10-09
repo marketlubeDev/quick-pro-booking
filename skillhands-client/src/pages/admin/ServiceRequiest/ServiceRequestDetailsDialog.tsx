@@ -418,14 +418,14 @@ export function ServiceRequestDetailsDialog({
               <div>
                 <p className="text-sm text-muted-foreground">Created At</p>
                 <p className="text-foreground">
-                  {formatDateDMYWithComma(request.createdAt)}
+                  {formatDate(request.createdAt)}
                 </p>
               </div>
               {request.updatedAt && (
                 <div>
                   <p className="text-sm text-muted-foreground">Last Updated</p>
                   <p className="text-foreground">
-                    {formatDateDMYWithComma(request.updatedAt)}
+                    {formatDate(request.updatedAt)}
                   </p>
                 </div>
               )}
