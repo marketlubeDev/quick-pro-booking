@@ -41,13 +41,17 @@ const profileSchema = new mongoose.Schema(
     bio: { type: String, trim: true },
 
     // Professional Information
-    designation: { type: String, trim: true },
+    designation: { type: [String], default: [] },
     level: {
       type: String,
       enum: ["Beginner", "Intermediate", "Expert"],
       trim: true,
     },
     expectedSalary: { type: Number, min: 0 },
+
+    // Service Areas
+    workingZipCodes: { type: [String], default: [] },
+    workingCities: { type: [String], default: [] },
 
     // Skills & Certifications
     skills: [{ type: String, trim: true }],

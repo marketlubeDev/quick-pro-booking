@@ -136,6 +136,9 @@ export interface EmployeeApplication {
   address?: string;
   city?: string;
   zip?: string;
+  // Working area details (optional)
+  workingZipCodes?: string[];
+  workingCities?: string[];
   // Additional fields from API
   avatarUrl?: string;
   bio?: string;

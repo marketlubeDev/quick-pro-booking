@@ -44,10 +44,12 @@ export async function fetchEmployeeApplicationsPaginated(
 
   try {
     // Try a paginated endpoint first; many backends support page/limit
+    console.log(`Fetching page ${page} with limit ${limit}`);
     const raw = await apiFetch<unknown>(
       `/api/profile/all?page=${page}&limit=${limit}`,
       { signal }
     );
+    console.log("Raw response:", raw);
 
     if (raw && typeof raw === "object") {
       const asRecord = raw as Record<string, unknown>;
@@ -58,15 +60,22 @@ export async function fetchEmployeeApplicationsPaginated(
         const limitFromResp = Number((asRecord as Record<string, unknown>).limit ?? limit) || limit;
         const pageFromResp = Number((asRecord as Record<string, unknown>).page ?? page) || page;
 
+        // Calculate hasMore based on total, page, and limit
         let hasMore: boolean;
-        if (typeof (asRecord as Record<string, unknown>).hasMore === "boolean") {
-          hasMore = (asRecord as Record<string, unknown>).hasMore as boolean;
-        } else if (totalFromResp > 0) {
+        if (totalFromResp > 0) {
           hasMore = pageFromResp * limitFromResp < totalFromResp;
         } else {
           hasMore = pageData.length >= limitFromResp;
         }
 
+        console.log("Paginated response:", {
+          page: pageFromResp,
+          limit: limitFromResp,
+          total: totalFromResp,
+          hasMore,
+          dataLength: pageData.length
+        });
+        
         return {
           data: pageData,
           hasMore,

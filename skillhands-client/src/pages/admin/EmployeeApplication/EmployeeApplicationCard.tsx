@@ -90,6 +90,14 @@ export function EmployeeApplicationCard({
     application.previousJobCount && application.previousJobCount > 0
       ? application.previousJobCount
       : application.workExperience?.length ?? 0;
+  const designations = Array.isArray(application.designation)
+    ? application.designation
+    : typeof application.designation === "string"
+    ? application.designation
+        .split(",")
+        .map((d) => d.trim())
+        .filter(Boolean)
+    : [];
   return (
     <Card className="hover:shadow-md transition-all duration-200 border-border/50">
       <CardHeader className="pb-3">
@@ -103,11 +111,13 @@ export function EmployeeApplicationCard({
                 {application.name}
               </h3>
               <p className="text-sm text-muted-foreground">#{application.id}</p>
-              {application.designation && (
-                <div className="mt-1">
-                  <Badge variant="secondary" className="text-xs">
-                    {application.designation}
-                  </Badge>
+              {designations.length > 0 && (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {designations.map((designation) => (
+                    <Badge key={designation} variant="secondary" className="text-xs">
+                      {designation}
+                    </Badge>
+                  ))}
                 </div>
               )}
               {/* {application.user?.role && (
@@ -164,6 +174,47 @@ export function EmployeeApplicationCard({
             )}
           </div>
         </div>
+
+        {/* Working Areas */}
+        {(application.workingZipCodes?.length || application.workingCities?.length) && (
+          <div>
+            <p className="text-sm font-medium text-foreground mb-2">Working Areas</p>
+            {application.workingZipCodes?.length ? (
+              <div className="mb-1">
+                <p className="text-xs text-muted-foreground mb-1">ZIP codes</p>
+                <div className="flex flex-wrap gap-1">
+                  {application.workingZipCodes.slice(0, 5).map((zip) => (
+                    <Badge key={zip} variant="outline" className="text-xs">
+                      {zip}
+                    </Badge>
+                  ))}
+                  {application.workingZipCodes.length > 5 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{application.workingZipCodes.length - 5} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            ) : null}
+            {application.workingCities?.length ? (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Cities</p>
+                <div className="flex flex-wrap gap-1">
+                  {application.workingCities.slice(0, 5).map((city) => (
+                    <Badge key={city} variant="secondary" className="text-xs">
+                      {city}
+                    </Badge>
+                  ))}
+                  {application.workingCities.length > 5 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{application.workingCities.length - 5} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
 
         {/* Certifications */}
         {application.certifications.length > 0 && (

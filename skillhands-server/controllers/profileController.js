@@ -59,6 +59,10 @@ export const updateMyProfile = async (req, res, next) => {
       "level",
       "expectedSalary",
 
+      // Service Areas
+      "workingZipCodes",
+      "workingCities",
+
       // Skills & Certifications
       "skills",
       "certifications",
@@ -78,6 +82,35 @@ export const updateMyProfile = async (req, res, next) => {
       if (req.body[key] !== undefined) {
         profileUpdate[key] = req.body[key];
       }
+    }
+
+    // Normalize array fields from body (accept string, CSV, or array)
+    if (req.body.designation !== undefined) {
+      const v = req.body.designation;
+      profileUpdate.designation = Array.isArray(v)
+        ? v.map(String)
+        : String(v)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+    }
+    if (req.body.workingZipCodes !== undefined) {
+      const v = req.body.workingZipCodes;
+      profileUpdate.workingZipCodes = Array.isArray(v)
+        ? v.map(String)
+        : String(v)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+    }
+    if (req.body.workingCities !== undefined) {
+      const v = req.body.workingCities;
+      profileUpdate.workingCities = Array.isArray(v)
+        ? v.map(String)
+        : String(v)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
     }
 
     // Update lastUpdated timestamp
@@ -325,7 +358,9 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
       name: profile.fullName || profile.user?.name || "Unknown",
       email: profile.email || profile.user?.email || "",
       phone: profile.phone || "",
-      designation: profile.designation || "",
+      designation: Array.isArray(profile.designation)
+        ? profile.designation.join(", ")
+        : (profile.designation || ""),
       skills: profile.skills || [],
       experienceLevel: profile.level || "Beginner",
       rating: profile.rating || 0,
@@ -434,7 +469,9 @@ export const updateEmployeeStatus = async (req, res, next) => {
         await sendEmployeeApplicationApprovalEmail({
           to: profile.user.email,
           name: profile.fullName || profile.user.name,
-          designation: profile.designation,
+          designation: Array.isArray(profile.designation)
+            ? profile.designation.join(", ")
+            : profile.designation,
           address: profile.addressLine1,
           postalCode: profile.postalCode,
           skills: profile.skills || [],
@@ -449,7 +486,9 @@ export const updateEmployeeStatus = async (req, res, next) => {
         await sendEmployeeApplicationRejectionEmail({
           to: profile.user.email,
           name: profile.fullName || profile.user.name,
-          designation: profile.designation,
+          designation: Array.isArray(profile.designation)
+            ? profile.designation.join(", ")
+            : profile.designation,
           experienceLevel: profile.level,
           skills: profile.skills || [],
           expectedSalary: profile.expectedSalary,

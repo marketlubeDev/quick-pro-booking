@@ -841,7 +841,7 @@ export default function TopServices() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes float {
           0%,
           100% {

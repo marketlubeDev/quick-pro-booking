@@ -35,17 +35,25 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Check } from "lucide-react";
 
 const SignUp = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedZip, setSelectedZip] = useState<string>("");
+  const [selectedZips, setSelectedZips] = useState<string[]>([]);
   const [city, setCity] = useState<string>("");
   const [zipOpen, setZipOpen] = useState(false);
-  const [selectedDesignation, setSelectedDesignation] = useState<string>("");
+  const [selectedDesignations, setSelectedDesignations] = useState<string[]>([]);
+  const [designationOpen, setDesignationOpen] = useState(false);
+  const [selectedAddressZip, setSelectedAddressZip] = useState<string>("");
+
+  const workCities = selectedZips
+    .map((zip) => marylandZipCodes.find((z) => z.zip === zip)?.city || "")
+    .filter(Boolean)
+    .filter((cityName, index, arr) => arr.indexOf(cityName) === index)
+    .join(", ");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,7 +70,7 @@ const SignUp = () => {
       const confirm = (formData.get("confirm") as string) || "";
       const address = (formData.get("address") as string)?.toString().trim();
       const formCity = (formData.get("city") as string)?.toString().trim();
-      const zip = (formData.get("zip") as string)?.toString().trim();
+      const zips = (formData.getAll("zips") as string[]).map((z) => z.toString().trim());
       const designation = (formData.get("designation") as string)
         ?.toString()
         .trim();
@@ -70,6 +78,7 @@ const SignUp = () => {
         ?.toString()
         .trim();
       const expectedSalary = Number(expectedSalaryStr);
+      const addressZip = (formData.get("addressZip") as string)?.toString().trim();
       const finalCity = formCity || city;
       if (
         !name ||
@@ -77,7 +86,8 @@ const SignUp = () => {
         !password ||
         !confirm ||
         !address ||
-        !zip ||
+        !addressZip ||
+        !zips.length ||
         !designation ||
         !finalCity ||
         !expectedSalaryStr
@@ -95,9 +105,14 @@ const SignUp = () => {
         setError("Passwords do not match");
         return;
       }
-      const isValidMdZip = marylandZipCodes.some((z) => z.zip === zip);
-      if (!isValidMdZip) {
-        setError("Please enter a valid Maryland ZIP code we serve");
+      const invalidWorkZip = zips.find((zip) => !marylandZipCodes.some((z) => z.zip === zip));
+      if (invalidWorkZip) {
+        setError("Please select valid Maryland ZIP codes we serve");
+        return;
+      }
+      const isValidAddressZip = marylandZipCodes.some((z) => z.zip === addressZip);
+      if (!isValidAddressZip) {
+        setError("Please enter a valid Maryland address ZIP code");
         return;
       }
       const resp = await register(name, email, password, {
@@ -105,7 +120,7 @@ const SignUp = () => {
         address,
         city: finalCity || undefined,
         state: "MD",
-        postalCode: zip,
+        postalCode: addressZip,
         expectedSalary,
       });
       // Best-effort profile bootstrap with address info
@@ -116,10 +131,12 @@ const SignUp = () => {
           addressLine1: address,
           city: finalCity || undefined,
           state: "MD",
-          postalCode: zip,
+          postalCode: addressZip,
           country: "USA",
           designation: designation || undefined,
           expectedSalary,
+          workingZipCodes: zips,
+          workingCities: workCities ? workCities.split(", ") : [],
         });
       } catch {
         // ignore profile update failure; user can complete later
@@ -170,31 +187,73 @@ const SignUp = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="designation">Designation</Label>
-                <Select
-                  value={selectedDesignation}
-                  onValueChange={(val) => setSelectedDesignation(val)}
-                >
-                  <SelectTrigger id="designation">
-                    <SelectValue placeholder="Select designation" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="plumber">Plumber</SelectItem>
-                    <SelectItem value="electrician">Electrician</SelectItem>
-                    <SelectItem value="house cleaner">House Cleaner</SelectItem>
-                    <SelectItem value="ac technician">AC Technician</SelectItem>
-                    <SelectItem value="appliance repair">Appliance Repair</SelectItem>
-                    <SelectItem value="painter">Painter</SelectItem>
-                    <SelectItem value="handyman">Handyman</SelectItem>
-                    <SelectItem value="pest control specialist">Pest Control Specialist</SelectItem>
-                    <SelectItem value="landscaper">Landscaper</SelectItem>
-                    <SelectItem value="moving specialist">Moving Specialist</SelectItem>
-                    <SelectItem value="roofer">Roofer</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Popover open={designationOpen} onOpenChange={setDesignationOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={designationOpen}
+                      className="w-full justify-between"
+                      id="designation"
+                      type="button"
+                    >
+                      {selectedDesignations.length
+                        ? selectedDesignations.join(", ")
+                        : "Select designations"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="p-0 w-[--radix-popover-trigger-width]"
+                    align="start"
+                  >
+                    <Command>
+                      <CommandInput placeholder="Search designation..." />
+                      <CommandEmpty>No results found.</CommandEmpty>
+                      <CommandList>
+                        <CommandGroup>
+                          {[
+                            "plumber",
+                            "electrician",
+                            "house cleaner",
+                            "ac technician",
+                            "appliance repair",
+                            "painter",
+                            "handyman",
+                            "pest control specialist",
+                            "landscaper",
+                            "moving specialist",
+                            "roofer",
+                          ].map((d) => (
+                            <CommandItem
+                              key={d}
+                              value={d}
+                              onSelect={() => {
+                                setSelectedDesignations((prev) => {
+                                  const isSelected = prev.includes(d);
+                                  return isSelected
+                                    ? prev.filter((p) => p !== d)
+                                    : [...prev, d];
+                                });
+                              }}
+                            >
+                              <span className="mr-2 inline-flex items-center justify-center h-4 w-4">
+                                {selectedDesignations.includes(d) && (
+                                  <Check className="h-4 w-4" />
+                                )}
+                              </span>
+                              {d.replace(/\b\w/g, (c) => c.toUpperCase())}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <input
                   type="hidden"
                   name="designation"
-                  value={selectedDesignation}
+                  value={selectedDesignations.join(", ")}
                   required
                 />
               </div>
@@ -211,6 +270,84 @@ const SignUp = () => {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="zip">Work Location ZIP codes</Label>
+                <Popover open={zipOpen} onOpenChange={setZipOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={zipOpen}
+                      className="w-full justify-between"
+                      id="zip"
+                      type="button"
+                    >
+                      {selectedZips.length
+                        ? selectedZips.join(", ")
+                        : "Select ZIPs"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="p-0 w-[--radix-popover-trigger-width]"
+                    align="start"
+                  >
+                    <Command>
+                      <CommandInput placeholder="Type ZIP or city..." />
+                      <CommandEmpty>No results found.</CommandEmpty>
+                      <CommandList>
+                        <CommandGroup>
+                          {marylandZipCodes.map((z) => (
+                            <CommandItem
+                              key={z.zip}
+                              value={`${z.zip} ${z.city}`}
+                              onSelect={() => {
+                                setSelectedZips((prev) => {
+                                  const isSelected = prev.includes(z.zip);
+                                  const next = isSelected
+                                    ? prev.filter((p) => p !== z.zip)
+                                    : [...prev, z.zip];
+                                  return next;
+                                });
+                              }}
+                            >
+                              <span className="mr-2 inline-flex items-center justify-center h-4 w-4">
+                                {selectedZips.includes(z.zip) && (
+                                  <Check className="h-4 w-4" />
+                                )}
+                              </span>
+                              {z.zip} — {z.city}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {selectedZips.map((zip) => (
+                  <input key={zip} type="hidden" name="zips" value={zip} required />
+                ))}
+                {selectedZips.map((zip) => (
+                  <input key={`working-${zip}`} type="hidden" name="workingZipCodes" value={zip} />
+                ))}
+              </div>
+            <div className="space-y-2">
+              <Label htmlFor="workCities">Work Cities</Label>
+              <Input
+                id="workCities"
+                type="text"
+                placeholder="Auto-filled from selected ZIPs"
+                value={workCities}
+                readOnly
+              />
+              <input type="hidden" name="workCities" value={workCities} />
+              {workCities
+                .split(", ")
+                .filter(Boolean)
+                .map((c) => (
+                  <input key={`wc-${c}`} type="hidden" name="workingCities" value={c} />
+                ))}
+            </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="address">Address</Label>
                 <Input
@@ -235,54 +372,35 @@ const SignUp = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="zip">ZIP code</Label>
-                <Popover open={zipOpen} onOpenChange={setZipOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={zipOpen}
-                      className="w-full justify-between"
-                      id="zip"
-                      type="button"
-                    >
-                      {selectedZip
-                        ? `${selectedZip} — ${
-                            marylandZipCodes.find((z) => z.zip === selectedZip)
-                              ?.city || ""
-                          }`
-                        : "Select ZIP"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="p-0 w-[--radix-popover-trigger-width]"
-                    align="start"
-                  >
-                    <Command>
-                      <CommandInput placeholder="Type ZIP or city..." />
-                      <CommandEmpty>No results found.</CommandEmpty>
-                      <CommandList>
-                        <CommandGroup>
-                          {marylandZipCodes.map((z) => (
-                            <CommandItem
-                              key={z.zip}
-                              value={`${z.zip} ${z.city}`}
-                              onSelect={() => {
-                                setSelectedZip(z.zip);
-                                if (z.city) setCity(z.city);
-                                setZipOpen(false);
-                              }}
-                            >
-                              {z.zip} — {z.city}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <input type="hidden" name="zip" value={selectedZip} required />
+                <Label htmlFor="addressZipSelect">Address ZIP code</Label>
+                <Select
+                  value={selectedAddressZip}
+                  onValueChange={(val) => {
+                    setSelectedAddressZip(val);
+                    const found = marylandZipCodes.find((z) => z.zip === val);
+                    if (found?.city) {
+                      setCity(found.city);
+                    }
+                  }}
+                  required
+                >
+                  <SelectTrigger id="addressZipSelect">
+                    {selectedAddressZip || "Select ZIP"}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {marylandZipCodes.map((z) => (
+                      <SelectItem key={z.zip} value={z.zip}>
+                        {z.zip} — {z.city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input
+                  type="hidden"
+                  name="addressZip"
+                  value={selectedAddressZip}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>

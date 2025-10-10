@@ -68,7 +68,7 @@ export function Header({ title, subtitle }: HeaderProps) {
         </div>
 
         {/* Global Search */}
-        <div className="relative w-[260px] hidden md:block">
+        {/* <div className="relative w-[260px] hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search..."
@@ -97,7 +97,7 @@ export function Header({ title, subtitle }: HeaderProps) {
             }}
             className="pl-9"
           />
-        </div>
+        </div> */}
 
         {/* Action Button */}
         {/* {getActionButton()} */}

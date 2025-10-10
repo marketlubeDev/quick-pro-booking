@@ -12,6 +12,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -34,7 +47,10 @@ import {
   Building,
   FileText,
   Loader2,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
+import { marylandZipCodes } from "@/data/marylandZipCodes";
 import { EmployeeApplication, WorkExperience } from "@/types";
 import { fetchEmployeeJobs, type EmployeeJob } from "@/lib/api.employeeJobs";
 import { adminApi, type EmployeeProfileData } from "@/lib/api";
@@ -132,7 +148,9 @@ export function EmployeeDetailModal({
     useState<EmployeeProfileData | null>(null);
   const [editingRating, setEditingRating] = useState<number | null>(null);
   const [savingRating, setSavingRating] = useState(false);
-  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [isEditingBasic, setIsEditingBasic] = useState(false);
+  const [isEditingWorking, setIsEditingWorking] = useState(false);
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
   const [editingDetails, setEditingDetails] = useState({
     name: "",
     phone: "",
@@ -143,10 +161,14 @@ export function EmployeeDetailModal({
     expectedSalary: "",
     experienceLevel: "",
     skills: [] as string[],
+    workingZipCodes: [] as string[],
+    workingCities: [] as string[],
   });
   const [newSkill, setNewSkill] = useState("");
+  const [zipOpen, setZipOpen] = useState(false);
+  const [newWorkingCity, setNewWorkingCity] = useState("");
   const [savingDetails, setSavingDetails] = useState(false);
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState<"pending" | "approved" | "rejected" | null>(null);
   const [statusUpdateNotes, setStatusUpdateNotes] = useState("");
   const [localApplication, setLocalApplication] = useState<EmployeeApplication | null>(null);
   const { toast } = useToast();
@@ -174,6 +196,10 @@ export function EmployeeDetailModal({
         expectedSalary: String(application.expectedSalary || ""),
         experienceLevel: application.experienceLevel || "",
         skills: employeeProfile?.skills || application.skills || [],
+        workingZipCodes:
+          employeeProfile?.workingZipCodes || application.workingZipCodes || [],
+        workingCities:
+          employeeProfile?.workingCities || application.workingCities || [],
       });
     }
   }, [application, employeeProfile]);
@@ -230,9 +256,8 @@ export function EmployeeDetailModal({
 
   const handleStarClick = (value: number) => {
     setEditingRating(value);
-    // Automatically enter edit mode when rating is clicked
-    if (!isEditingDetails) {
-      setIsEditingDetails(true);
+    if (!isEditingBasic) {
+      setIsEditingBasic(true);
     }
   };
 
@@ -278,12 +303,12 @@ export function EmployeeDetailModal({
     }
   };
 
-  const handleEditDetails = () => {
-    setIsEditingDetails(true);
-  };
+  const handleEditBasic = () => setIsEditingBasic(true);
+  const handleEditWorking = () => setIsEditingWorking(true);
+  const handleEditSkills = () => setIsEditingSkills(true);
 
-  const handleCancelEdit = () => {
-    setIsEditingDetails(false);
+  const handleCancelBasic = () => {
+    setIsEditingBasic(false);
     // Reset to original values from local application
     if (localApplication) {
       setEditingDetails({
@@ -296,11 +321,36 @@ export function EmployeeDetailModal({
         expectedSalary: String(localApplication.expectedSalary || ""),
         experienceLevel: localApplication.experienceLevel || "",
         skills: employeeProfile?.skills || localApplication.skills || [],
+        workingZipCodes:
+          employeeProfile?.workingZipCodes || localApplication.workingZipCodes || [],
+        workingCities:
+          employeeProfile?.workingCities || localApplication.workingCities || [],
       });
     }
   };
 
-  const handleSaveDetails = async () => {
+  const handleCancelWorking = () => {
+    setIsEditingWorking(false);
+    if (localApplication) {
+      setEditingDetails((prev) => ({
+        ...prev,
+        workingZipCodes: employeeProfile?.workingZipCodes || localApplication.workingZipCodes || [],
+        workingCities: employeeProfile?.workingCities || localApplication.workingCities || [],
+      }));
+    }
+  };
+
+  const handleCancelSkills = () => {
+    setIsEditingSkills(false);
+    if (localApplication) {
+      setEditingDetails((prev) => ({
+        ...prev,
+        skills: employeeProfile?.skills || localApplication.skills || [],
+      }));
+    }
+  };
+
+  const handleSaveBasic = async () => {
     if (!selectedProfileId) return;
     try {
       setSavingDetails(true);
@@ -315,14 +365,14 @@ export function EmployeeDetailModal({
         addressLine1: editingDetails.address,
         city: editingDetails.city,
         postalCode: editingDetails.zip,
+        // No working fields in personal route
       };
 
-      // Prepare professional details update
+      // Prepare professional details update (basic-related fields only if needed)
       const professionalDetailsUpdate = {
         designation: editingDetails.designation,
         level: editingDetails.experienceLevel as "Beginner" | "Intermediate" | "Expert",
         expectedSalary: Number(editingDetails.expectedSalary) || 0,
-        skills: editingDetails.skills,
       };
 
       // Update personal details
@@ -352,6 +402,8 @@ export function EmployeeDetailModal({
           level: editingDetails.experienceLevel as "Beginner" | "Intermediate" | "Expert",
           expectedSalary: Number(editingDetails.expectedSalary) || 0,
           skills: editingDetails.skills,
+          workingZipCodes: editingDetails.workingZipCodes,
+          workingCities: editingDetails.workingCities,
         };
         setEmployeeProfile(updatedProfile);
       }
@@ -408,13 +460,67 @@ export function EmployeeDetailModal({
         title: "Details updated",
         description: "Employee details have been updated successfully",
       });
-      setIsEditingDetails(false);
+      setIsEditingBasic(false);
     } catch (err) {
       console.error("Error updating employee details:", err);
       toast({
         title: "Failed to update details",
         description:
           err instanceof Error ? err.message : "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingDetails(false);
+    }
+  };
+
+  const handleSaveWorking = async () => {
+    if (!selectedProfileId) return;
+    try {
+      setSavingDetails(true);
+      const professionalDetailsUpdate: any = {
+        workingZipCodes: editingDetails.workingZipCodes,
+        workingCities: editingDetails.workingCities,
+      };
+      await updateEmployeeProfessionalDetails(selectedProfileId, professionalDetailsUpdate);
+      if (employeeProfile) {
+        setEmployeeProfile({
+          ...employeeProfile,
+          workingZipCodes: editingDetails.workingZipCodes,
+          workingCities: editingDetails.workingCities,
+        });
+      }
+      setIsEditingWorking(false);
+    } catch (err) {
+      toast({
+        title: "Failed to update working areas",
+        description: err instanceof Error ? err.message : "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingDetails(false);
+    }
+  };
+
+  const handleSaveSkills = async () => {
+    if (!selectedProfileId) return;
+    try {
+      setSavingDetails(true);
+      const professionalDetailsUpdate = {
+        skills: editingDetails.skills,
+      };
+      await updateEmployeeProfessionalDetails(selectedProfileId, professionalDetailsUpdate);
+      if (employeeProfile) {
+        setEmployeeProfile({
+          ...employeeProfile,
+          skills: editingDetails.skills,
+        });
+      }
+      setIsEditingSkills(false);
+    } catch (err) {
+      toast({
+        title: "Failed to update skills",
+        description: err instanceof Error ? err.message : "Please try again later",
         variant: "destructive",
       });
     } finally {
@@ -457,7 +563,7 @@ export function EmployeeDetailModal({
     if (!selectedProfileId) return;
     
     try {
-      setIsUpdatingStatus(true);
+      setUpdatingStatus(newStatus);
       
       await updateEmployeeStatus(selectedProfileId, newStatus, statusUpdateNotes);
       
@@ -495,7 +601,7 @@ export function EmployeeDetailModal({
         variant: "destructive",
       });
     } finally {
-      setIsUpdatingStatus(false);
+      setUpdatingStatus(null);
     }
   };
 
@@ -550,11 +656,11 @@ export function EmployeeDetailModal({
                     <User className="h-5 w-5" />
                     <span>Basic Information</span>
                   </div>
-                  {!isEditingDetails && (
+                  {!isEditingBasic && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={handleEditDetails}
+                      onClick={handleEditBasic}
                       className="h-8 w-8 p-0"
                     >
                       <CiEdit className="h-4 w-4" />
@@ -568,7 +674,7 @@ export function EmployeeDetailModal({
                     <label className="text-sm font-medium text-muted-foreground">
                       Name
                     </label>
-                    {isEditingDetails ? (
+                    {isEditingBasic ? (
                       <Input
                         value={editingDetails.name}
                         onChange={(e) => handleInputChange("name", e.target.value)}
@@ -584,12 +690,12 @@ export function EmployeeDetailModal({
                     </label>
                     <p className="text-sm">{currentApplication.email}</p>
                   </div>
-                  {(currentApplication.phone || isEditingDetails) && (
+                  {(currentApplication.phone || isEditingBasic) && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         Phone
                       </label>
-                      {isEditingDetails ? (
+                    {isEditingBasic ? (
                         <Input
                           value={editingDetails.phone}
                           onChange={(e) => handleInputChange("phone", e.target.value)}
@@ -600,12 +706,12 @@ export function EmployeeDetailModal({
                       )}
                     </div>
                   )}
-                  {(currentApplication.designation || isEditingDetails) && (
+                  {(currentApplication.designation || isEditingBasic) && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         Designation
                       </label>
-                      {isEditingDetails ? (
+                      {isEditingBasic ? (
                         <Input
                           value={editingDetails.designation}
                           onChange={(e) => handleInputChange("designation", e.target.value)}
@@ -625,12 +731,12 @@ export function EmployeeDetailModal({
                       <span>{application.location}</span>
                     </p>
                   </div> */}
-                  {((employeeProfile?.addressLine1 || currentApplication.address) || isEditingDetails) && (
+                  {((employeeProfile?.addressLine1 || currentApplication.address) || isEditingBasic) && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         Address
                       </label>
-                      {isEditingDetails ? (
+                      {isEditingBasic ? (
                         <Input
                           value={editingDetails.address}
                           onChange={(e) => handleInputChange("address", e.target.value)}
@@ -646,12 +752,12 @@ export function EmployeeDetailModal({
                       )}
                     </div>
                   )}
-                  {((employeeProfile?.city || currentApplication.city) || isEditingDetails) && (
+                  {((employeeProfile?.city || currentApplication.city) || isEditingBasic) && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         City
                       </label>
-                      {isEditingDetails ? (
+                      {isEditingBasic ? (
                         <Input
                           value={editingDetails.city}
                           onChange={(e) => handleInputChange("city", e.target.value)}
@@ -664,12 +770,12 @@ export function EmployeeDetailModal({
                       )}
                     </div>
                   )}
-                  {((employeeProfile?.postalCode || currentApplication.zip) || isEditingDetails) && (
+                  {((employeeProfile?.postalCode || currentApplication.zip) || isEditingBasic) && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         ZIP Code
                       </label>
-                      {isEditingDetails ? (
+                      {isEditingBasic ? (
                         <Input
                           value={editingDetails.zip}
                           onChange={(e) => handleInputChange("zip", e.target.value)}
@@ -686,7 +792,7 @@ export function EmployeeDetailModal({
                     <label className="text-sm font-medium text-muted-foreground pr-2">
                       Experience Level
                     </label>
-                    {isEditingDetails ? (
+                    {isEditingBasic ? (
                       <Select
                         value={editingDetails.experienceLevel}
                         onValueChange={(value) => handleInputChange("experienceLevel", value)}
@@ -718,7 +824,7 @@ export function EmployeeDetailModal({
                     <label className="text-sm font-medium text-muted-foreground">
                       Expected Salary
                     </label>
-                    {isEditingDetails ? (
+                    {isEditingBasic ? (
                       <Input
                         value={editingDetails.expectedSalary}
                         onChange={(e) => handleInputChange("expectedSalary", e.target.value)}
@@ -769,7 +875,7 @@ export function EmployeeDetailModal({
                     <span className="text-sm text-muted-foreground">
                       ({(application.previousJobCount && application.previousJobCount > 0 ? application.previousJobCount : workExperience.length) || 0} jobs)
                     </span>
-                    {isEditingDetails && (
+                    {isEditingBasic && (
                       <Button
                         size="sm"
                         onClick={handleSaveRating}
@@ -797,17 +903,17 @@ export function EmployeeDetailModal({
                   </div>
                 )}
 
-                {isEditingDetails && (
+                {isEditingBasic && (
                   <div className="flex justify-end space-x-2 pt-4 border-t">
                     <Button
                       variant="outline"
-                      onClick={handleCancelEdit}
+                      onClick={handleCancelBasic}
                       disabled={savingDetails}
                     >
                       Cancel
                     </Button>
                     <Button
-                      onClick={handleSaveDetails}
+                      onClick={handleSaveBasic}
                       disabled={savingDetails}
                     >
                       {savingDetails ? (
@@ -824,16 +930,257 @@ export function EmployeeDetailModal({
               </CardContent>
             </Card>
 
-            {/* Skills */}
+       
+
+            {/* Working Areas */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Briefcase className="h-5 w-5" />
-                  <span>Skills</span>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-5 w-5" />
+                    <span>Working Areas</span>
+                  </div>
+                  {!isEditingWorking && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleEditWorking}
+                      className="h-8 w-8 p-0"
+                    >
+                      <CiEdit className="h-4 w-4" />
+                    </Button>
+                  )}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  ZIP codes and cities where this pro is available to work
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Working ZIP codes
+                    </label>
+                    {isEditingWorking ? (
+                      <div className="mt-1 space-y-2">
+                        <Popover open={zipOpen} onOpenChange={setZipOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={zipOpen}
+                              className="w-full justify-between"
+                            >
+                              {editingDetails.workingZipCodes.length
+                                ? editingDetails.workingZipCodes.join(", ")
+                                : "Select ZIPs"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                            <Command>
+                              <CommandInput placeholder="Type ZIP or city..." />
+                              <CommandEmpty>No results found.</CommandEmpty>
+                              <CommandList>
+                                <CommandGroup>
+                                  {marylandZipCodes.map((z) => (
+                                    <CommandItem
+                                      key={z.zip}
+                                      value={`${z.zip} ${z.city}`}
+                                      onSelect={() => {
+                                        setEditingDetails((prev) => {
+                                          const isSelected = prev.workingZipCodes.includes(z.zip);
+                                          const nextZips = isSelected
+                                            ? prev.workingZipCodes.filter((p) => p !== z.zip)
+                                            : [...prev.workingZipCodes, z.zip];
+                                          const citiesFromZips = marylandZipCodes
+                                            .filter((mz) => nextZips.includes(mz.zip))
+                                            .map((mz) => mz.city)
+                                            .filter(Boolean);
+                                          const nextCities = Array.from(
+                                            new Set([...(prev.workingCities || []), ...citiesFromZips])
+                                          );
+                                          return { ...prev, workingZipCodes: nextZips, workingCities: nextCities };
+                                        });
+                                      }}
+                                    >
+                                      <span className="mr-2 inline-flex items-center justify-center h-4 w-4">
+                                        {editingDetails.workingZipCodes.includes(z.zip) && (
+                                          <Check className="h-4 w-4" />
+                                        )}
+                                      </span>
+                                      {z.zip} — {z.city}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <div className="flex flex-wrap gap-2">
+                          {editingDetails.workingZipCodes.map((zip) => (
+                            <Badge key={zip} variant="outline" className="flex items-center space-x-1">
+                              <span>{zip}</span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setEditingDetails((prev) => {
+                                    const nextZips = prev.workingZipCodes.filter((p) => p !== zip);
+                                    const nextCities = Array.from(
+                                      new Set(
+                                        marylandZipCodes
+                                          .filter((mz) => nextZips.includes(mz.zip))
+                                          .map((mz) => mz.city)
+                                          .filter(Boolean)
+                                      )
+                                    );
+                                    return { ...prev, workingZipCodes: nextZips, workingCities: nextCities };
+                                  })
+                                }
+                                className="ml-1 hover:text-red-500"
+                                aria-label={`Remove ${zip}`}
+                              >
+                                ×
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm">
+                        {employeeProfile?.workingZipCodes?.length
+                          ? employeeProfile.workingZipCodes.join(", ")
+                          : "—"}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Working Cities
+                    </label>
+                    {isEditingWorking ? (
+                      <div className="mt-1 space-y-2">
+                        <div className="flex space-x-2">
+                          <Input
+                            value={newWorkingCity}
+                            onChange={(e) => setNewWorkingCity(e.target.value)}
+                            placeholder="Add a city..."
+                            className="flex-1"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                const candidate = newWorkingCity.trim();
+                                if (candidate && !editingDetails.workingCities.includes(candidate)) {
+                                  setEditingDetails((prev) => ({
+                                    ...prev,
+                                    workingCities: [...prev.workingCities, candidate],
+                                  }));
+                                  setNewWorkingCity("");
+                                }
+                              }
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={!newWorkingCity.trim()}
+                            onClick={() => {
+                              const candidate = newWorkingCity.trim();
+                              if (candidate && !editingDetails.workingCities.includes(candidate)) {
+                                setEditingDetails((prev) => ({
+                                  ...prev,
+                                  workingCities: [...prev.workingCities, candidate],
+                                }));
+                                setNewWorkingCity("");
+                              }
+                            }}
+                          >
+                            Add
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {editingDetails.workingCities.map((city) => (
+                            <Badge key={city} variant="secondary" className="flex items-center space-x-1">
+                              <span>{city}</span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setEditingDetails((prev) => {
+                                    const remainingZips = prev.workingZipCodes.filter((zip) => {
+                                      const found = marylandZipCodes.find((mz) => mz.zip === zip);
+                                      return found ? found.city !== city : true;
+                                    });
+                                    const nextCities = Array.from(
+                                      new Set(
+                                        marylandZipCodes
+                                          .filter((mz) => remainingZips.includes(mz.zip))
+                                          .map((mz) => mz.city)
+                                          .filter(Boolean)
+                                      )
+                                    );
+                                    return { ...prev, workingZipCodes: remainingZips, workingCities: nextCities };
+                                  })
+                                }
+                                className="ml-1 hover:text-red-500"
+                                aria-label={`Remove ${city}`}
+                              >
+                                ×
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm">
+                        {employeeProfile?.workingCities?.length
+                          ? employeeProfile.workingCities.join(", ")
+                          : "—"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {isEditingWorking && (
+                  <div className="flex justify-end space-x-2 pt-2">
+                    <Button variant="outline" onClick={handleCancelWorking} disabled={savingDetails}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveWorking} disabled={savingDetails}>
+                      {savingDetails ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                          Saving...
+                        </>
+                      ) : (
+                        "Save Changes"
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+                 {/* Skills */}
+                 <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Briefcase className="h-5 w-5" />
+                    <span>Skills</span>
+                  </div>
+                  {!isEditingSkills && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleEditSkills}
+                      className="h-8 w-8 p-0"
+                    >
+                      <CiEdit className="h-4 w-4" />
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {isEditingDetails ? (
+                {isEditingSkills ? (
                   <div className="space-y-3">
                     {/* Add new skill */}
                     <div className="flex space-x-2">
@@ -892,6 +1239,23 @@ export function EmployeeDetailModal({
                   </div>
                 )}
               </CardContent>
+              {isEditingSkills && (
+                <div className="flex justify-end space-x-2 pt-2">
+                  <Button variant="outline" onClick={handleCancelSkills} disabled={savingDetails}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveSkills} disabled={savingDetails}>
+                    {savingDetails ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save Changes"
+                    )}
+                  </Button>
+                </div>
+              )}
             </Card>
 
             {/* Certifications */}
@@ -963,9 +1327,9 @@ export function EmployeeDetailModal({
                       size="sm"
                       variant={currentApplication.status === "approved" ? "default" : "outline"}
                       onClick={() => handleStatusUpdate("approved")}
-                      disabled={isUpdatingStatus || currentApplication.status === "approved"}
+                      disabled={updatingStatus !== null || currentApplication.status === "approved"}
                     >
-                      {isUpdatingStatus ? (
+                      {updatingStatus === "approved" ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-1" />
                       ) : null}
                       Approve
@@ -974,9 +1338,9 @@ export function EmployeeDetailModal({
                       size="sm"
                       variant={currentApplication.status === "rejected" ? "destructive" : "outline"}
                       onClick={() => handleStatusUpdate("rejected")}
-                      disabled={isUpdatingStatus || currentApplication.status === "rejected"}
+                      disabled={updatingStatus !== null || currentApplication.status === "rejected"}
                     >
-                      {isUpdatingStatus ? (
+                      {updatingStatus === "rejected" ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-1" />
                       ) : null}
                       Reject
@@ -985,9 +1349,9 @@ export function EmployeeDetailModal({
                       size="sm"
                       variant={currentApplication.status === "pending" ? "default" : "outline"}
                       onClick={() => handleStatusUpdate("pending")}
-                      disabled={isUpdatingStatus || currentApplication.status === "pending"}
+                      disabled={updatingStatus !== null || currentApplication.status === "pending"}
                     >
-                      {isUpdatingStatus ? (
+                      {updatingStatus === "pending" ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-1" />
                       ) : null}
                       Set Pending

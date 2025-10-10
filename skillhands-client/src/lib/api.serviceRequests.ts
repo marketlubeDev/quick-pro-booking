@@ -251,14 +251,43 @@ export type UpdateServiceRequestInput = {
   scheduledDate?: string;
   assignedEmployee?: string | null;
   rejectionReason?: string;
+  // Customer information fields
+  name?: string;
+  phone?: string;
+  email?: string;
+  source?: string;
+  // Service information fields
+  service?: string;
+  serviceCategory?: string;
+  urgency?: string;
+  description?: string;
+  // Location fields
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  // Scheduling fields
+  preferredDate?: string;
+  preferredTime?: string;
+  // Additional fields
+  customerNotes?: string;
+  adminNotes?: string;
+  estimatedCost?: number;
+  estimatedDuration?: number;
+  tags?: string[];
+  isRecurring?: boolean;
+  recurringPattern?: string;
 };
 
 export async function updateServiceRequest(
   input: UpdateServiceRequestInput
 ): Promise<ServiceRequest> {
   const { id, ...body } = input;
-  return apiFetch<ServiceRequest>(`/api/service-requests/${id}`, {
+  const response = await apiFetch<{ success: boolean; data: ServiceRequest }>(`/api/service-requests/${id}`, {
     method: "PUT",
     body,
   });
+  
+  // Return the data property from the response
+  return response.data;
 }

@@ -13,6 +13,7 @@ const ServiceRequestSchema = new mongoose.Schema(
     city: { type: String, required: true, trim: true },
     state: { type: String, required: true, trim: true },
     zip: { type: String, required: true, trim: true },
+  
     attachment: {
       filename: { type: String },
       mimetype: { type: String },

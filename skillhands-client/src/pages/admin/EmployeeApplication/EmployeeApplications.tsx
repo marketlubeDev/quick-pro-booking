@@ -85,6 +85,10 @@ export function EmployeeApplications() {
 
   // Filter applications based on search and filters
   const applications = useMemo(() => data?.pages.flatMap((p) => p.data) ?? [], [data]);
+  const totalApplications = useMemo(
+    () => (data?.pages && data.pages.length > 0 ? (data.pages[0] as any).total ?? applications.length : applications.length),
+    [data, applications.length]
+  );
   const visibleApplications = applications.filter(
     (application) => application.user?.role?.toLowerCase() !== "admin"
   );
@@ -285,7 +289,7 @@ export function EmployeeApplications() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-card border border-border rounded-lg p-4 text-center">
           <div className="text-2xl font-bold text-foreground">
-            {visibleApplications.length}
+            {totalApplications}
           </div>
           <div className="text-sm text-muted-foreground">
             Total Applications

@@ -456,6 +456,11 @@ export function ServiceRequests() {
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
         request={selectedRequest}
+        onUpdate={(updatedRequest) => {
+          setSelectedRequest(updatedRequest);
+          // Update the request in the list as well
+          // This will trigger a re-render with the updated data
+        }}
       />
 
       <ScheduleServiceDialog

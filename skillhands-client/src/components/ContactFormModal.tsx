@@ -1034,11 +1034,13 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         margin: "auto",
         padding: 0,
       }}
-      bodyStyle={{
-        maxHeight: isMobile ? "85vh" : "80vh",
-        overflowY: "auto",
-        padding: isMobile ? "20px" : "32px",
-        width: "100%",
+      styles={{
+        body: {
+          maxHeight: isMobile ? "85vh" : "80vh",
+          overflowY: "auto",
+          padding: isMobile ? "20px" : "32px",
+          width: "100%",
+        },
       }}
       wrapClassName={`custom-modal ${isMobile ? "mobile-modal" : ""}`}
       className="modal-content"

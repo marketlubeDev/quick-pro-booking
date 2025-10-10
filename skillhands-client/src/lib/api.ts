@@ -408,6 +408,9 @@ export interface EmployeeProfileData {
     isActive: boolean;
     createdAt: string;
   };
+  // Service areas
+  workingZipCodes?: string[];
+  workingCities?: string[];
 }
 
 export interface ProfileCompletionData {

@@ -53,7 +53,9 @@ const EmployeeProfile = () => {
     if (profile) {
       // Normalize legacy designation values to match current allowed options
       const normalizeDesignation = (value: string | undefined | null) => {
-        const v = (value || "").toLowerCase().trim();
+        // Ensure value is a string before calling toLowerCase
+        const stringValue = typeof value === 'string' ? value : String(value || "");
+        const v = stringValue.toLowerCase().trim();
         switch (v) {
           case "plumbing":
             return "plumber";
@@ -234,6 +236,8 @@ const EmployeeProfile = () => {
                 )}
               </div>
             </div>
+
+            
           </CardContent>
         </Card>
 
@@ -256,6 +260,7 @@ const EmployeeProfile = () => {
               Skills & Certifications
             </TabsTrigger>
           </TabsList>
+          
 
           <form onSubmit={handleSubmit}>
             {/* Personal Information Tab */}
@@ -266,6 +271,8 @@ const EmployeeProfile = () => {
                 loading={loading}
                 // onUploadImage={uploadProfileImage}
               />
+
+      
             </TabsContent>
             {/* Skills & Certifications Tab */}
             <TabsContent value="skills">
@@ -277,16 +284,7 @@ const EmployeeProfile = () => {
               />
             </TabsContent>
 
-            {/* Save Button */}
-            <div className="flex justify-end mt-6">
-              <Button
-                type="submit"
-                disabled={loading}
-                className="min-w-[120px]"
-              >
-                {loading ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
+        
           </form>
         </Tabs>
       </div>

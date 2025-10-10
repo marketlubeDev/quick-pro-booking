@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Card,
   CardContent,
@@ -29,6 +42,8 @@ import {
   Shield,
   DollarSign,
   Star,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
 import { employeeApi, type EmployeeProfileData } from "@/lib/api";
 import { marylandZipCodes } from "@/data/marylandZipCodes";
@@ -49,6 +64,19 @@ const PersonalInfoTab = ({
   const [uploading, setUploading] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>("");
+  const [selectedDesignations, setSelectedDesignations] = useState<string[]>(
+    form.designation ? form.designation.split(", ") : []
+  );
+  const [designationOpen, setDesignationOpen] = useState(false);
+
+  // Sync selectedDesignations when form.designation changes
+  useEffect(() => {
+    if (form.designation) {
+      setSelectedDesignations(form.designation.split(", "));
+    } else {
+      setSelectedDesignations([]);
+    }
+  }, [form.designation]);
 
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -204,29 +232,68 @@ const PersonalInfoTab = ({
               <Label htmlFor="designation" className="text-sm font-medium">
                 Designation
               </Label>
-              <select
-                id="designation"
-                value={form.designation || ""}
-                onChange={(e) => onFormChange("designation", e.target.value)}
-                className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="">Select your designation</option>
-                <option value="plumber">Plumber</option>
-                <option value="electrician">Electrician</option>
-                <option value="house cleaner">House Cleaner</option>
-                <option value="ac technician">AC Technician</option>
-                <option value="appliance repair">Appliance Repair</option>
-                <option value="painter">Painter</option>
-                <option value="handyman">Handyman</option>
-                <option value="pest control specialist">
-                  Pest Control Specialist
-                </option>
-                <option value="landscaper">Landscaper</option>
-                <option value="moving specialist">Moving Specialist</option>
-                <option value="roofer">Roofer</option>
-                {/* <option value="carpenter">Carpenter</option> */}
-                <option value="other">Other</option>
-              </select>
+              <Popover open={designationOpen} onOpenChange={setDesignationOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={designationOpen}
+                    className="w-full justify-between h-11"
+                    id="designation"
+                    type="button"
+                  >
+                    {selectedDesignations.length
+                      ? selectedDesignations.join(", ")
+                      : "Select designations"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="p-0 w-[--radix-popover-trigger-width]"
+                  align="start"
+                >
+                  <Command>
+                    <CommandInput placeholder="Search designation..." />
+                    <CommandEmpty>No results found.</CommandEmpty>
+                    <CommandList>
+                      <CommandGroup>
+                        {[
+                          "plumber",
+                          "electrician",
+                          "house cleaner",
+                          "ac technician",
+                          "appliance repair",
+                          "painter",
+                          "handyman",
+                          "pest control specialist",
+                          "landscaper",
+                          "moving specialist",
+                          "roofer",
+                        ].map((d) => (
+                          <CommandItem
+                            key={d}
+                            value={d}
+                            onSelect={() => {
+                              const newDesignations = selectedDesignations.includes(d)
+                                ? selectedDesignations.filter((p) => p !== d)
+                                : [...selectedDesignations, d];
+                              setSelectedDesignations(newDesignations);
+                              onFormChange("designation", newDesignations.join(", "));
+                            }}
+                          >
+                            <span className="mr-2 inline-flex items-center justify-center h-4 w-4">
+                              {selectedDesignations.includes(d) && (
+                                <Check className="h-4 w-4" />
+                              )}
+                            </span>
+                            {d.replace(/\b\w/g, (c) => c.toUpperCase())}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <p className="text-xs text-muted-foreground">
                 Your current job title or professional designation
               </p>
@@ -282,6 +349,17 @@ const PersonalInfoTab = ({
               </p>
             </div>
           </div>
+
+                   {/* Save Button */}
+                   <div className="flex justify-end mt-6">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="min-w-[120px]"
+              >
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
         </CardContent>
       </Card>
 
@@ -388,6 +466,8 @@ const PersonalInfoTab = ({
               </div>
             )}
           </div>
+
+          
         </CardContent>
       </Card>
     </div>

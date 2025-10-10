@@ -8,11 +8,27 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState, useEffect } from "react";
+import { Edit2, Save, X, Loader2 } from "lucide-react";
+import { updateServiceRequest } from "@/lib/api.serviceRequests";
+import { employeeApi } from "@/lib/api";
+import { toast } from "sonner";
 
 type ServiceRequestDetailsDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   request: ServiceRequest | null;
+  onUpdate?: (updatedRequest: ServiceRequest) => void;
 };
 
 const getStatusColor = (status: string) => {
@@ -106,8 +122,313 @@ export function ServiceRequestDetailsDialog({
   open,
   onOpenChange,
   request,
+  onUpdate,
 }: ServiceRequestDetailsDialogProps) {
+  const [isEditingCustomer, setIsEditingCustomer] = useState(false);
+  const [isEditingScheduling, setIsEditingScheduling] = useState(false);
+  const [isEditingAssignedPro, setIsEditingAssignedPro] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [customerFormData, setCustomerFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    source: "website" as "website" | "phone" | "walk-in" | "referral" | "social-media" | "other",
+  });
+  const [schedulingFormData, setSchedulingFormData] = useState({
+    scheduledDate: "",
+  });
+  const [assignedProFormData, setAssignedProFormData] = useState({
+    assignedEmployee: "",
+    selectedEmployee: null as any,
+  });
+
+  // Fetch employees when dialog opens
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const response = await employeeApi.getEmployees();
+        if (response.success && response.data) {
+          setEmployees(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch employees:", error);
+      }
+    };
+
+    if (open) {
+      fetchEmployees();
+    }
+  }, [open]);
+
+  // Initialize form data when request changes
+  useEffect(() => {
+    if (request) {
+      setCustomerFormData({
+        name: request.name || "",
+        phone: request.phone || "",
+        email: request.email || "",
+        source: request.source || "website",
+      });
+      setSchedulingFormData({
+        scheduledDate: request.scheduledDate || "",
+      });
+      
+      // Initialize assigned pro form data
+      const currentEmployee = request.assignedEmployee;
+      const hasEmployee = currentEmployee && (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee);
+      setAssignedProFormData({
+        assignedEmployee: hasEmployee ? (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee) : "none",
+        selectedEmployee: typeof currentEmployee === "object" ? currentEmployee : null,
+      });
+    }
+  }, [request]);
+
   if (!request) return null;
+
+  const handleEditCustomer = () => {
+    setIsEditingCustomer(true);
+    setCustomerFormData({
+      name: request.name || "",
+      phone: request.phone || "",
+      email: request.email || "",
+      source: request.source || "website",
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingCustomer(false);
+    setCustomerFormData({
+      name: request.name || "",
+      phone: request.phone || "",
+      email: request.email || "",
+      source: request.source || "website",
+    });
+  };
+
+  const handleEditScheduling = () => {
+    setIsEditingScheduling(true);
+    setSchedulingFormData({
+      scheduledDate: request.scheduledDate || "",
+    });
+  };
+
+  const handleCancelSchedulingEdit = () => {
+    setIsEditingScheduling(false);
+    setSchedulingFormData({
+      scheduledDate: request.scheduledDate || "",
+    });
+  };
+
+  const handleEditAssignedPro = () => {
+    setIsEditingAssignedPro(true);
+    const currentEmployee = request.assignedEmployee;
+    const hasEmployee = currentEmployee && (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee);
+    setAssignedProFormData({
+      assignedEmployee: hasEmployee ? (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee) : "none",
+      selectedEmployee: typeof currentEmployee === "object" ? currentEmployee : null,
+    });
+  };
+
+  const handleCancelAssignedProEdit = () => {
+    setIsEditingAssignedPro(false);
+    const currentEmployee = request.assignedEmployee;
+    const hasEmployee = currentEmployee && (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee);
+    setAssignedProFormData({
+      assignedEmployee: hasEmployee ? (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee) : "none",
+      selectedEmployee: typeof currentEmployee === "object" ? currentEmployee : null,
+    });
+  };
+
+  const handleSaveCustomer = async () => {
+    if (!request) return;
+    
+    setIsSaving(true);
+    
+    try {
+      // Prepare the update data
+      const updateData = {
+        id: request._id,
+        name: customerFormData.name,
+        phone: customerFormData.phone,
+        source: customerFormData.source,
+        // Note: email is not included as it's read-only in the form
+      };
+      
+      console.log("Sending update data:", updateData);
+      
+      // Make API call to update the service request
+      const updatedRequest = await updateServiceRequest(updateData);
+      
+      console.log("API response:", updatedRequest);
+      
+      // Call the onUpdate callback to update the parent component
+      if (onUpdate) {
+        onUpdate(updatedRequest);
+      }
+      
+      // Update local form data to match the saved data
+      setCustomerFormData({
+        name: updatedRequest.name || "",
+        phone: updatedRequest.phone || "",
+        email: updatedRequest.email || "",
+        source: updatedRequest.source || "website",
+      });
+      
+      // Close edit mode
+      setIsEditingCustomer(false);
+      
+      // Show success message
+      toast.success("Customer information updated successfully");
+      
+      console.log("Customer information updated successfully:", {
+        original: customerFormData,
+        saved: {
+          name: updatedRequest.name,
+          phone: updatedRequest.phone,
+          email: updatedRequest.email,
+          source: updatedRequest.source,
+        }
+      });
+    } catch (error) {
+      console.error("Failed to update customer information:", error);
+      toast.error("Failed to update customer information. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveScheduling = async () => {
+    if (!request) return;
+    
+    setIsSaving(true);
+    
+    try {
+      // Prepare the update data
+      const updateData = {
+        id: request._id,
+        scheduledDate: schedulingFormData.scheduledDate,
+      };
+      
+      console.log("Sending scheduling update data:", updateData);
+      
+      // Make API call to update the service request
+      const updatedRequest = await updateServiceRequest(updateData);
+      
+      console.log("Scheduling API response:", updatedRequest);
+      
+      // Call the onUpdate callback to update the parent component
+      if (onUpdate) {
+        onUpdate(updatedRequest);
+      }
+      
+      // Update local form data to match the saved data
+      setSchedulingFormData({
+        scheduledDate: updatedRequest.scheduledDate || "",
+      });
+      
+      // Close edit mode
+      setIsEditingScheduling(false);
+      
+      // Show success message
+      toast.success("Scheduling information updated successfully");
+      
+      console.log("Scheduling information updated successfully:", {
+        original: schedulingFormData,
+        saved: {
+          scheduledDate: updatedRequest.scheduledDate,
+        }
+      });
+    } catch (error) {
+      console.error("Failed to update scheduling information:", error);
+      toast.error("Failed to update scheduling information. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveAssignedPro = async () => {
+    if (!request) return;
+    
+    setIsSaving(true);
+    
+    try {
+      // Prepare the update data
+      const updateData = {
+        id: request._id,
+        assignedEmployee: assignedProFormData.assignedEmployee === "none" ? null : assignedProFormData.assignedEmployee || null,
+      };
+      
+      console.log("Sending assigned pro update data:", updateData);
+      
+      // Make API call to update the service request
+      const updatedRequest = await updateServiceRequest(updateData);
+      
+      console.log("Assigned pro API response:", updatedRequest);
+      
+      // Call the onUpdate callback to update the parent component
+      if (onUpdate) {
+        onUpdate(updatedRequest);
+      }
+      
+      // Update local form data to match the saved data
+      const updatedEmployee = updatedRequest.assignedEmployee;
+      const hasUpdatedEmployee = updatedEmployee && (typeof updatedEmployee === "object" ? updatedEmployee._id : updatedEmployee);
+      setAssignedProFormData({
+        assignedEmployee: hasUpdatedEmployee ? (typeof updatedEmployee === "object" ? updatedEmployee._id : updatedEmployee) : "none",
+        selectedEmployee: typeof updatedEmployee === "object" ? updatedEmployee : null,
+      });
+      
+      // Close edit mode
+      setIsEditingAssignedPro(false);
+      
+      // Show success message
+      toast.success("Assigned pro updated successfully");
+      
+      console.log("Assigned pro updated successfully:", {
+        original: assignedProFormData,
+        saved: {
+          assignedEmployee: updatedRequest.assignedEmployee,
+        }
+      });
+    } catch (error) {
+      console.error("Failed to update assigned pro:", error);
+      toast.error("Failed to update assigned pro. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setCustomerFormData(prev => ({
+      ...prev,
+      [field]: field === "source" ? value as "website" | "phone" | "walk-in" | "referral" | "social-media" | "other" : value
+    }));
+  };
+
+  const handleSchedulingInputChange = (field: string, value: string) => {
+    setSchedulingFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleEmployeeSelection = (employeeId: string) => {
+    if (employeeId === "none") {
+      setAssignedProFormData(prev => ({
+        ...prev,
+        assignedEmployee: "",
+        selectedEmployee: null,
+      }));
+    } else {
+      const selectedEmployee = employees.find(emp => emp._id === employeeId);
+      setAssignedProFormData(prev => ({
+        ...prev,
+        assignedEmployee: employeeId,
+        selectedEmployee: selectedEmployee || null,
+      }));
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,27 +441,110 @@ export function ServiceRequestDetailsDialog({
         <div className="space-y-6">
           {/* Customer Information */}
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold">Customer Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Name</p>
-                <p className="font-medium">{request.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="text-foreground">{request.phone}</p>
-              </div>
-              {request.email && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="text-foreground">{request.email}</p>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Customer Information</h3>
+              {!isEditingCustomer ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleEditCustomer}
+                  className="flex items-center gap-2"
+                >
+                  <Edit2 className="h-4 w-4" />
+                  Edit
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelEdit}
+                    disabled={isSaving}
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveCustomer}
+                    disabled={isSaving}
+                    className="flex items-center gap-2"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    {isSaving ? "Saving..." : "Save Changes"}
+                  </Button>
                 </div>
               )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Source</p>
-                <Badge variant="outline" className="capitalize">
-                  {request.source || "website"}
-                </Badge>
+                <Label className="text-sm text-muted-foreground">Name</Label>
+                {isEditingCustomer ? (
+                  <Input
+                    value={customerFormData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    className="mt-1"
+                  />
+                ) : (
+                  <p className="font-medium mt-1">{request.name}</p>
+                )}
+              </div>
+              <div>
+                <Label className="text-sm text-muted-foreground">Phone</Label>
+                {isEditingCustomer ? (
+                  <Input
+                    value={customerFormData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    className="mt-1"
+                  />
+                ) : (
+                  <p className="text-foreground mt-1">{request.phone}</p>
+                )}
+              </div>
+              <div>
+                <Label className="text-sm text-muted-foreground">Email</Label>
+                {isEditingCustomer ? (
+                  <Input
+                    type="email"
+                    value={customerFormData.email}
+                    readOnly
+                    disabled
+                    className="mt-1 bg-muted cursor-not-allowed"
+                    title="Email cannot be changed"
+                  />
+                ) : (
+                  <p className="text-foreground mt-1">{request.email || "Not provided"}</p>
+                )}
+              </div>
+              <div>
+                <Label className="text-sm text-muted-foreground">Source</Label>
+                {isEditingCustomer ? (
+                  <Select
+                    value={customerFormData.source}
+                    onValueChange={(value) => handleInputChange("source", value)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="website">Website</SelectItem>
+                      <SelectItem value="phone">Phone</SelectItem>
+                      <SelectItem value="walk-in">Walk-in</SelectItem>
+                      <SelectItem value="referral">Referral</SelectItem>
+                      <SelectItem value="social-media">Social Media</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Badge variant="outline" className="capitalize mt-1">
+                    {request.source || "website"}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -227,29 +631,77 @@ export function ServiceRequestDetailsDialog({
 
           {/* Scheduling Information */}
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold">Scheduling</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Scheduling Information</h3>
+              {!isEditingScheduling ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleEditScheduling}
+                  className="flex items-center gap-2"
+                >
+                  <Edit2 className="h-4 w-4" />
+                  Edit
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelSchedulingEdit}
+                    disabled={isSaving}
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveScheduling}
+                    disabled={isSaving}
+                    className="flex items-center gap-2"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    {isSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Preferred Date</p>
-                <p className="text-foreground">
+                <Label className="text-sm text-muted-foreground">Preferred Date</Label>
+                <p className="text-foreground mt-1">
                   {request.preferredDate
                     ? formatDateDMYNumeric(request.preferredDate)
                     : "Not specified"}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Preferred Time</p>
-                <p className="text-foreground">
+                <Label className="text-sm text-muted-foreground">Preferred Time</Label>
+                <p className="text-foreground mt-1">
                   {request.preferredTime || "Not specified"}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Scheduled Date</p>
-                <p className="text-foreground">
-                  {request.scheduledDate
-                    ? formatDate(request.scheduledDate)
-                    : "Not scheduled"}
-                </p>
+                <Label className="text-sm text-muted-foreground">Scheduled Date</Label>
+                {isEditingScheduling ? (
+                  <Input
+                    type="datetime-local"
+                    value={schedulingFormData.scheduledDate}
+                    onChange={(e) => handleSchedulingInputChange("scheduledDate", e.target.value)}
+                    className="mt-1"
+                  />
+                ) : (
+                  <p className="text-foreground mt-1">
+                    {request.scheduledDate
+                      ? formatDate(request.scheduledDate)
+                      : "Not scheduled"}
+                  </p>
+                )}
               </div>
               {/* {request.estimatedDuration && (
                 <div>
@@ -318,57 +770,146 @@ export function ServiceRequestDetailsDialog({
           )}
 
           {/* Employee Assignment */}
-          {request.assignedEmployee &&
-            typeof request.assignedEmployee === "object" && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold">Assigned Pro</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Separator />
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Assigned Pro</h3>
+              {!isEditingAssignedPro ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleEditAssignedPro}
+                  className="flex items-center gap-2"
+                >
+                  <Edit2 className="h-4 w-4" />
+                  Edit
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelAssignedProEdit}
+                    disabled={isSaving}
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveAssignedPro}
+                    disabled={isSaving}
+                    className="flex items-center gap-2"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    {isSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              )}
+            </div>
+            
+            {isEditingAssignedPro ? (
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm text-muted-foreground">Select Pro</Label>
+                  <Select
+                    value={assignedProFormData.assignedEmployee}
+                    onValueChange={handleEmployeeSelection}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select a pro..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No pro assigned</SelectItem>
+                      {employees.map((employee) => (
+                        <SelectItem key={employee._id} value={employee._id}>
+                          {employee.name || employee.fullName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {assignedProFormData.selectedEmployee && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
                     <div>
-                      <p className="text-sm text-muted-foreground">Name</p>
-                      <p className="font-medium">
+                      <Label className="text-sm text-muted-foreground">Name</Label>
+                      <p className="font-medium mt-1">
+                        {assignedProFormData.selectedEmployee.name || assignedProFormData.selectedEmployee.fullName}
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Email</Label>
+                      <p className="text-foreground mt-1">
+                        {assignedProFormData.selectedEmployee.email}
+                      </p>
+                    </div>
+                    {assignedProFormData.selectedEmployee.phone && (
+                      <div>
+                        <Label className="text-sm text-muted-foreground">Phone</Label>
+                        <p className="text-foreground mt-1">
+                          {assignedProFormData.selectedEmployee.phone}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {request.assignedEmployee && typeof request.assignedEmployee === "object" ? (
+                  <>
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Name</Label>
+                      <p className="font-medium mt-1">
                         {request.assignedEmployee.fullName}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="text-foreground">
+                      <Label className="text-sm text-muted-foreground">Email</Label>
+                      <p className="text-foreground mt-1">
                         {request.assignedEmployee.email}
                       </p>
                     </div>
                     {request.assignedEmployee.phone && (
                       <div>
-                        <p className="text-sm text-muted-foreground">Phone</p>
-                        <p className="text-foreground">
+                        <Label className="text-sm text-muted-foreground">Phone</Label>
+                        <p className="text-foreground mt-1">
                           {request.assignedEmployee.phone}
                         </p>
                       </div>
                     )}
+                  </>
+                ) : (
+                  <div className="md:col-span-2">
+                    <p className="text-muted-foreground">No pro assigned</p>
                   </div>
-                  {request.employeeRemarks && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Pro Remarks
-                      </p>
-                      <p className="text-foreground">
-                        {request.employeeRemarks}
-                      </p>
-                    </div>
-                  )}
-                  {request.completionNotes && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Completion Notes
-                      </p>
-                      <p className="text-foreground">
-                        {request.completionNotes}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </>
+                )}
+              </div>
             )}
+            
+            {request.employeeRemarks && (
+              <div>
+                <Label className="text-sm text-muted-foreground">Pro Remarks</Label>
+                <p className="text-foreground mt-1">
+                  {request.employeeRemarks}
+                </p>
+              </div>
+            )}
+            {request.completionNotes && (
+              <div>
+                <Label className="text-sm text-muted-foreground">Completion Notes</Label>
+                <p className="text-foreground mt-1">
+                  {request.completionNotes}
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Customer Feedback */}
           {(request.customerRating || request.customerFeedback) && (
