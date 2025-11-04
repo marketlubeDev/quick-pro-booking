@@ -13,6 +13,8 @@ import Contact from "@/pages/Contact";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import NotFound from "@/pages/NotFound";
+import PaymentSuccess from "@/pages/PaymentSuccess";
+import PaymentCancel from "@/pages/PaymentCancel";
 import Login from "@/pages/Login";
 import SignUp from "@/pages/SignUp";
 import ForgotPassword from "@/pages/ForgotPassword";
@@ -44,6 +46,8 @@ export const router = createBrowserRouter([
       { path: "/contact", element: <Contact /> },
       { path: "/privacy", element: <Privacy /> },
       { path: "/terms", element: <Terms /> },
+      { path: "/payment-success", element: <PaymentSuccess /> },
+      { path: "/payment-cancel", element: <PaymentCancel /> },
     ],
   },
   { path: "/login", element: <Login /> },

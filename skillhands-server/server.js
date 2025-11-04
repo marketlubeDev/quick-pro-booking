@@ -1,11 +1,13 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import fs from "fs";
 import { applySecurity } from "./middleware/security.js";
 import { applyCors } from "./middleware/cors.js";
 import { multerErrorHandler } from "./middleware/uploads.js";
 import { errorHandler, notFound } from "./middleware/errors.js";
 import apiRoutes from "./routes/index.js";
+import { handleStripeWebhook } from "./controllers/paymentController.js";
 import { connectDatabase } from "./config/db.js";
 import { seedAdminUser } from "./utils/seedAdmin.js";
 import {
@@ -43,6 +45,13 @@ applyCors(app);
 // app.use("/api/", limiter);
 
 // Body parsing middleware
+// IMPORTANT: Stripe webhook must be defined BEFORE JSON parsing, to keep the raw body
+app.post(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),
+  handleStripeWebhook
+);
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 

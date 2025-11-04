@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { Upload } from "lucide-react";
+import { Upload, CreditCard, DollarSign } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Command,
@@ -21,8 +21,20 @@ import {
   CommandEmpty,
 } from "./ui/command";
 import { useRef } from "react";
-import { serviceRequestApi, employeeApi, Employee } from "@/lib/api";
+import {
+  serviceRequestApi,
+  employeeApi,
+  Employee,
+  paymentApi,
+} from "@/lib/api";
 import { toast } from "sonner";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
 import {
   sanitizePhone,
   sanitizeEmail,
@@ -32,12 +44,327 @@ import {
 } from "@/lib/utils";
 import { marylandZipCodes } from "@/data/marylandZipCodes";
 
+// Initialize Stripe
+const stripePromise = loadStripe(
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder"
+);
+
 interface ContactFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedService?: string;
   zipCode?: string;
 }
+
+// Service pricing configuration
+const servicePricing: { [key: string]: number } = {
+  plumbing: 150,
+  electrical: 175,
+  "house cleaning": 100,
+  "ac repair": 200,
+  "appliance repair": 125,
+  painting: 120,
+  handyman: 110,
+  "pest control": 130,
+  "lawn care": 90,
+  moving: 180,
+  roofing: 250,
+};
+
+const TAX_RATE = 0; // No tax
+
+// Stripe Payment Form Component
+const StripePaymentForm: React.FC<{
+  clientSecret: string;
+  onSuccess: () => void;
+  onError: (error: string) => void;
+  processing: boolean;
+  setProcessing: (value: boolean) => void;
+  serviceRequestId: string | null;
+  paymentIntentId: string | null;
+  totalAmount: number;
+}> = ({
+  clientSecret,
+  onSuccess,
+  onError,
+  processing,
+  setProcessing,
+  serviceRequestId,
+  paymentIntentId,
+  totalAmount,
+}) => {
+  const stripe = useStripe();
+  const elements = useElements();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements || !clientSecret) {
+      onError("Stripe not initialized");
+      return;
+    }
+
+    setProcessing(true);
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      onError("Card element not found");
+      setProcessing(false);
+      return;
+    }
+
+    try {
+      const { error, paymentIntent } = await stripe.confirmCardPayment(
+        clientSecret,
+        {
+          payment_method: {
+            card: cardElement,
+          },
+        }
+      );
+
+      if (error) {
+        onError(error.message || "Payment failed");
+        setProcessing(false);
+      } else if (paymentIntent && paymentIntent.status === "succeeded") {
+        // Confirm payment with backend
+        if (serviceRequestId && paymentIntentId) {
+          try {
+            await paymentApi.confirmPayment({
+              serviceRequestId,
+              paymentIntentId,
+            });
+          } catch (err) {
+            console.error("Error confirming payment:", err);
+          }
+        }
+        onSuccess();
+      }
+    } catch (err) {
+      onError("An unexpected error occurred");
+      setProcessing(false);
+    }
+  };
+
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: "16px",
+        color: "#424770",
+        "::placeholder": {
+          color: "#aab7c4",
+        },
+      },
+      invalid: {
+        color: "#9e2146",
+      },
+    },
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="border rounded-lg p-4">
+        <Label className="mb-2 block">Card Details</Label>
+        <CardElement options={cardElementOptions} />
+      </div>
+      <PrimaryButton
+        type="submit"
+        disabled={!stripe || processing}
+        className="w-full"
+      >
+        {processing ? "Processing..." : `Pay $${totalAmount.toFixed(2)}`}
+      </PrimaryButton>
+    </form>
+  );
+};
+
+// Payment Step Component
+const PaymentStep: React.FC<{
+  formData: any;
+  handleInputChange: (field: string, value: string) => void;
+  clientSecret: string | null;
+  serviceRequestId: string | null;
+  paymentIntentId: string | null;
+  processingPayment: boolean;
+  setProcessingPayment: (value: boolean) => void;
+  onPaymentSuccess: () => void;
+  submitError: string;
+  employees: Employee[];
+}> = ({
+  formData,
+  handleInputChange,
+  clientSecret,
+  serviceRequestId,
+  paymentIntentId,
+  processingPayment,
+  setProcessingPayment,
+  onPaymentSuccess,
+  submitError,
+  employees,
+}) => {
+  const totalAmount = formData.totalAmount || 0;
+  const formatDateDMYNumeric = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const yyyy = date.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  };
+
+  const handleCashPayment = async () => {
+    setProcessingPayment(true);
+    try {
+      const result = await serviceRequestApi.submit({
+        service: formData.service,
+        description: formData.description,
+        preferredDate: formData.preferredDate,
+        preferredTime: formData.preferredTime,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address,
+        city: formData.city,
+        state: "MD",
+        zip: formData.zip,
+        status: "pending",
+        assignedEmployee: formData.assignedEmployee || undefined,
+        paymentMethod: "cash",
+        amount: formData.amount,
+        tax: formData.tax,
+        totalAmount: formData.totalAmount,
+      });
+
+      if (result.success) {
+        onPaymentSuccess();
+      }
+    } catch (error) {
+      console.error("Error submitting cash payment:", error);
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Service Summary */}
+      <div className="bg-muted/50 p-4 rounded-lg">
+        <h3 className="font-heading font-semibold mb-4">Service Summary</h3>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Service:</span>
+            <span className="font-medium">{formData.service}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Date:</span>
+            <span className="font-medium">
+              {formatDateDMYNumeric(formData.preferredDate)}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Time:</span>
+            <span className="font-medium">{formData.preferredTime}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Location:</span>
+            <span className="font-medium">
+              {formData.address}, {formData.city}, MD {formData.zip}
+            </span>
+          </div>
+          {formData.assignedEmployee && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Employee:</span>
+              <span className="font-medium">
+                {(() => {
+                  const assignedEmp = employees.find(
+                    (emp) => emp._id === formData.assignedEmployee
+                  );
+                  return assignedEmp ? assignedEmp.name : "Unknown";
+                })()}
+              </span>
+            </div>
+          )}
+          <div className="border-t pt-2 mt-2">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Upfront Fee:</span>
+              <span className="font-medium">${formData.amount.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-lg font-bold pt-2 border-t">
+              <span>Total:</span>
+              <span>${formData.totalAmount.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Method */}
+      {formData.paymentMethod === "cash" ? (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-semibold mb-2 flex items-center gap-2">
+              <DollarSign className="w-5 h-5" />
+              Cash Payment
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              Payment will be collected at the service location. Please have the
+              exact amount ready.
+            </p>
+          </div>
+          <PrimaryButton
+            type="button"
+            onClick={handleCashPayment}
+            disabled={processingPayment}
+            className="w-full"
+          >
+            {processingPayment
+              ? "Submitting..."
+              : "Complete Request (Pay at Location)"}
+          </PrimaryButton>
+        </div>
+      ) : formData.paymentMethod === "stripe" ? (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-semibold mb-2 flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Secure Card Payment
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              Your payment information is encrypted and secure. Powered by
+              Stripe.
+            </p>
+          </div>
+          {clientSecret ? (
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <StripePaymentForm
+                clientSecret={clientSecret}
+                onSuccess={onPaymentSuccess}
+                onError={(error) => {
+                  console.error("Payment error:", error);
+                }}
+                processing={processingPayment}
+                setProcessing={setProcessingPayment}
+                serviceRequestId={serviceRequestId}
+                paymentIntentId={paymentIntentId}
+                totalAmount={totalAmount}
+              />
+            </Elements>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-muted-foreground">Initializing payment...</p>
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {submitError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600 text-sm">{submitError}</p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ContactFormModal: React.FC<ContactFormModalProps> = ({
   isOpen,
@@ -60,7 +387,15 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     city: "",
     zip: "",
     assignedEmployee: "",
+    paymentMethod: "" as "cash" | "stripe" | "",
+    amount: 0,
+    tax: 0,
+    totalAmount: 0,
   });
+  const [serviceRequestId, setServiceRequestId] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [processingPayment, setProcessingPayment] = useState(false);
   const [zipError, setZipError] = useState("");
   const [serviceAvailable, setServiceAvailable] = useState(true);
   const [zipDropdownOpen, setZipDropdownOpen] = useState(false);
@@ -236,6 +571,28 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     return `${dd}/${mm}/${yyyy}`;
   }
 
+  // Calculate service pricing
+  const calculatePricing = () => {
+    const key = (formData.service || "").toLowerCase();
+    const basePrice = servicePricing[key] ?? 100; // default upfront fee
+    const tax = 0;
+    const total = basePrice;
+
+    setFormData((prev) => ({
+      ...prev,
+      amount: basePrice,
+      tax: tax,
+      totalAmount: total,
+    }));
+  };
+
+  // Effect to calculate pricing when service changes
+  useEffect(() => {
+    if (formData.service) {
+      calculatePricing();
+    }
+  }, [formData.service]);
+
   // ZIP codes data imported from data module
 
   // Filter ZIP codes based on input
@@ -309,7 +666,15 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         city: "",
         zip: "",
         assignedEmployee: "",
+        paymentMethod: "",
+        amount: 0,
+        tax: 0,
+        totalAmount: 0,
       });
+      setServiceRequestId(null);
+      setClientSecret(null);
+      setPaymentIntentId(null);
+      setProcessingPayment(false);
     }
   }, [isOpen]);
 
@@ -506,7 +871,15 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       return;
     }
 
+    // Validate payment method
+    if (!formData.paymentMethod) {
+      setSubmitError("Please select a payment method.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
+      // First, create the service request
       const result = await serviceRequestApi.submit({
         service: formData.service,
         description: formData.description,
@@ -521,15 +894,31 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         zip: formData.zip,
         status: "pending",
         assignedEmployee: formData.assignedEmployee || undefined,
+        paymentMethod: formData.paymentMethod,
+        amount: formData.amount,
+        tax: formData.tax,
+        totalAmount: formData.totalAmount,
       });
 
       console.log(result);
 
-      if (result.success) {
-        // Show success message using Sonner toast
-        toast.success(
-          "Service request submitted successfully! We will contact you soon."
-        );
+      if (result.success && result.data) {
+        const createdRequestId =
+          (result.data as any)?._id || (result.data as any)?.id;
+
+        // If Stripe payment, handle payment processing
+        if (formData.paymentMethod === "stripe" && clientSecret) {
+          // Payment will be handled by Stripe payment component
+          // The service request is already created, just show success
+          toast.success(
+            "Service request submitted successfully! Payment will be processed."
+          );
+        } else {
+          // Cash payment - just show success
+          toast.success(
+            "Service request submitted successfully! Payment will be collected at the service location."
+          );
+        }
 
         // Close the modal and reset
         onClose();
@@ -547,7 +936,14 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           city: "",
           zip: "",
           assignedEmployee: "",
+          paymentMethod: "",
+          amount: 0,
+          tax: 0,
+          totalAmount: 0,
         });
+        setServiceRequestId(null);
+        setClientSecret(null);
+        setPaymentIntentId(null);
       } else {
         setSubmitError(
           result.message || "Failed to submit request. Please try again."
@@ -564,7 +960,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (step === 2) {
       setStep2PhoneError("");
       setStep2EmailError("");
@@ -579,7 +975,54 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       }
       if (hasError) return;
     }
-    if (step < 3) setStep(step + 1);
+
+    // If moving to payment and Stripe is selected, create a Checkout session and redirect
+    if (step === 3 && formData.paymentMethod === "stripe") {
+      try {
+        // First create service request to get ID
+        const result = await serviceRequestApi.submit({
+          service: formData.service,
+          description: formData.description,
+          preferredDate: formData.preferredDate,
+          preferredTime: formData.preferredTime,
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          city: formData.city,
+          state: "MD",
+          zip: formData.zip,
+          status: "pending",
+          assignedEmployee: formData.assignedEmployee || undefined,
+          paymentMethod: "stripe",
+          amount: formData.amount,
+          tax: formData.tax,
+          totalAmount: formData.totalAmount,
+        });
+
+        if (result.success && result.data) {
+          const requestId =
+            (result.data as any)?._id || (result.data as any)?.id;
+          setServiceRequestId(requestId);
+          // Create Stripe Checkout session and redirect
+          const checkout = await paymentApi.createCheckoutSession({
+            serviceRequestId: requestId,
+            amount: formData.totalAmount,
+            returnUrl: window.location.origin,
+          });
+          if (checkout.success && checkout.data?.checkoutUrl) {
+            window.location.href = checkout.data.checkoutUrl as string;
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Error starting Stripe Checkout:", error);
+        toast.error("Failed to open Stripe Checkout. Please try again.");
+        return;
+      }
+    }
+
+    if (step < 4) setStep(step + 1);
   };
 
   const prevStep = () => {
@@ -589,7 +1032,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const renderStepIndicator = () => (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-4">
-        {[1, 2, 3].map((num) => (
+        {[1, 2, 3, 4].map((num) => (
           <div
             key={num}
             className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
@@ -605,7 +1048,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       <div className="w-full bg-muted rounded-full h-2">
         <div
           className="bg-primary h-2 rounded-full transition-all duration-300"
-          style={{ width: `${(step / 3) * 100}%` }}
+          style={{ width: `${(step / 4) * 100}%` }}
         ></div>
       </div>
     </div>
@@ -969,6 +1412,48 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
               </div>
             </div>
 
+            <div>
+              <Label htmlFor="paymentMethod">Payment Method *</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <div
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                    formData.paymentMethod === "cash"
+                      ? "border-primary bg-primary/5"
+                      : "border-muted hover:border-primary/50"
+                  }`}
+                  onClick={() => handleInputChange("paymentMethod", "cash")}
+                >
+                  <div className="flex items-center gap-3">
+                    <DollarSign className="w-6 h-6 text-primary" />
+                    <div>
+                      <h4 className="font-semibold">Cash Payment</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Pay at service location
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                    formData.paymentMethod === "stripe"
+                      ? "border-primary bg-primary/5"
+                      : "border-muted hover:border-primary/50"
+                  }`}
+                  onClick={() => handleInputChange("paymentMethod", "stripe")}
+                >
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="w-6 h-6 text-primary" />
+                    <div>
+                      <h4 className="font-semibold">Card Payment</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Pay securely with card
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-muted/50 p-4 rounded-lg">
               <h3 className="font-heading font-semibold mb-2">
                 Review Your Request
@@ -978,7 +1463,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <strong>Service:</strong> {formData.service}
                 </li>
                 <li>
-                  <strong>Date:</strong> {formatDateDMYNumeric(formData.preferredDate)}
+                  <strong>Date:</strong>{" "}
+                  {formatDateDMYNumeric(formData.preferredDate)}
                 </li>
                 <li>
                   <strong>Time:</strong> {formData.preferredTime}
@@ -1007,7 +1493,21 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     })()}
                   </li>
                 )}
+                <li className="pt-2 border-t">
+                  <strong>Upfront Fee:</strong> ${formData.amount.toFixed(2)}
+                </li>
+                <li>
+                  <strong>Total:</strong> ${formData.totalAmount.toFixed(2)}
+                </li>
               </ul>
+              <div className="mt-3 text-xs text-muted-foreground">
+                <p>
+                  Upfront fee covers the initial visit + company service charge.
+                </p>
+                <p>
+                  Additional on-site charges may apply for extra work or parts.
+                </p>
+              </div>
             </div>
 
             {submitError && (
@@ -1016,6 +1516,27 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
               </div>
             )}
           </div>
+        );
+
+      case 4:
+        return (
+          <PaymentStep
+            formData={formData}
+            handleInputChange={handleInputChange}
+            clientSecret={clientSecret}
+            serviceRequestId={serviceRequestId}
+            paymentIntentId={paymentIntentId}
+            processingPayment={processingPayment}
+            setProcessingPayment={setProcessingPayment}
+            onPaymentSuccess={() => {
+              toast.success(
+                "Payment processed successfully! Your service request has been submitted."
+              );
+              onClose();
+            }}
+            submitError={submitError}
+            employees={employees}
+          />
         );
 
       default:
@@ -1050,6 +1571,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             {step === 1 && "Service Details"}
             {step === 2 && "Schedule & Contact"}
             {step === 3 && "Address & Final Details"}
+            {step === 4 && "Payment"}
           </h2>
         </div>
       }
@@ -1057,12 +1579,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     >
       <form
         onSubmit={(e) => {
-          // Only allow form submission when in step 3
-          if (step !== 3) {
+          // Only allow form submission when in step 4 (payment step handles submission)
+          if (step !== 4) {
             e.preventDefault();
             return;
           }
-          handleSubmit(e);
+          e.preventDefault();
         }}
         className="space-y-6"
       >
@@ -1095,20 +1617,21 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 >
                   Next
                 </PrimaryButton>
-              ) : (
+              ) : step === 3 ? (
                 <PrimaryButton
-                  type="submit"
+                  type="button"
+                  onClick={nextStep}
                   disabled={
                     !formData.address ||
                     !formData.city ||
                     !formData.zip ||
-                    isSubmitting
+                    !formData.paymentMethod
                   }
                   className="w-full h-12 text-base font-medium"
                 >
-                  {isSubmitting ? "Submitting..." : "Submit Request"}
+                  Continue to Payment
                 </PrimaryButton>
-              )}
+              ) : null}
             </div>
           )}
 
@@ -1143,19 +1666,20 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 >
                   Next
                 </PrimaryButton>
-              ) : (
+              ) : step === 3 ? (
                 <PrimaryButton
-                  type="submit"
+                  type="button"
+                  onClick={nextStep}
                   disabled={
                     !formData.address ||
                     !formData.city ||
                     !formData.zip ||
-                    isSubmitting
+                    !formData.paymentMethod
                   }
                 >
-                  {isSubmitting ? "Submitting..." : "Submit Request"}
+                  Continue to Payment
                 </PrimaryButton>
-              )}
+              ) : null}
             </div>
           )}
         </div>

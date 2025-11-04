@@ -125,6 +125,10 @@ export interface ServiceRequestData {
   zip: string;
   status?: string;
   assignedEmployee?: string;
+  paymentMethod?: string;
+  amount?: number;
+  tax?: number;
+  totalAmount?: number;
 }
 
 export const api = {
@@ -259,6 +263,41 @@ export const serviceRequestApi = {
         body: { assignedEmployee },
       }
     );
+  },
+};
+
+// Payment API
+export interface CreatePaymentIntentData {
+  serviceRequestId: string;
+  amount: number;
+}
+
+export interface ConfirmPaymentData {
+  serviceRequestId: string;
+  paymentIntentId: string;
+}
+
+export interface CreateCheckoutSessionData {
+  serviceRequestId: string;
+  amount: number;
+  returnUrl?: string;
+}
+
+export const paymentApi = {
+  async createPaymentIntent(
+    data: CreatePaymentIntentData
+  ): Promise<ApiResponse<{ clientSecret: string; paymentIntentId: string }>> {
+    return api.post("/api/payments/create-payment-intent", data);
+  },
+
+  async confirmPayment(data: ConfirmPaymentData): Promise<ApiResponse> {
+    return api.post("/api/payments/confirm-payment", data);
+  },
+
+  async createCheckoutSession(
+    data: CreateCheckoutSessionData
+  ): Promise<ApiResponse<{ checkoutUrl: string; sessionId: string }>> {
+    return api.post("/api/payments/create-checkout-session", data);
   },
 };
 

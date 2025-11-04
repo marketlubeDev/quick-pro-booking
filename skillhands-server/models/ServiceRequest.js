@@ -13,7 +13,7 @@ const ServiceRequestSchema = new mongoose.Schema(
     city: { type: String, required: true, trim: true },
     state: { type: String, required: true, trim: true },
     zip: { type: String, required: true, trim: true },
-  
+
     attachment: {
       filename: { type: String },
       mimetype: { type: String },
@@ -106,6 +106,22 @@ const ServiceRequestSchema = new mongoose.Schema(
     },
     nextScheduledDate: { type: Date, default: null },
     rejectionReason: { type: String, trim: true, default: "" },
+    // Payment fields
+    paymentMethod: {
+      type: String,
+      enum: ["cash", "stripe"],
+      default: null,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed", "refunded"],
+      default: "pending",
+    },
+    stripePaymentIntentId: { type: String, trim: true, default: null },
+    amount: { type: Number, default: 0 }, // Total amount in cents
+    tax: { type: Number, default: 0 }, // Tax amount in cents
+    totalAmount: { type: Number, default: 0 }, // Total with tax in cents
+    paidAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

@@ -30,6 +30,10 @@ export const createServiceRequest = async (req, res) => {
       tags,
       isRecurring,
       recurringPattern,
+      paymentMethod,
+      amount,
+      tax,
+      totalAmount,
     } = req.body || {};
 
     if (!service || !name || !phone || !address || !city || !state || !zip) {
@@ -52,7 +56,11 @@ export const createServiceRequest = async (req, res) => {
     let autoUrgency = urgency || "routine";
     if (preferredTime && preferredTime.toLowerCase().includes("emergency")) {
       autoUrgency = "emergency";
-    } else if (preferredTime && (preferredTime.toLowerCase().includes("asap") || preferredTime.toLowerCase().includes("urgent"))) {
+    } else if (
+      preferredTime &&
+      (preferredTime.toLowerCase().includes("asap") ||
+        preferredTime.toLowerCase().includes("urgent"))
+    ) {
       autoUrgency = "urgent";
     }
 
@@ -79,6 +87,16 @@ export const createServiceRequest = async (req, res) => {
       tags: tags || [],
       isRecurring: isRecurring || false,
       recurringPattern: recurringPattern || null,
+      paymentMethod: paymentMethod || null,
+      amount: amount ? Math.round(amount * 100) : 0, // Convert to cents
+      tax: tax ? Math.round(tax * 100) : 0, // Convert to cents
+      totalAmount: totalAmount ? Math.round(totalAmount * 100) : 0, // Convert to cents
+      paymentStatus:
+        paymentMethod === "cash"
+          ? "pending"
+          : paymentMethod === "stripe"
+          ? "pending"
+          : "pending",
     });
 
     // Fire-and-forget email notification; do not block response if email fails
@@ -262,7 +280,10 @@ export const updateServiceRequest = async (req, res) => {
       let autoUrgency = updates.urgency || "routine";
       if (updates.preferredTime.toLowerCase().includes("emergency")) {
         autoUrgency = "emergency";
-      } else if (updates.preferredTime.toLowerCase().includes("asap") || updates.preferredTime.toLowerCase().includes("urgent")) {
+      } else if (
+        updates.preferredTime.toLowerCase().includes("asap") ||
+        updates.preferredTime.toLowerCase().includes("urgent")
+      ) {
         autoUrgency = "urgent";
       }
       updates.urgency = autoUrgency;

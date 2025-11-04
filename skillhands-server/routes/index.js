@@ -8,6 +8,7 @@ import usersRouter from "./users.js";
 import profileRouter from "./profile.js";
 import dashboardRouter from "./dashboard.js";
 import reportsRouter from "./reports.js";
+import paymentsRouter from "./payments.js";
 
 const router = express.Router();
 
@@ -40,5 +41,6 @@ router.use("/users", usersRouter);
 router.use("/profile", profileRouter);
 router.use("/dashboard", dashboardRouter);
 router.use("/reports", reportsRouter);
+router.use("/payments", paymentsRouter);
 
 export default router;
