@@ -19,14 +19,6 @@ import {
 // Load environment variables
 dotenv.config();
 
-// Validate environment variables
-// if (process.env.NODE_ENV === "production") {
-//   console.log("🔍 Validating environment configuration...");
-//   validateEnvironment();
-//   validateEmailConfig();
-//   validateDatabaseConfig();
-// }
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
