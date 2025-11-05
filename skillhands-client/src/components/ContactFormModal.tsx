@@ -43,6 +43,7 @@ import {
   sanitizeInputField,
 } from "@/lib/utils";
 import { marylandZipCodes } from "@/data/marylandZipCodes";
+import { serviceCategoriesApi } from "@/lib/api.serviceCategories";
 
 // Initialize Stripe
 const stripePromise = loadStripe(
@@ -56,20 +57,7 @@ interface ContactFormModalProps {
   zipCode?: string;
 }
 
-// Service pricing configuration
-const servicePricing: { [key: string]: number } = {
-  plumbing: 100,
-  electrical: 150,
-  "house cleaning": 150,
-  "ac repair": 200,
-  "appliance repair": 100,
-  painting: 250,
-  handyman: 90,
-  "pest control": 190,
-  "lawn care": 90,
-  moving: 180,
-  roofing: 250,
-};
+// Service pricing configuration is maintained inside the component
 
 // Stripe Payment Form Component
 const StripePaymentForm: React.FC<{
@@ -406,6 +394,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+  const [servicePricing, setServicePricing] = useState<{
+    [key: string]: number;
+  }>({});
 
   // Function to filter employees based on ZIP code and service
   const filterEmployeesByZipAndService = (
@@ -729,19 +720,39 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     }
   }, [formData.image]);
 
-  const services = [
-    "Plumbing",
-    "Electrical",
-    "House Cleaning",
-    "AC Repair",
-    "Appliance Repair",
-    "Painting",
-    "Handyman",
-    "Pest Control",
-    "Lawn Care",
-    "Moving",
-    "Roofing",
-  ];
+  const [services, setServices] = useState<string[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await serviceCategoriesApi.list();
+        const categories = res.data || [];
+        const names = categories
+          .filter((c) => c && (c.isActive === undefined || c.isActive))
+          .map((c) => c.name)
+          .filter(Boolean);
+        if (isMounted) {
+          setServices(names);
+          const pricingMap: { [key: string]: number } = {};
+          categories.forEach((c) => {
+            if (c && c.name) {
+              const key = c.name.toLowerCase();
+              if (typeof c.price === "number") {
+                pricingMap[key] = c.price;
+              }
+            }
+          });
+          setServicePricing(pricingMap);
+        }
+      } catch (e) {
+        if (isMounted) setServices([]);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const timeSlots = [
     "Morning (8AM - 12PM)",
