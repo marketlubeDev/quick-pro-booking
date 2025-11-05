@@ -9,6 +9,7 @@ import profileRouter from "./profile.js";
 import dashboardRouter from "./dashboard.js";
 import reportsRouter from "./reports.js";
 import paymentsRouter from "./payments.js";
+import serviceCategoriesRouter from "./serviceCategories.js";
 
 const router = express.Router();
 
@@ -42,5 +43,6 @@ router.use("/profile", profileRouter);
 router.use("/dashboard", dashboardRouter);
 router.use("/reports", reportsRouter);
 router.use("/payments", paymentsRouter);
+router.use("/service-categories", serviceCategoriesRouter);
 
 export default router;

@@ -8,6 +8,7 @@ import {
   Settings,
   Menu,
   X,
+  Tags,
 } from "lucide-react";
 import { NavigationItem } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,11 @@ const navigationItems: NavigationItem[] = [
     name: "Service Requests",
     path: "/admin/service-requests",
     icon: ClipboardList,
+  },
+  {
+    name: "Service Categories",
+    path: "/admin/service-categories",
+    icon: Tags,
   },
   {
     name: "Pro Applications",

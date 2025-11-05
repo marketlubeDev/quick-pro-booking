@@ -29,6 +29,7 @@ import { EmployeeApplications } from "@/pages/admin/EmployeeApplication/Employee
 import { Reports } from "@/pages/admin/Reports";
 import { Settings } from "@/pages/admin/Settings";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import ServiceCategories from "@/pages/admin/ServiceCategories/ServiceCategories";
 
 export const router = createBrowserRouter([
   {
@@ -78,6 +79,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: "service-requests", element: <ServiceRequests /> },
       { path: "employee-applications", element: <EmployeeApplications /> },
+      { path: "service-categories", element: <ServiceCategories /> },
       { path: "reports", element: <Reports /> },
     ],
   },

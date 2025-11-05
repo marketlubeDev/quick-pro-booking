@@ -17,6 +17,10 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
     title: "Pro Applications",
     subtitle: "Review and manage pro applications and profiles.",
   },
+  "/admin/service-categories": {
+    title: "Service Categories",
+    subtitle: "Create, update, and delete service categories.",
+  },
   "/admin/reports": {
     title: "Reports",
     subtitle: "View analytics and reports for your business.",
