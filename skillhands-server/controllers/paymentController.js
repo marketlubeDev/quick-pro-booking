@@ -114,11 +114,6 @@ export const confirmPayment = async (req, res) => {
       updateData.amount = paymentIntent.amount / 100; // store dollars
     }
 
-    // Also transition service status if appropriate
-    if (paymentIntent.status === "succeeded") {
-      updateData.status = "in-process";
-    }
-
     await ServiceRequest.findByIdAndUpdate(serviceRequestId, updateData);
 
     // Send emails on success
@@ -312,10 +307,6 @@ export const verifyCheckoutSession = async (req, res) => {
       }
     }
 
-    if (isPaid) {
-      update.status = "in-process";
-    }
-
     await ServiceRequest.findByIdAndUpdate(serviceRequestId, update);
 
     // Send emails on success
@@ -396,7 +387,6 @@ export const handleStripeWebhook = async (req, res) => {
       data.paidAt = new Date();
       data.amount = amount / 100;
       data.stripePaymentIntentId = intentId;
-      data.status = "in-process";
     }
     await ServiceRequest.findByIdAndUpdate(serviceRequestId, data);
   };

@@ -1308,28 +1308,86 @@ export const sendPaymentSuccessEmails = async ({
         description || "(none)"
       }`,
       html: `
-        <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;">
-          <h3 style="margin:0 0 8px;">Payment received</h3>
-          <div><strong>Amount:</strong> ${formatMoney(amount)}</div>
-          <div><strong>Method:</strong> ${paymentMethod}</div>
-          ${
-            paymentIntentId
-              ? `<div><strong>Reference:</strong> ${paymentIntentId}</div>`
-              : ""
-          }
-          <div><strong>Paid at:</strong> ${paidAtText}</div>
-          <hr style="margin:12px 0;border:none;border-top:1px solid #e5e7eb;" />
-          <div><strong>Request:</strong> ${_id}</div>
-          <div><strong>Customer:</strong> ${name || "N/A"} (${
-        email || "N/A"
-      })</div>
-          <div><strong>Location:</strong> ${locationText || "N/A"}</div>
-          ${
-            description
-              ? `<div><strong>Description:</strong> ${description}</div>`
-              : ""
-          }
-        </div>`,
+        <!DOCTYPE html>
+        <html lang="en">
+          <body style="margin:0;background:#f6f7fb;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f6f7fb;padding:24px 0;">
+              <tr>
+                <td align="center">
+                  <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" style="max-width:680px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 12px 28px rgba(2,6,23,0.08);">
+                    <tr>
+                      <td style="padding:24px;background:#4f46e5;background-image:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;">
+                        <h1 style="margin:0;font-size:20px;font-weight:800;letter-spacing:.2px;">Payment received</h1>
+                        <p style="margin:6px 0 0;font-size:13px;opacity:.95;">SkillHands · Quick Pro Booking</p>
+                        <span style="display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:700;">Admin notification</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:24px;background:#ffffff;">
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 8px;">
+                          <tr>
+                            <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Payment summary</div>
+                              <div style="font-size:14px;color:#111827;font-weight:600;margin-top:6px;">Amount: ${formatMoney(
+                                amount
+                              )}</div>
+                              <div style="font-size:14px;color:#111827;font-weight:600;">Method: ${paymentMethod}</div>
+                              ${
+                                paymentIntentId
+                                  ? `<div style="font-size:12px;color:#6b7280;margin-top:6px;">Reference: ${paymentIntentId}</div>`
+                                  : ""
+                              }
+                              <div style="font-size:12px;color:#6b7280;">Paid at: ${paidAtText}</div>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0 8px;">
+                          <tr>
+                            <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Request</div>
+                              <div style="font-size:15px;color:#111827;font-weight:600;">${_id}</div>
+                            </td>
+                          </tr>
+                          <tr><td height="12"></td></tr>
+                          <tr>
+                            <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Customer</div>
+                              <div style="font-size:15px;color:#111827;font-weight:600;">${
+                                name || "N/A"
+                              } (${email || "N/A"})</div>
+                            </td>
+                          </tr>
+                          <tr><td height="12"></td></tr>
+                          <tr>
+                            <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Location</div>
+                              <div style="font-size:15px;color:#111827;font-weight:600;">${
+                                locationText || "N/A"
+                              }</div>
+                            </td>
+                          </tr>
+                          ${
+                            description
+                              ? `
+                          <tr><td height=\"12\"></td></tr>
+                          <tr>
+                            <td style=\"padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;\">
+                              <div style=\"font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;\">Description</div>
+                              <div style=\"font-size:15px;color:#111827;font-weight:600;\">${description}</div>
+                            </td>
+                          </tr>`
+                              : ""
+                          }
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>`,
     };
     await transporter.sendMail(mailOptionsAdmin);
   }
@@ -1349,20 +1407,86 @@ export const sendPaymentSuccessEmails = async ({
         description || "(none)"
       }`,
       html: `
-            <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;">
-              <h3 style="margin:0 0 8px;">New paid job assigned</h3>
-              <div><strong>Request:</strong> ${_id}</div>
-              <div><strong>Customer:</strong> ${name || "N/A"} (${
-        email || "N/A"
-      })</div>
-              <div><strong>Location:</strong> ${locationText || "N/A"}</div>
-              <div><strong>Amount:</strong> ${formatMoney(amount)}</div>
-              ${
-                description
-                  ? `<div><strong>Description:</strong> ${description}</div>`
-                  : ""
-              }
-            </div>`,
+        <!DOCTYPE html>
+        <html lang="en">
+          <body style="margin:0;background:#f6f7fb;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f6f7fb;padding:24px 0;">
+              <tr>
+                <td align="center">
+                  <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" style="max-width:680px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 12px 28px rgba(2,6,23,0.08);">
+                    <tr>
+                      <td style="padding:24px;background:#059669;background-image:linear-gradient(135deg,#10b981,#059669);color:#ffffff;">
+                        <h1 style="margin:0;font-size:20px;font-weight:800;letter-spacing:.2px;">New paid job assigned</h1>
+                        <p style="margin:6px 0 0;font-size:13px;opacity:.95;">SkillHands · Quick Pro Booking</p>
+                        <span style="display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:700;">Action required</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:24px;background:#ffffff;">
+                        <p style="margin:0 0 12px;color:#374151;font-size:14px;">A customer has paid for <span style="display:inline-block;background:#0ea5e9;color:#ffffff;font-weight:700;padding:6px 10px;border-radius:10px;">${
+                          serviceName || "service"
+                        }</span>. Please review the details below and follow up.</p>
+
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0 8px;">
+                          <tr>
+                            <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Request</div>
+                              <div style="font-size:15px;color:#111827;font-weight:600;">${_id}</div>
+                            </td>
+                          </tr>
+                          <tr><td height="12"></td></tr>
+                          <tr>
+                            <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Customer</div>
+                              <div style="font-size:15px;color:#111827;font-weight:600;">${
+                                name || "N/A"
+                              } (${email || "N/A"})</div>
+                            </td>
+                          </tr>
+                          <tr><td height="12"></td></tr>
+                          <tr>
+                            <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Location</div>
+                              <div style="font-size:15px;color:#111827;font-weight:600;">${
+                                locationText || "N/A"
+                              }</div>
+                            </td>
+                          </tr>
+                          <tr><td height="12"></td></tr>
+                          <tr>
+                            <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Payment</div>
+                              <div style="font-size:14px;color:#111827;font-weight:600;">Amount: ${formatMoney(
+                                amount
+                              )}</div>
+                              <div style="font-size:12px;color:#6b7280;">Paid at: ${paidAtText}</div>
+                            </td>
+                          </tr>
+                          ${
+                            description
+                              ? `
+                          <tr><td height="12"></td></tr>
+                          <tr>
+                            <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Description</div>
+                              <div style="font-size:15px;color:#111827;font-weight:600;">${description}</div>
+                            </td>
+                          </tr>`
+                              : ""
+                          }
+                        </table>
+
+                        <div style="background:#ecfeff;border:1px solid #a5f3fc;border-radius:12px;padding:16px;margin-top:12px;">
+                          <p style="margin:0;color:#075985;font-size:14px;">Tip: Reply to this email to contact the customer, or call them directly.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>`,
     };
     await transporter.sendMail(mailOptionsEmp);
   }
