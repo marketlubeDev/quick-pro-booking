@@ -468,7 +468,9 @@ ${email ? `Email: ${email}` : ""}
 
 Address: ${address}, ${city}, MD ${zip}
 
-Preferred Date: ${preferredDate ? formatShortDate(preferredDate) : "Not specified"}
+Preferred Date: ${
+    preferredDate ? formatShortDate(preferredDate) : "Not specified"
+  }
 Preferred Time: ${preferredTime || "Not specified"}
 
 Description: ${description || "No description provided"}
@@ -766,7 +768,7 @@ export const sendNewEmployeeEmail = async ({
                 expectedSalary !== undefined && expectedSalary !== null
                   ? `
                 <div class="item">
-               
+
                   <div class="label">Expected Salary</div>
                    <div class="value"> $ ${expectedSalary}</div>
                 </div>`
@@ -1097,6 +1099,275 @@ Thank you for considering SkillHands for your service needs.
 
   const result = await transporter.sendMail(mailOptions);
   return { success: true, messageId: result.messageId };
+};
+
+// Send payment success notifications (customer, admin, and assigned employee)
+export const sendPaymentSuccessEmails = async ({
+  serviceRequest,
+  payment: {
+    amount,
+    currency = "usd",
+    paymentMethod = "stripe",
+    paymentIntentId,
+    paidAt,
+  } = {},
+}) => {
+  const transporter = createTransporter();
+
+  const {
+    name,
+    email,
+    service: serviceName,
+    address,
+    city,
+    state,
+    zip,
+    description,
+    preferredDate,
+    preferredTime,
+    assignedEmployee,
+    _id,
+  } = serviceRequest || {};
+
+  // Resolve admin recipients from EMAIL_TO and ADMIN_EMAIL (supports comma/semicolon-separated list)
+  const adminRecipients = Array.from(
+    new Set(
+      [process.env.EMAIL_TO, process.env.ADMIN_EMAIL]
+        .filter(Boolean)
+        .flatMap((val) => String(val).split(/[;,]/))
+        .map((t) => t.trim())
+        .filter(Boolean)
+    )
+  );
+
+  const formatMoney = (v) =>
+    typeof v === "number"
+      ? (v / 100).toLocaleString(undefined, {
+          style: "currency",
+          currency: currency.toUpperCase(),
+        })
+      : "";
+
+  const paidAtDate = paidAt ? new Date(paidAt) : new Date();
+  const paidAtText = paidAtDate.toLocaleString();
+
+  const paymentSummaryHtml = `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0 8px;">
+      <tr>
+        <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Payment Summary</div>
+          <div style="font-size:14px;color:#111827;font-weight:600;margin-top:6px;">Amount: ${formatMoney(
+            amount
+          )}</div>
+          <div style="font-size:14px;color:#111827;font-weight:600;">Method: ${paymentMethod}</div>
+          ${
+            paymentIntentId
+              ? `<div style="font-size:12px;color:#6b7280;margin-top:6px;">Reference: ${paymentIntentId}</div>`
+              : ""
+          }
+          <div style="font-size:12px;color:#6b7280;">Paid at: ${paidAtText}</div>
+        </td>
+      </tr>
+    </table>`;
+
+  const locationText = [address, city, state, zip].filter(Boolean).join(", ");
+
+  // Lookup assigned employee email once for reuse across messages
+  let assignedEmployeeEmail = null;
+  if (assignedEmployee) {
+    try {
+      const Profile = (await import("../models/Profile.js")).default;
+      const profile = await Profile.findById(assignedEmployee);
+      if (profile && profile.email) {
+        assignedEmployeeEmail = profile.email;
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to resolve assigned employee email:", e);
+    }
+  }
+
+  // Helper to merge/dedupe and produce a comma-separated string for nodemailer
+  const mergeEmails = (...groups) => {
+    const list = groups
+      .flat()
+      .filter(Boolean)
+      .map((v) => String(v).trim())
+      .filter(Boolean);
+    const unique = Array.from(new Set(list));
+    return unique.length ? unique.join(",") : undefined;
+  };
+
+  // 1) Customer booking confirmation with payment summary (to customer)
+  if (email) {
+    const mailOptionsCustomer = {
+      from: process.env.EMAIL_FROM,
+      to: email,
+      cc: mergeEmails(adminRecipients, assignedEmployeeEmail),
+      subject: `Booking confirmed for ${serviceName || "your service"}`,
+      text: `Hello ${name || "Customer"},\n\nYour booking is confirmed for ${
+        serviceName || "your service"
+      }.\n\nSchedule:\n- Date: ${preferredDate || "(not specified)"}\n- Time: ${
+        preferredTime || "(not specified)"
+      }\n- Location: ${
+        locationText || "(not specified)"
+      }\n\nPayment:\n- Amount: ${formatMoney(
+        amount
+      )}\n- Method: ${paymentMethod}\n$${
+        paymentIntentId ? `Reference: ${paymentIntentId}\n` : ""
+      }\n\nService details:\n- Request ID: ${_id}\n- Description: ${
+        description || "(none)"
+      }\n- Location: ${locationText}\n\nThank you for choosing SkillHands.`,
+      html: `
+        <!DOCTYPE html>
+        <html lang="en">
+          <body style="margin:0;background:#f6f7fb;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f6f7fb;padding:24px 0;">
+              <tr>
+                <td align="center">
+                  <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" style="max-width:680px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 12px 28px rgba(2,6,23,0.08);">
+                    <tr>
+                      <td style="padding:24px;background:#6366f1;background-image:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;">
+                        <h1 style="margin:0;font-size:20px;font-weight:800;letter-spacing:.2px;">Booking confirmed</h1>
+                        <p style="margin:6px 0 0;font-size:13px;opacity:.95;">SkillHands · Quick Pro Booking</p>
+                        <span style="display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:700;">Service booking</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:24px;background:#ffffff;">
+                        <p style="margin:0 0 8px;font-size:15px;color:#111827;">Hi ${
+                          name || "there"
+                        },</p>
+                        <p style="margin:0 0 16px;color:#374151;font-size:14px;">Your <span style="display:inline-block;background:#0ea5e9;color:#ffffff;font-weight:700;padding:8px 12px;border-radius:12px;">${
+                          serviceName || "service"
+                        }</span> has been booked successfully.</p>
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0 8px;">
+                          <tr>
+                            <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Schedule</div>
+                              <div style="font-size:14px;color:#111827;font-weight:600;margin-top:6px;">Date: ${
+                                preferredDate || "(not specified)"
+                              }</div>
+                              <div style="font-size:14px;color:#111827;font-weight:600;">Time: ${
+                                preferredTime || "(not specified)"
+                              }</div>
+                              <div style="font-size:14px;color:#111827;font-weight:600;">Location: ${
+                                locationText || "(not specified)"
+                              }</div>
+                            </td>
+                          </tr>
+                        </table>
+                        ${paymentSummaryHtml}
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0 8px;">
+                          <tr>
+                            <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+                              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;font-weight:800;">Service details</div>
+                              <div style="font-size:14px;color:#111827;font-weight:600;margin-top:6px;">Request ID: ${_id}</div>
+                              <div style="font-size:14px;color:#111827;font-weight:600;">Location: ${locationText}</div>
+                              ${
+                                description
+                                  ? `<div style="font-size:14px;color:#111827;font-weight:600;">Description: ${description}</div>`
+                                  : ""
+                              }
+                            </td>
+                          </tr>
+                        </table>
+                        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin:16px 0;">
+                          <p style="margin:0;color:#1d4ed8;font-size:14px;">If you need to make any changes, reply to this email and our team will assist you.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>`,
+    };
+    await transporter.sendMail(mailOptionsCustomer);
+  }
+
+  // 2) Admin notification (to configured admin email)
+  if (adminRecipients.length || process.env.EMAIL_TO) {
+    const mailOptionsAdmin = {
+      from: process.env.EMAIL_FROM,
+      to: adminRecipients.length
+        ? adminRecipients.join(",")
+        : process.env.EMAIL_TO,
+      cc: mergeEmails(assignedEmployeeEmail),
+      subject: `Paid: ${serviceName || "Service"} — ${
+        name || email || "Customer"
+      }`,
+      text: `Payment received: ${formatMoney(
+        amount
+      )} (${paymentMethod}). Ref: ${
+        paymentIntentId || "N/A"
+      }.\nRequest: ${_id}\nCustomer: ${name || "N/A"} (${
+        email || "N/A"
+      })\nLocation: ${locationText || "N/A"}\nDescription: ${
+        description || "(none)"
+      }`,
+      html: `
+        <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;">
+          <h3 style="margin:0 0 8px;">Payment received</h3>
+          <div><strong>Amount:</strong> ${formatMoney(amount)}</div>
+          <div><strong>Method:</strong> ${paymentMethod}</div>
+          ${
+            paymentIntentId
+              ? `<div><strong>Reference:</strong> ${paymentIntentId}</div>`
+              : ""
+          }
+          <div><strong>Paid at:</strong> ${paidAtText}</div>
+          <hr style="margin:12px 0;border:none;border-top:1px solid #e5e7eb;" />
+          <div><strong>Request:</strong> ${_id}</div>
+          <div><strong>Customer:</strong> ${name || "N/A"} (${
+        email || "N/A"
+      })</div>
+          <div><strong>Location:</strong> ${locationText || "N/A"}</div>
+          ${
+            description
+              ? `<div><strong>Description:</strong> ${description}</div>`
+              : ""
+          }
+        </div>`,
+    };
+    await transporter.sendMail(mailOptionsAdmin);
+  }
+
+  // 3) Assigned employee notification (if present and email exists)
+  if (assignedEmployeeEmail) {
+    const mailOptionsEmp = {
+      from: process.env.EMAIL_FROM,
+      to: assignedEmployeeEmail,
+      cc: mergeEmails(adminRecipients),
+      subject: `New paid job assigned: ${serviceName || "Service"}`,
+      text: `A job has been paid and assigned.\nRequest: ${_id}\nCustomer: ${
+        name || "N/A"
+      } (${email || "N/A"})\nLocation: ${
+        locationText || "N/A"
+      }\nAmount: ${formatMoney(amount)}\nDescription: ${
+        description || "(none)"
+      }`,
+      html: `
+            <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;color:#111827;">
+              <h3 style="margin:0 0 8px;">New paid job assigned</h3>
+              <div><strong>Request:</strong> ${_id}</div>
+              <div><strong>Customer:</strong> ${name || "N/A"} (${
+        email || "N/A"
+      })</div>
+              <div><strong>Location:</strong> ${locationText || "N/A"}</div>
+              <div><strong>Amount:</strong> ${formatMoney(amount)}</div>
+              ${
+                description
+                  ? `<div><strong>Description:</strong> ${description}</div>`
+                  : ""
+              }
+            </div>`,
+    };
+    await transporter.sendMail(mailOptionsEmp);
+  }
+
+  return { success: true };
 };
 
 // Send employee application approval notification

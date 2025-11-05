@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -90,6 +90,16 @@ function formatDateDMYWithComma(dateString: string) {
   return `${formatted},`;
 }
 
+function formatCurrency(amount?: number | null) {
+  if (amount === undefined || amount === null) return "-";
+  const value = amount > 0 && amount % 1 === 0 ? amount / 100 : amount;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  }).format(Number(value));
+}
+
 const getPriorityColor = (priority: string) => {
   switch (priority) {
     case "urgent":
@@ -133,7 +143,13 @@ export function ServiceRequestDetailsDialog({
     name: "",
     phone: "",
     email: "",
-    source: "website" as "website" | "phone" | "walk-in" | "referral" | "social-media" | "other",
+    source: "website" as
+      | "website"
+      | "phone"
+      | "walk-in"
+      | "referral"
+      | "social-media"
+      | "other",
   });
   const [schedulingFormData, setSchedulingFormData] = useState({
     scheduledDate: "",
@@ -173,13 +189,22 @@ export function ServiceRequestDetailsDialog({
       setSchedulingFormData({
         scheduledDate: request.scheduledDate || "",
       });
-      
+
       // Initialize assigned pro form data
       const currentEmployee = request.assignedEmployee;
-      const hasEmployee = currentEmployee && (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee);
+      const hasEmployee =
+        currentEmployee &&
+        (typeof currentEmployee === "object"
+          ? currentEmployee._id
+          : currentEmployee);
       setAssignedProFormData({
-        assignedEmployee: hasEmployee ? (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee) : "none",
-        selectedEmployee: typeof currentEmployee === "object" ? currentEmployee : null,
+        assignedEmployee: hasEmployee
+          ? typeof currentEmployee === "object"
+            ? currentEmployee._id
+            : currentEmployee
+          : "none",
+        selectedEmployee:
+          typeof currentEmployee === "object" ? currentEmployee : null,
       });
     }
   }, [request]);
@@ -223,28 +248,46 @@ export function ServiceRequestDetailsDialog({
   const handleEditAssignedPro = () => {
     setIsEditingAssignedPro(true);
     const currentEmployee = request.assignedEmployee;
-    const hasEmployee = currentEmployee && (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee);
+    const hasEmployee =
+      currentEmployee &&
+      (typeof currentEmployee === "object"
+        ? currentEmployee._id
+        : currentEmployee);
     setAssignedProFormData({
-      assignedEmployee: hasEmployee ? (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee) : "none",
-      selectedEmployee: typeof currentEmployee === "object" ? currentEmployee : null,
+      assignedEmployee: hasEmployee
+        ? typeof currentEmployee === "object"
+          ? currentEmployee._id
+          : currentEmployee
+        : "none",
+      selectedEmployee:
+        typeof currentEmployee === "object" ? currentEmployee : null,
     });
   };
 
   const handleCancelAssignedProEdit = () => {
     setIsEditingAssignedPro(false);
     const currentEmployee = request.assignedEmployee;
-    const hasEmployee = currentEmployee && (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee);
+    const hasEmployee =
+      currentEmployee &&
+      (typeof currentEmployee === "object"
+        ? currentEmployee._id
+        : currentEmployee);
     setAssignedProFormData({
-      assignedEmployee: hasEmployee ? (typeof currentEmployee === "object" ? currentEmployee._id : currentEmployee) : "none",
-      selectedEmployee: typeof currentEmployee === "object" ? currentEmployee : null,
+      assignedEmployee: hasEmployee
+        ? typeof currentEmployee === "object"
+          ? currentEmployee._id
+          : currentEmployee
+        : "none",
+      selectedEmployee:
+        typeof currentEmployee === "object" ? currentEmployee : null,
     });
   };
 
   const handleSaveCustomer = async () => {
     if (!request) return;
-    
+
     setIsSaving(true);
-    
+
     try {
       // Prepare the update data
       const updateData = {
@@ -254,19 +297,19 @@ export function ServiceRequestDetailsDialog({
         source: customerFormData.source,
         // Note: email is not included as it's read-only in the form
       };
-      
+
       console.log("Sending update data:", updateData);
-      
+
       // Make API call to update the service request
       const updatedRequest = await updateServiceRequest(updateData);
-      
+
       console.log("API response:", updatedRequest);
-      
+
       // Call the onUpdate callback to update the parent component
       if (onUpdate) {
         onUpdate(updatedRequest);
       }
-      
+
       // Update local form data to match the saved data
       setCustomerFormData({
         name: updatedRequest.name || "",
@@ -274,13 +317,13 @@ export function ServiceRequestDetailsDialog({
         email: updatedRequest.email || "",
         source: updatedRequest.source || "website",
       });
-      
+
       // Close edit mode
       setIsEditingCustomer(false);
-      
+
       // Show success message
       toast.success("Customer information updated successfully");
-      
+
       console.log("Customer information updated successfully:", {
         original: customerFormData,
         saved: {
@@ -288,7 +331,7 @@ export function ServiceRequestDetailsDialog({
           phone: updatedRequest.phone,
           email: updatedRequest.email,
           source: updatedRequest.source,
-        }
+        },
       });
     } catch (error) {
       console.error("Failed to update customer information:", error);
@@ -300,44 +343,44 @@ export function ServiceRequestDetailsDialog({
 
   const handleSaveScheduling = async () => {
     if (!request) return;
-    
+
     setIsSaving(true);
-    
+
     try {
       // Prepare the update data
       const updateData = {
         id: request._id,
         scheduledDate: schedulingFormData.scheduledDate,
       };
-      
+
       console.log("Sending scheduling update data:", updateData);
-      
+
       // Make API call to update the service request
       const updatedRequest = await updateServiceRequest(updateData);
-      
+
       console.log("Scheduling API response:", updatedRequest);
-      
+
       // Call the onUpdate callback to update the parent component
       if (onUpdate) {
         onUpdate(updatedRequest);
       }
-      
+
       // Update local form data to match the saved data
       setSchedulingFormData({
         scheduledDate: updatedRequest.scheduledDate || "",
       });
-      
+
       // Close edit mode
       setIsEditingScheduling(false);
-      
+
       // Show success message
       toast.success("Scheduling information updated successfully");
-      
+
       console.log("Scheduling information updated successfully:", {
         original: schedulingFormData,
         saved: {
           scheduledDate: updatedRequest.scheduledDate,
-        }
+        },
       });
     } catch (error) {
       console.error("Failed to update scheduling information:", error);
@@ -349,47 +392,59 @@ export function ServiceRequestDetailsDialog({
 
   const handleSaveAssignedPro = async () => {
     if (!request) return;
-    
+
     setIsSaving(true);
-    
+
     try {
       // Prepare the update data
       const updateData = {
         id: request._id,
-        assignedEmployee: assignedProFormData.assignedEmployee === "none" ? null : assignedProFormData.assignedEmployee || null,
+        assignedEmployee:
+          assignedProFormData.assignedEmployee === "none"
+            ? null
+            : assignedProFormData.assignedEmployee || null,
       };
-      
+
       console.log("Sending assigned pro update data:", updateData);
-      
+
       // Make API call to update the service request
       const updatedRequest = await updateServiceRequest(updateData);
-      
+
       console.log("Assigned pro API response:", updatedRequest);
-      
+
       // Call the onUpdate callback to update the parent component
       if (onUpdate) {
         onUpdate(updatedRequest);
       }
-      
+
       // Update local form data to match the saved data
       const updatedEmployee = updatedRequest.assignedEmployee;
-      const hasUpdatedEmployee = updatedEmployee && (typeof updatedEmployee === "object" ? updatedEmployee._id : updatedEmployee);
+      const hasUpdatedEmployee =
+        updatedEmployee &&
+        (typeof updatedEmployee === "object"
+          ? updatedEmployee._id
+          : updatedEmployee);
       setAssignedProFormData({
-        assignedEmployee: hasUpdatedEmployee ? (typeof updatedEmployee === "object" ? updatedEmployee._id : updatedEmployee) : "none",
-        selectedEmployee: typeof updatedEmployee === "object" ? updatedEmployee : null,
+        assignedEmployee: hasUpdatedEmployee
+          ? typeof updatedEmployee === "object"
+            ? updatedEmployee._id
+            : updatedEmployee
+          : "none",
+        selectedEmployee:
+          typeof updatedEmployee === "object" ? updatedEmployee : null,
       });
-      
+
       // Close edit mode
       setIsEditingAssignedPro(false);
-      
+
       // Show success message
       toast.success("Assigned pro updated successfully");
-      
+
       console.log("Assigned pro updated successfully:", {
         original: assignedProFormData,
         saved: {
           assignedEmployee: updatedRequest.assignedEmployee,
-        }
+        },
       });
     } catch (error) {
       console.error("Failed to update assigned pro:", error);
@@ -400,29 +455,38 @@ export function ServiceRequestDetailsDialog({
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setCustomerFormData(prev => ({
+    setCustomerFormData((prev) => ({
       ...prev,
-      [field]: field === "source" ? value as "website" | "phone" | "walk-in" | "referral" | "social-media" | "other" : value
+      [field]:
+        field === "source"
+          ? (value as
+              | "website"
+              | "phone"
+              | "walk-in"
+              | "referral"
+              | "social-media"
+              | "other")
+          : value,
     }));
   };
 
   const handleSchedulingInputChange = (field: string, value: string) => {
-    setSchedulingFormData(prev => ({
+    setSchedulingFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleEmployeeSelection = (employeeId: string) => {
     if (employeeId === "none") {
-      setAssignedProFormData(prev => ({
+      setAssignedProFormData((prev) => ({
         ...prev,
         assignedEmployee: "",
         selectedEmployee: null,
       }));
     } else {
-      const selectedEmployee = employees.find(emp => emp._id === employeeId);
-      setAssignedProFormData(prev => ({
+      const selectedEmployee = employees.find((emp) => emp._id === employeeId);
+      setAssignedProFormData((prev) => ({
         ...prev,
         assignedEmployee: employeeId,
         selectedEmployee: selectedEmployee || null,
@@ -518,7 +582,9 @@ export function ServiceRequestDetailsDialog({
                     title="Email cannot be changed"
                   />
                 ) : (
-                  <p className="text-foreground mt-1">{request.email || "Not provided"}</p>
+                  <p className="text-foreground mt-1">
+                    {request.email || "Not provided"}
+                  </p>
                 )}
               </div>
               <div>
@@ -526,7 +592,9 @@ export function ServiceRequestDetailsDialog({
                 {isEditingCustomer ? (
                   <Select
                     value={customerFormData.source}
-                    onValueChange={(value) => handleInputChange("source", value)}
+                    onValueChange={(value) =>
+                      handleInputChange("source", value)
+                    }
                   >
                     <SelectTrigger className="mt-1">
                       <SelectValue />
@@ -546,6 +614,58 @@ export function ServiceRequestDetailsDialog({
                   </Badge>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Payment Information */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Payment Status</p>
+                <Badge
+                  className={getStatusColor(
+                    (request.paymentStatus as any) || "pending"
+                  )}
+                >
+                  {request.paymentStatus || "pending"}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Payment Method</p>
+                <Badge variant="outline" className="capitalize">
+                  {request.paymentMethod || "-"}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Amount</p>
+                <p className="text-foreground">
+                  {formatCurrency(request.totalAmount)}
+                </p>
+              </div>
+              {request.amount !== undefined && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Subtotal</p>
+                  <p className="text-foreground">
+                    {formatCurrency(request.amount || 0)}
+                  </p>
+                </div>
+              )}
+              {request.tax !== undefined && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Tax</p>
+                  <p className="text-foreground">
+                    {formatCurrency(request.tax || 0)}
+                  </p>
+                </div>
+              )}
+              {request.paidAt && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Paid At</p>
+                  <p className="text-foreground">
+                    {new Date(request.paidAt).toLocaleString()}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -673,7 +793,9 @@ export function ServiceRequestDetailsDialog({
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label className="text-sm text-muted-foreground">Preferred Date</Label>
+                <Label className="text-sm text-muted-foreground">
+                  Preferred Date
+                </Label>
                 <p className="text-foreground mt-1">
                   {request.preferredDate
                     ? formatDateDMYNumeric(request.preferredDate)
@@ -681,18 +803,27 @@ export function ServiceRequestDetailsDialog({
                 </p>
               </div>
               <div>
-                <Label className="text-sm text-muted-foreground">Preferred Time</Label>
+                <Label className="text-sm text-muted-foreground">
+                  Preferred Time
+                </Label>
                 <p className="text-foreground mt-1">
                   {request.preferredTime || "Not specified"}
                 </p>
               </div>
               <div>
-                <Label className="text-sm text-muted-foreground">Scheduled Date</Label>
+                <Label className="text-sm text-muted-foreground">
+                  Scheduled Date
+                </Label>
                 {isEditingScheduling ? (
                   <Input
                     type="datetime-local"
                     value={schedulingFormData.scheduledDate}
-                    onChange={(e) => handleSchedulingInputChange("scheduledDate", e.target.value)}
+                    onChange={(e) =>
+                      handleSchedulingInputChange(
+                        "scheduledDate",
+                        e.target.value
+                      )
+                    }
                     className="mt-1"
                   />
                 ) : (
@@ -812,11 +943,13 @@ export function ServiceRequestDetailsDialog({
                 </div>
               )}
             </div>
-            
+
             {isEditingAssignedPro ? (
               <div className="space-y-4">
                 <div>
-                  <Label className="text-sm text-muted-foreground">Select Pro</Label>
+                  <Label className="text-sm text-muted-foreground">
+                    Select Pro
+                  </Label>
                   <Select
                     value={assignedProFormData.assignedEmployee}
                     onValueChange={handleEmployeeSelection}
@@ -834,24 +967,31 @@ export function ServiceRequestDetailsDialog({
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 {assignedProFormData.selectedEmployee && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
                     <div>
-                      <Label className="text-sm text-muted-foreground">Name</Label>
+                      <Label className="text-sm text-muted-foreground">
+                        Name
+                      </Label>
                       <p className="font-medium mt-1">
-                        {assignedProFormData.selectedEmployee.name || assignedProFormData.selectedEmployee.fullName}
+                        {assignedProFormData.selectedEmployee.name ||
+                          assignedProFormData.selectedEmployee.fullName}
                       </p>
                     </div>
                     <div>
-                      <Label className="text-sm text-muted-foreground">Email</Label>
+                      <Label className="text-sm text-muted-foreground">
+                        Email
+                      </Label>
                       <p className="text-foreground mt-1">
                         {assignedProFormData.selectedEmployee.email}
                       </p>
                     </div>
                     {assignedProFormData.selectedEmployee.phone && (
                       <div>
-                        <Label className="text-sm text-muted-foreground">Phone</Label>
+                        <Label className="text-sm text-muted-foreground">
+                          Phone
+                        </Label>
                         <p className="text-foreground mt-1">
                           {assignedProFormData.selectedEmployee.phone}
                         </p>
@@ -862,23 +1002,30 @@ export function ServiceRequestDetailsDialog({
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {request.assignedEmployee && typeof request.assignedEmployee === "object" ? (
+                {request.assignedEmployee &&
+                typeof request.assignedEmployee === "object" ? (
                   <>
                     <div>
-                      <Label className="text-sm text-muted-foreground">Name</Label>
+                      <Label className="text-sm text-muted-foreground">
+                        Name
+                      </Label>
                       <p className="font-medium mt-1">
                         {request.assignedEmployee.fullName}
                       </p>
                     </div>
                     <div>
-                      <Label className="text-sm text-muted-foreground">Email</Label>
+                      <Label className="text-sm text-muted-foreground">
+                        Email
+                      </Label>
                       <p className="text-foreground mt-1">
                         {request.assignedEmployee.email}
                       </p>
                     </div>
                     {request.assignedEmployee.phone && (
                       <div>
-                        <Label className="text-sm text-muted-foreground">Phone</Label>
+                        <Label className="text-sm text-muted-foreground">
+                          Phone
+                        </Label>
                         <p className="text-foreground mt-1">
                           {request.assignedEmployee.phone}
                         </p>
@@ -892,10 +1039,12 @@ export function ServiceRequestDetailsDialog({
                 )}
               </div>
             )}
-            
+
             {request.employeeRemarks && (
               <div>
-                <Label className="text-sm text-muted-foreground">Pro Remarks</Label>
+                <Label className="text-sm text-muted-foreground">
+                  Pro Remarks
+                </Label>
                 <p className="text-foreground mt-1">
                   {request.employeeRemarks}
                 </p>
@@ -903,7 +1052,9 @@ export function ServiceRequestDetailsDialog({
             )}
             {request.completionNotes && (
               <div>
-                <Label className="text-sm text-muted-foreground">Completion Notes</Label>
+                <Label className="text-sm text-muted-foreground">
+                  Completion Notes
+                </Label>
                 <p className="text-foreground mt-1">
                   {request.completionNotes}
                 </p>

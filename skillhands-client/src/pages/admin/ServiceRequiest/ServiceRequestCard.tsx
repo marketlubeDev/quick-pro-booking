@@ -77,6 +77,22 @@ function getPriorityColor(priority: string) {
   }
 }
 
+function getPaymentBadgeVariant(
+  status?: string
+): "default" | "secondary" | "destructive" | "success" | "warning" | "info" | "outline" {
+  switch (status) {
+    case "paid":
+      return "success";
+    case "failed":
+      return "destructive";
+    case "refunded":
+      return "secondary";
+    case "pending":
+    default:
+      return "warning";
+  }
+}
+
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-AE", {
     day: "numeric",
@@ -138,6 +154,11 @@ export function ServiceRequestCard({
             <Badge variant={getStatusBadgeVariant(request.status)}>
               {request.status}
             </Badge>
+            {request.paymentStatus && (
+              <Badge variant={getPaymentBadgeVariant(request.paymentStatus)}>
+                {request.paymentStatus}
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>

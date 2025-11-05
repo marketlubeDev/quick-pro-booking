@@ -33,6 +33,15 @@ export interface ServiceRequest {
   estimatedCost?: number;
   actualCost?: number;
 
+  // Payment
+  paymentStatus?: "pending" | "paid" | "failed" | "refunded";
+  paymentMethod?: "cash" | "stripe" | null;
+  stripePaymentIntentId?: string | null;
+  amount?: number; // base amount in cents or smallest currency unit
+  tax?: number; // tax amount in cents
+  totalAmount?: number; // total in cents
+  paidAt?: string | null;
+
   // Address variants
   address: string;
   city?: string;

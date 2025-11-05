@@ -58,20 +58,18 @@ interface ContactFormModalProps {
 
 // Service pricing configuration
 const servicePricing: { [key: string]: number } = {
-  plumbing: 150,
-  electrical: 175,
-  "house cleaning": 100,
+  plumbing: 100,
+  electrical: 150,
+  "house cleaning": 150,
   "ac repair": 200,
-  "appliance repair": 125,
-  painting: 120,
-  handyman: 110,
-  "pest control": 130,
+  "appliance repair": 100,
+  painting: 250,
+  handyman: 90,
+  "pest control": 190,
   "lawn care": 90,
   moving: 180,
   roofing: 250,
 };
-
-const TAX_RATE = 0; // No tax
 
 // Stripe Payment Form Component
 const StripePaymentForm: React.FC<{
@@ -978,6 +976,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
     // If moving to payment and Stripe is selected, create a Checkout session and redirect
     if (step === 3 && formData.paymentMethod === "stripe") {
+      setProcessingPayment(true);
       try {
         // First create service request to get ID
         const result = await serviceRequestApi.submit({
@@ -1019,6 +1018,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         console.error("Error starting Stripe Checkout:", error);
         toast.error("Failed to open Stripe Checkout. Please try again.");
         return;
+      } finally {
+        setProcessingPayment(false);
       }
     }
 
@@ -1625,11 +1626,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     !formData.address ||
                     !formData.city ||
                     !formData.zip ||
-                    !formData.paymentMethod
+                    !formData.paymentMethod ||
+                    processingPayment
                   }
                   className="w-full h-12 text-base font-medium"
                 >
-                  Continue to Payment
+                  {processingPayment ? "Processing..." : "Continue to Payment"}
                 </PrimaryButton>
               ) : null}
             </div>
@@ -1674,10 +1676,11 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     !formData.address ||
                     !formData.city ||
                     !formData.zip ||
-                    !formData.paymentMethod
+                    !formData.paymentMethod ||
+                    processingPayment
                   }
                 >
-                  Continue to Payment
+                  {processingPayment ? "Processing..." : "Continue to Payment"}
                 </PrimaryButton>
               ) : null}
             </div>

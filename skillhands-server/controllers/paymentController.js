@@ -1,6 +1,7 @@
 import "dotenv/config";
 import Stripe from "stripe";
 import ServiceRequest from "../models/ServiceRequest.js";
+import { sendPaymentSuccessEmails } from "../services/emailService.js";
 
 const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -113,7 +114,32 @@ export const confirmPayment = async (req, res) => {
       updateData.amount = paymentIntent.amount / 100; // store dollars
     }
 
+    // Also transition service status if appropriate
+    if (paymentIntent.status === "succeeded") {
+      updateData.status = "in-process";
+    }
+
     await ServiceRequest.findByIdAndUpdate(serviceRequestId, updateData);
+
+    // Send emails on success
+    if (paymentIntent.status === "succeeded") {
+      const sr = await ServiceRequest.findById(serviceRequestId);
+      try {
+        await sendPaymentSuccessEmails({
+          serviceRequest: sr?.toObject?.() || sr,
+          payment: {
+            amount: paymentIntent.amount,
+            currency: paymentIntent.currency,
+            paymentMethod: "stripe",
+            paymentIntentId: paymentIntent.id,
+            paidAt: new Date(),
+          },
+        });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("sendPaymentSuccessEmails error:", e);
+      }
+    }
 
     return res.json({
       success: paymentIntent.status === "succeeded",
@@ -286,7 +312,31 @@ export const verifyCheckoutSession = async (req, res) => {
       }
     }
 
+    if (isPaid) {
+      update.status = "in-process";
+    }
+
     await ServiceRequest.findByIdAndUpdate(serviceRequestId, update);
+
+    // Send emails on success
+    if (isPaid) {
+      const sr = await ServiceRequest.findById(serviceRequestId);
+      try {
+        await sendPaymentSuccessEmails({
+          serviceRequest: sr?.toObject?.() || sr,
+          payment: {
+            amount: paymentIntent?.amount,
+            currency: paymentIntent?.currency || "usd",
+            paymentMethod: "stripe",
+            paymentIntentId: paymentIntent?.id,
+            paidAt: new Date(),
+          },
+        });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("sendPaymentSuccessEmails error:", e);
+      }
+    }
 
     return res.json({
       success: isPaid,
@@ -334,12 +384,19 @@ export const handleStripeWebhook = async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  const updatePayment = async (serviceRequestId, status, amount, intentId) => {
+  const updatePayment = async (
+    serviceRequestId,
+    status,
+    amount,
+    intentId,
+    currency
+  ) => {
     const data = { paymentStatus: status };
     if (status === "paid") {
       data.paidAt = new Date();
       data.amount = amount / 100;
       data.stripePaymentIntentId = intentId;
+      data.status = "in-process";
     }
     await ServiceRequest.findByIdAndUpdate(serviceRequestId, data);
   };
@@ -351,8 +408,25 @@ export const handleStripeWebhook = async (req, res) => {
         pi.metadata.serviceRequestId,
         "paid",
         pi.amount,
-        pi.id
+        pi.id,
+        pi.currency
       );
+      try {
+        const sr = await ServiceRequest.findById(pi.metadata.serviceRequestId);
+        await sendPaymentSuccessEmails({
+          serviceRequest: sr?.toObject?.() || sr,
+          payment: {
+            amount: pi.amount,
+            currency: pi.currency,
+            paymentMethod: "stripe",
+            paymentIntentId: pi.id,
+            paidAt: new Date(),
+          },
+        });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("sendPaymentSuccessEmails error:", e);
+      }
       break;
     }
     case "payment_intent.payment_failed": {
