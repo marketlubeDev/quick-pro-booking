@@ -2,25 +2,13 @@ import "dotenv/config";
 import Stripe from "stripe";
 import ServiceRequest from "../models/ServiceRequest.js";
 
-// Lazily initialize Stripe when first needed; supports late-loaded env
-let stripe = null;
-function getStripe() {
-  if (stripe) return stripe;
-  const secret = process.env.STRIPE_SECRET_KEY;
+const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-  if (secret && secret.trim().length > 0) {
-    stripe = new Stripe(secret, { apiVersion: "2024-06-20" });
-  }
-  return stripe;
-}
-
-console.log("stripeSecret", process.env.STRIPE_WEBHOOK_SECRET);
 /**
  * Create a payment intent for a service request
  */
 export const createPaymentIntent = async (req, res) => {
   try {
-    const stripeClient = getStripe();
     if (!stripeClient) {
       return res.status(500).json({
         success: false,
@@ -93,7 +81,6 @@ export const createPaymentIntent = async (req, res) => {
  */
 export const confirmPayment = async (req, res) => {
   try {
-    const stripeClient = getStripe();
     if (!stripeClient) {
       return res.status(500).json({
         success: false,
@@ -150,119 +137,10 @@ export const confirmPayment = async (req, res) => {
 };
 
 /**
- * Webhook handler for Stripe events
- */
-export const handleStripeWebhook = async (req, res) => {
-  const sig = req.headers["stripe-signature"];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  console.log("webhookSecret111", webhookSecret);
-  const stripeClient = getStripe();
-  if (!stripeClient) {
-    console.error("Stripe not configured (missing STRIPE_SECRET_KEY)");
-    return res
-      .status(500)
-      .json({ success: false, message: "Stripe not configured" });
-  }
-
-  if (!webhookSecret) {
-    console.error("Stripe webhook secret not configured");
-    return res
-      .status(500)
-      .json({ success: false, message: "Webhook secret not configured" });
-  }
-
-  let event;
-
-  try {
-    event = stripeClient.webhooks.constructEvent(req.body, sig, webhookSecret);
-  } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
-    return res
-      .status(400)
-      .json({ success: false, message: `Webhook Error: ${err.message}` });
-  }
-
-  // Handle the event
-  switch (event.type) {
-    case "checkout.session.completed": {
-      const session = event.data.object;
-      try {
-        const serviceRequestId =
-          session.client_reference_id || session.metadata?.serviceRequestId;
-        const paymentIntentId = session.payment_intent;
-
-        if (serviceRequestId) {
-          const updates = {
-            paymentStatus: "paid",
-            paidAt: new Date(),
-          };
-          if (paymentIntentId)
-            updates.stripePaymentIntentId = String(paymentIntentId);
-          if (session.amount_total) {
-            updates.totalAmount = Number(session.amount_total) / 100;
-          }
-          await ServiceRequest.findByIdAndUpdate(serviceRequestId, updates);
-        } else if (paymentIntentId) {
-          await ServiceRequest.findOneAndUpdate(
-            { stripePaymentIntentId: String(paymentIntentId) },
-            { paymentStatus: "paid", paidAt: new Date() }
-          );
-        }
-      } catch (e) {
-        console.error("checkout.session.completed handler error:", e);
-      }
-      break;
-    }
-    case "payment_intent.succeeded":
-      const paymentIntent = event.data.object;
-      // Find service request by payment intent ID
-      let serviceRequest = await ServiceRequest.findOne({
-        stripePaymentIntentId: paymentIntent.id,
-      });
-
-      if (!serviceRequest && paymentIntent.metadata?.serviceRequestId) {
-        serviceRequest = await ServiceRequest.findById(
-          paymentIntent.metadata.serviceRequestId
-        );
-      }
-
-      if (serviceRequest) {
-        await ServiceRequest.findByIdAndUpdate(serviceRequest._id, {
-          paymentStatus: "paid",
-          paidAt: new Date(),
-          totalAmount: paymentIntent.amount / 100,
-          amount: paymentIntent.amount / 100,
-          stripePaymentIntentId: paymentIntent.id,
-        });
-      }
-      break;
-
-    case "payment_intent.payment_failed":
-      const failedPaymentIntent = event.data.object;
-      const failedServiceRequest = await ServiceRequest.findOne({
-        stripePaymentIntentId: failedPaymentIntent.id,
-      });
-
-      if (failedServiceRequest) {
-        await ServiceRequest.findByIdAndUpdate(failedServiceRequest._id, {
-          paymentStatus: "failed",
-        });
-      }
-      break;
-
-    default:
-      console.log(`Unhandled event type ${event.type}`);
-  }
-
-  return res.json({ success: true, received: true });
-};
-
-/**
  * Create a Stripe Checkout session and return the hosted URL
  */
 export const createCheckoutSession = async (req, res) => {
   try {
-    const stripeClient = getStripe();
     if (!stripeClient) {
       return res.status(500).json({
         success: false,
@@ -344,4 +222,144 @@ export const createCheckoutSession = async (req, res) => {
       error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
+};
+
+/**
+ * Verify a Stripe Checkout Session (no webhook)
+ * Called from the success page with `session_id` to confirm and update status
+ */
+export const verifyCheckoutSession = async (req, res) => {
+  try {
+    if (!stripeClient) {
+      return res.status(500).json({
+        success: false,
+        message:
+          "Stripe is not configured on the server (missing STRIPE_SECRET_KEY)",
+      });
+    }
+
+    // Accept either route param :sessionId or query param session_id
+    const sessionId =
+      req.params?.sessionId || req.query?.session_id || req.body?.sessionId;
+
+    if (!sessionId) {
+      return res.status(400).json({
+        success: false,
+        message: "sessionId (or session_id) is required",
+      });
+    }
+
+    // Retrieve session and expand payment_intent for amount/status
+    const session = await stripeClient.checkout.sessions.retrieve(sessionId, {
+      expand: ["payment_intent"],
+    });
+
+    const paymentIntent = session.payment_intent;
+    const serviceRequestId =
+      session?.metadata?.serviceRequestId || session?.client_reference_id;
+
+    if (!serviceRequestId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing serviceRequestId in session metadata",
+        data: { session },
+      });
+    }
+
+    // Determine paid/failed from session + payment intent
+    const isPaid =
+      session.payment_status === "paid" ||
+      (paymentIntent && paymentIntent.status === "succeeded");
+
+    const update = {
+      paymentStatus: isPaid ? "paid" : "failed",
+    };
+
+    if (isPaid) {
+      update.paidAt = new Date();
+      if (paymentIntent?.amount) {
+        update.amount = paymentIntent.amount / 100; // store dollars
+        update.totalAmount = paymentIntent.amount / 100; // store dollars
+      }
+      if (paymentIntent?.id) {
+        update.stripePaymentIntentId = paymentIntent.id;
+      }
+    }
+
+    await ServiceRequest.findByIdAndUpdate(serviceRequestId, update);
+
+    return res.json({
+      success: isPaid,
+      message: isPaid
+        ? "Payment verified successfully"
+        : "Payment not completed",
+      data: {
+        serviceRequestId,
+        paymentStatus: update.paymentStatus,
+        sessionId: session.id,
+        paymentIntentId: paymentIntent?.id || null,
+      },
+    });
+  } catch (error) {
+    console.error("Error verifying checkout session:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify checkout session",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+/**
+ * Stripe webhook handler
+ * Verifies signature and updates `ServiceRequest` payment status.
+ */
+// ✅ Webhook Handler (Raw Body Safe)
+export const handleStripeWebhook = async (req, res) => {
+  const signature = req.headers["stripe-signature"];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  console.log("RAW BODY? ", req.body);
+  console.log("Signature? ", req.headers["stripe-signature"]);
+
+  let event;
+  try {
+    event = stripeClient.webhooks.constructEvent(
+      req.body,
+      signature,
+      webhookSecret
+    );
+  } catch (err) {
+    console.error("Webhook signature verification failed", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  const updatePayment = async (serviceRequestId, status, amount, intentId) => {
+    const data = { paymentStatus: status };
+    if (status === "paid") {
+      data.paidAt = new Date();
+      data.amount = amount / 100;
+      data.stripePaymentIntentId = intentId;
+    }
+    await ServiceRequest.findByIdAndUpdate(serviceRequestId, data);
+  };
+
+  switch (event.type) {
+    case "payment_intent.succeeded": {
+      const pi = event.data.object;
+      await updatePayment(
+        pi.metadata.serviceRequestId,
+        "paid",
+        pi.amount,
+        pi.id
+      );
+      break;
+    }
+    case "payment_intent.payment_failed": {
+      const pi = event.data.object;
+      await updatePayment(pi.metadata.serviceRequestId, "failed", 0, pi.id);
+      break;
+    }
+  }
+  return res.json({ received: true });
 };

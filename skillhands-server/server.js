@@ -25,17 +25,6 @@ const PORT = process.env.PORT || 5000;
 // CORS middleware - Use the advanced CORS configuration
 applyCors(app);
 
-// Security middleware
-// applySecurity(app);
-
-// Rate limiting
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 100, // limit each IP to 100 requests per windowMs
-//   message: "Too many requests from this IP, please try again later.",
-// });
-// app.use("/api/", limiter);
-
 // Body parsing middleware
 // IMPORTANT: Stripe webhook must be defined BEFORE JSON parsing, to keep the raw body
 app.post(
@@ -89,24 +78,6 @@ app.get("/api/debug", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
-
-// // Health check routes that bypass database middleware
-// app.get("/api/health", (req, res) => {
-//   res.json({
-//     status: "OK",
-//     message: "Server is running",
-//     timestamp: new Date().toISOString(),
-//     environment: process.env.NODE_ENV || "development",
-//   });
-// });
-
-// app.get("/api/ping", (req, res) => {
-//   res.json({
-//     status: "OK",
-//     message: "Pong",
-//     timestamp: new Date().toISOString(),
-//   });
-// });
 
 // Database connection middleware for production (serverless)
 if (process.env.NODE_ENV === "production") {

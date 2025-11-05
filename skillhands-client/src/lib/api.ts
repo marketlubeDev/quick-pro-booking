@@ -299,6 +299,16 @@ export const paymentApi = {
   ): Promise<ApiResponse<{ checkoutUrl: string; sessionId: string }>> {
     return api.post("/api/payments/create-checkout-session", data);
   },
+
+  async verifyCheckoutSession(
+    sessionId: string
+  ): Promise<ApiResponse<{ serviceRequestId: string; paymentStatus: string }>> {
+    return api.get(
+      `/api/payments/checkout-session?session_id=${encodeURIComponent(
+        sessionId
+      )}`
+    );
+  },
 };
 
 export interface Employee {

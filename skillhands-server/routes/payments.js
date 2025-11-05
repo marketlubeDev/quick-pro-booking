@@ -4,6 +4,7 @@ import {
   confirmPayment,
   handleStripeWebhook,
   createCheckoutSession,
+  verifyCheckoutSession,
 } from "../controllers/paymentController.js";
 
 const router = express.Router();
@@ -19,5 +20,9 @@ router.post(
 router.post("/create-payment-intent", createPaymentIntent);
 router.post("/confirm-payment", confirmPayment);
 router.post("/create-checkout-session", createCheckoutSession);
+
+// Verify checkout completion without webhook
+router.get("/checkout-session/:sessionId", verifyCheckoutSession);
+router.get("/checkout-session", verifyCheckoutSession); // supports ?session_id=
 
 export default router;

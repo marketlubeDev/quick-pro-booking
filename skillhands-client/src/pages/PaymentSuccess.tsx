@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { serviceRequestApi } from "@/lib/api";
+import { serviceRequestApi, paymentApi } from "@/lib/api";
 import {
   CheckCircle2,
   CalendarDays,
@@ -21,6 +21,7 @@ export default function PaymentSuccess() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const srid = params.get("srid");
+    const sessionId = params.get("session_id");
     if (!srid) {
       setError("Missing service request ID.");
       setLoading(false);
@@ -28,6 +29,13 @@ export default function PaymentSuccess() {
     }
     (async () => {
       try {
+        if (sessionId) {
+          try {
+            await paymentApi.verifyCheckoutSession(sessionId);
+          } catch (_) {
+            // ignore; we'll still fetch the request below
+          }
+        }
         const res = await serviceRequestApi.getById(srid);
         if (res?.success && res?.data) {
           setRequest(res.data);
@@ -146,7 +154,7 @@ export default function PaymentSuccess() {
                   <div>
                     <div className="text-muted-foreground">Total Paid</div>
                     <div className="font-semibold text-green-700">
-                      ${(Number(request.totalAmount) / 100).toFixed(2)}
+                      ${Number(request.totalAmount).toFixed(2)}
                     </div>
                   </div>
                 </div>
