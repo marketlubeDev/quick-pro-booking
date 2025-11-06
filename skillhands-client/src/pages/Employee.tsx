@@ -31,7 +31,7 @@ const Employee = () => {
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
-                <CardTitle className="text-2xl">Employee Dashboard</CardTitle>
+                <CardTitle className="text-2xl">Pro Dashboard</CardTitle>
                 <CardDescription>Manage your profile and jobs</CardDescription>
               </div>
               <Button

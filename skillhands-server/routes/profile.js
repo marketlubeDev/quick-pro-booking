@@ -15,6 +15,9 @@ import {
   addWorkExperience,
   updateWorkExperience,
   deleteWorkExperience,
+  addQualification,
+  updateQualification,
+  deleteQualification,
 } from "../controllers/profileController.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { upload } from "../middleware/uploads.js";
@@ -40,6 +43,11 @@ router.post(
 router.post("/work-experience", addWorkExperience);
 router.patch("/work-experience/:experienceId", updateWorkExperience);
 router.delete("/work-experience/:experienceId", deleteWorkExperience);
+
+// Qualification routes
+router.post("/qualification", addQualification);
+router.patch("/qualification/:qualificationId", updateQualification);
+router.delete("/qualification/:qualificationId", deleteQualification);
 
 // Admin-only routes for employee management
 router.get("/all", requireRole("admin"), getAllEmployeeProfiles);

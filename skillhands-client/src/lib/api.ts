@@ -416,6 +416,18 @@ export interface WorkExperience {
   location?: string;
 }
 
+export interface Qualification {
+  id?: string;
+  degree: string;
+  institution: string;
+  fieldOfStudy?: string;
+  startDate: string;
+  endDate?: string;
+  current: boolean;
+  description?: string;
+  location?: string;
+}
+
 export interface Certification {
   name: string;
   fileUrl: string;
@@ -446,6 +458,7 @@ export interface EmployeeProfileData {
   skills?: string[];
   certifications?: Certification[];
   workExperience?: WorkExperience[];
+  qualifications?: Qualification[];
   expectedSalary?: number;
   profileComplete?: boolean;
   lastUpdated?: string;

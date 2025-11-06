@@ -67,6 +67,7 @@ export const updateMyProfile = async (req, res, next) => {
       "skills",
       "certifications",
       "workExperience",
+      "qualifications",
 
       // Verification Status
       "verified",
@@ -298,7 +299,7 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
 
     // Build filter object
     const filter = {};
-    
+
     if (status) filter.status = status;
     if (level) filter.level = level;
     if (verified !== undefined) filter.verified = verified === "true";
@@ -314,12 +315,16 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
       if (maxRating) filter.rating.$lte = Number(maxRating);
     }
     if (search) {
+      const searchRegex = new RegExp(search, "i");
       filter.$or = [
-        { fullName: new RegExp(search, "i") },
-        { email: new RegExp(search, "i") },
-        { designation: new RegExp(search, "i") },
-        { city: new RegExp(search, "i") },
-        { state: new RegExp(search, "i") },
+        { fullName: searchRegex },
+        { email: searchRegex },
+        { designation: searchRegex },
+        { city: searchRegex },
+        { state: searchRegex },
+        { postalCode: searchRegex },
+        { workingZipCodes: searchRegex },
+        { skills: searchRegex },
       ];
     }
 
@@ -360,14 +365,14 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
       phone: profile.phone || "",
       designation: Array.isArray(profile.designation)
         ? profile.designation.join(", ")
-        : (profile.designation || ""),
+        : profile.designation || "",
       skills: profile.skills || [],
       experienceLevel: profile.level || "Beginner",
       rating: profile.rating || 0,
       previousJobCount:
-        (typeof profile.totalJobs === "number" && profile.totalJobs > 0
+        typeof profile.totalJobs === "number" && profile.totalJobs > 0
           ? profile.totalJobs
-          : completedCountByProfileId[profile._id.toString()] || 0),
+          : completedCountByProfileId[profile._id.toString()] || 0,
       certifications: (profile.certifications || []).map(
         (cert) => cert.name || cert
       ),
@@ -375,6 +380,10 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
       status: profile.status || profile.verificationStatus || "pending",
       appliedDate: profile.createdAt || new Date(),
       location: profile.city || "Unknown",
+      zip: profile.postalCode || "",
+      workingZipCodes: profile.workingZipCodes || [],
+      workingCities: profile.workingCities || [],
+      city: profile.city || "",
       avatarUrl: profile.avatarUrl,
       bio: profile.bio,
       verified: profile.verified || false,
@@ -574,13 +583,15 @@ export const updateEmployeeVerification = async (req, res, next) => {
       if (!["pending", "approved", "rejected"].includes(verificationStatus)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid verification status. Must be pending, approved, or rejected",
+          message:
+            "Invalid verification status. Must be pending, approved, or rejected",
         });
       }
       profile.verificationStatus = verificationStatus;
       profile.status = verificationStatus; // Keep both fields in sync
     }
-    if (verificationNotes !== undefined) profile.verificationNotes = verificationNotes;
+    if (verificationNotes !== undefined)
+      profile.verificationNotes = verificationNotes;
 
     profile.lastUpdated = new Date();
     await profile.save();
@@ -750,10 +761,9 @@ export const addWorkExperience = async (req, res, next) => {
     profile.lastUpdated = new Date();
     await profile.save();
 
-    const updatedProfile = await Profile.findOne({ user: req.user._id }).populate(
-      "user",
-      "name email role isActive createdAt"
-    );
+    const updatedProfile = await Profile.findOne({
+      user: req.user._id,
+    }).populate("user", "name email role isActive createdAt");
 
     return res.json({
       success: true,
@@ -801,7 +811,8 @@ export const updateWorkExperience = async (req, res, next) => {
     if (company !== undefined) experience.company = company;
     if (position !== undefined) experience.position = position;
     if (startDate !== undefined) experience.startDate = new Date(startDate);
-    if (endDate !== undefined) experience.endDate = endDate ? new Date(endDate) : undefined;
+    if (endDate !== undefined)
+      experience.endDate = endDate ? new Date(endDate) : undefined;
     if (current !== undefined) experience.current = current;
     if (description !== undefined) experience.description = description;
     if (location !== undefined) experience.location = location;
@@ -809,10 +820,9 @@ export const updateWorkExperience = async (req, res, next) => {
     profile.lastUpdated = new Date();
     await profile.save();
 
-    const updatedProfile = await Profile.findOne({ user: req.user._id }).populate(
-      "user",
-      "name email role isActive createdAt"
-    );
+    const updatedProfile = await Profile.findOne({
+      user: req.user._id,
+    }).populate("user", "name email role isActive createdAt");
 
     return res.json({
       success: true,
@@ -851,14 +861,175 @@ export const deleteWorkExperience = async (req, res, next) => {
     profile.lastUpdated = new Date();
     await profile.save();
 
-    const updatedProfile = await Profile.findOne({ user: req.user._id }).populate(
-      "user",
-      "name email role isActive createdAt"
-    );
+    const updatedProfile = await Profile.findOne({
+      user: req.user._id,
+    }).populate("user", "name email role isActive createdAt");
 
     return res.json({
       success: true,
       message: "Work experience deleted successfully",
+      data: updatedProfile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Add qualification
+export const addQualification = async (req, res, next) => {
+  try {
+    const {
+      degree,
+      institution,
+      fieldOfStudy,
+      startDate,
+      endDate,
+      current,
+      description,
+      location,
+    } = req.body;
+
+    if (!degree || !institution || !startDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Degree, institution, and start date are required",
+      });
+    }
+
+    const profile = await Profile.findOne({ user: req.user._id });
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const newQualification = {
+      degree,
+      institution,
+      fieldOfStudy: fieldOfStudy || "",
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : undefined,
+      current: current || false,
+      description: description || "",
+      location: location || "",
+    };
+
+    profile.qualifications = [
+      ...(profile.qualifications || []),
+      newQualification,
+    ];
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    const updatedProfile = await Profile.findOne({
+      user: req.user._id,
+    }).populate("user", "name email role isActive createdAt");
+
+    return res.json({
+      success: true,
+      message: "Qualification added successfully",
+      data: updatedProfile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Update qualification
+export const updateQualification = async (req, res, next) => {
+  try {
+    const { qualificationId } = req.params;
+    const {
+      degree,
+      institution,
+      fieldOfStudy,
+      startDate,
+      endDate,
+      current,
+      description,
+      location,
+    } = req.body;
+
+    const profile = await Profile.findOne({ user: req.user._id });
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const qualificationIndex = profile.qualifications.findIndex(
+      (qual) => qual._id.toString() === qualificationId
+    );
+
+    if (qualificationIndex === -1) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Qualification not found" });
+    }
+
+    // Update the qualification entry
+    const qualification = profile.qualifications[qualificationIndex];
+    if (degree !== undefined) qualification.degree = degree;
+    if (institution !== undefined) qualification.institution = institution;
+    if (fieldOfStudy !== undefined) qualification.fieldOfStudy = fieldOfStudy;
+    if (startDate !== undefined) qualification.startDate = new Date(startDate);
+    if (endDate !== undefined)
+      qualification.endDate = endDate ? new Date(endDate) : undefined;
+    if (current !== undefined) qualification.current = current;
+    if (description !== undefined) qualification.description = description;
+    if (location !== undefined) qualification.location = location;
+
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    const updatedProfile = await Profile.findOne({
+      user: req.user._id,
+    }).populate("user", "name email role isActive createdAt");
+
+    return res.json({
+      success: true,
+      message: "Qualification updated successfully",
+      data: updatedProfile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Delete qualification
+export const deleteQualification = async (req, res, next) => {
+  try {
+    const { qualificationId } = req.params;
+
+    const profile = await Profile.findOne({ user: req.user._id });
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const qualificationIndex = profile.qualifications.findIndex(
+      (qual) => qual._id.toString() === qualificationId
+    );
+
+    if (qualificationIndex === -1) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Qualification not found" });
+    }
+
+    // Remove the qualification entry
+    profile.qualifications.splice(qualificationIndex, 1);
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    const updatedProfile = await Profile.findOne({
+      user: req.user._id,
+    }).populate("user", "name email role isActive createdAt");
+
+    return res.json({
+      success: true,
+      message: "Qualification deleted successfully",
       data: updatedProfile,
     });
   } catch (err) {

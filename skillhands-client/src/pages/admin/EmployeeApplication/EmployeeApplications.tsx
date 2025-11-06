@@ -84,16 +84,24 @@ export function EmployeeApplications() {
   });
 
   // Filter applications based on search and filters
-  const applications = useMemo(() => data?.pages.flatMap((p) => p.data) ?? [], [data]);
+  const applications = useMemo(
+    () => data?.pages.flatMap((p) => p.data) ?? [],
+    [data]
+  );
   const totalApplications = useMemo(
-    () => (data?.pages && data.pages.length > 0 ? (data.pages[0] as any).total ?? applications.length : applications.length),
+    () =>
+      data?.pages && data.pages.length > 0
+        ? (data.pages[0] as any).total ?? applications.length
+        : applications.length,
     [data, applications.length]
   );
   const visibleApplications = applications.filter(
     (application) => application.user?.role?.toLowerCase() !== "admin"
   );
 
-  console.log(`Total applications: ${applications.length}, Visible (non-admin): ${visibleApplications.length}`);
+  console.log(
+    `Total applications: ${applications.length}, Visible (non-admin): ${visibleApplications.length}`
+  );
 
   const filteredApplications = visibleApplications.filter((application) => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -103,12 +111,20 @@ export function EmployeeApplications() {
         application.id,
         application.name,
         application.location,
+        application.zip,
         (application as any).email,
         (application as any).phone,
         application.user?.name,
         application.user?.email,
-        Array.isArray(application.skills) ? application.skills.join(" ") : undefined,
-        Array.isArray((application as any).tags) ? (application as any).tags.join(" ") : undefined,
+        Array.isArray(application.skills)
+          ? application.skills.join(" ")
+          : undefined,
+        Array.isArray(application.workingZipCodes)
+          ? application.workingZipCodes.join(" ")
+          : undefined,
+        Array.isArray((application as any).tags)
+          ? (application as any).tags.join(" ")
+          : undefined,
       ] as Array<string | undefined | null>
     )
       .filter(Boolean)
@@ -116,7 +132,9 @@ export function EmployeeApplications() {
 
     const matchesSearch =
       normalizedQuery === "" ||
-      fieldsToSearch.some((value) => value.toLowerCase().includes(normalizedQuery));
+      fieldsToSearch.some((value) =>
+        value.toLowerCase().includes(normalizedQuery)
+      );
 
     const matchesStatus =
       statusFilter === "all" || application.status === statusFilter;
@@ -141,13 +159,16 @@ export function EmployeeApplications() {
 
   const handleApplicationUpdate = (updatedApplication: EmployeeApplication) => {
     // Update the selected application if it's the one being updated
-    if (selectedApplication && selectedApplication.id === updatedApplication.id) {
+    if (
+      selectedApplication &&
+      selectedApplication.id === updatedApplication.id
+    ) {
       setSelectedApplication(updatedApplication);
     }
-    
+
     // Refetch the applications list to ensure consistency
     refetch();
-    
+
     toast({
       title: "Application updated",
       description: "Employee application has been updated successfully",
@@ -250,7 +271,7 @@ export function EmployeeApplications() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by ID, name, skills, or location..."
+            placeholder="Search by ID, name, skills, location, or zip code..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -343,7 +364,9 @@ export function EmployeeApplications() {
               <span>Loading more applications...</span>
             </div>
           ) : (
-            <div className="text-muted-foreground text-sm">Scroll down to load more</div>
+            <div className="text-muted-foreground text-sm">
+              Scroll down to load more
+            </div>
           )}
         </div>
       )}

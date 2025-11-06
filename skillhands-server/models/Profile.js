@@ -11,6 +11,18 @@ const workExperienceSchema = new mongoose.Schema({
   location: { type: String, trim: true },
 });
 
+// Qualification Schema
+const qualificationSchema = new mongoose.Schema({
+  degree: { type: String, required: true, trim: true },
+  institution: { type: String, required: true, trim: true },
+  fieldOfStudy: { type: String, trim: true },
+  startDate: { type: Date, required: true },
+  endDate: { type: Date },
+  current: { type: Boolean, default: false },
+  description: { type: String, trim: true },
+  location: { type: String, trim: true },
+});
+
 // Certification Schema
 const certificationSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
@@ -57,6 +69,7 @@ const profileSchema = new mongoose.Schema(
     skills: [{ type: String, trim: true }],
     certifications: [certificationSchema],
     workExperience: [workExperienceSchema],
+    qualifications: [qualificationSchema],
 
     // Verification Status
     verified: { type: Boolean, default: false },

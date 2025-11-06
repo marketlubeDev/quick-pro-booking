@@ -11,10 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { marylandZipCodes } from "@/data/marylandZipCodes";
 import { employeeApi } from "@/lib/api";
+import { serviceCategoriesApi } from "@/lib/api.serviceCategories";
 import {
   Select,
   SelectContent,
@@ -45,15 +46,48 @@ const SignUp = () => {
   const [selectedZips, setSelectedZips] = useState<string[]>([]);
   const [city, setCity] = useState<string>("");
   const [zipOpen, setZipOpen] = useState(false);
-  const [selectedDesignations, setSelectedDesignations] = useState<string[]>([]);
+  const [selectedDesignations, setSelectedDesignations] = useState<string[]>(
+    []
+  );
   const [designationOpen, setDesignationOpen] = useState(false);
   const [selectedAddressZip, setSelectedAddressZip] = useState<string>("");
+  const [services, setServices] = useState<string[]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
 
   const workCities = selectedZips
     .map((zip) => marylandZipCodes.find((z) => z.zip === zip)?.city || "")
     .filter(Boolean)
     .filter((cityName, index, arr) => arr.indexOf(cityName) === index)
     .join(", ");
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await serviceCategoriesApi.list();
+        const categories = res.data || [];
+        const names = categories
+          .filter((c) => c && (c.isActive === undefined || c.isActive))
+          .map((c) => c.name)
+          .filter(Boolean);
+        if (isMounted) {
+          setServices(names);
+        }
+      } catch (e) {
+        console.error("Failed to fetch services:", e);
+        if (isMounted) {
+          setServices([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingServices(false);
+        }
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -70,7 +104,9 @@ const SignUp = () => {
       const confirm = (formData.get("confirm") as string) || "";
       const address = (formData.get("address") as string)?.toString().trim();
       const formCity = (formData.get("city") as string)?.toString().trim();
-      const zips = (formData.getAll("zips") as string[]).map((z) => z.toString().trim());
+      const zips = (formData.getAll("zips") as string[]).map((z) =>
+        z.toString().trim()
+      );
       const designation = (formData.get("designation") as string)
         ?.toString()
         .trim();
@@ -78,7 +114,9 @@ const SignUp = () => {
         ?.toString()
         .trim();
       const expectedSalary = Number(expectedSalaryStr);
-      const addressZip = (formData.get("addressZip") as string)?.toString().trim();
+      const addressZip = (formData.get("addressZip") as string)
+        ?.toString()
+        .trim();
       const finalCity = formCity || city;
       if (
         !name ||
@@ -105,12 +143,16 @@ const SignUp = () => {
         setError("Passwords do not match");
         return;
       }
-      const invalidWorkZip = zips.find((zip) => !marylandZipCodes.some((z) => z.zip === zip));
+      const invalidWorkZip = zips.find(
+        (zip) => !marylandZipCodes.some((z) => z.zip === zip)
+      );
       if (invalidWorkZip) {
         setError("Please select valid Maryland ZIP codes we serve");
         return;
       }
-      const isValidAddressZip = marylandZipCodes.some((z) => z.zip === addressZip);
+      const isValidAddressZip = marylandZipCodes.some(
+        (z) => z.zip === addressZip
+      );
       if (!isValidAddressZip) {
         setError("Please enter a valid Maryland address ZIP code");
         return;
@@ -187,7 +229,10 @@ const SignUp = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="designation">Designation</Label>
-                <Popover open={designationOpen} onOpenChange={setDesignationOpen}>
+                <Popover
+                  open={designationOpen}
+                  onOpenChange={setDesignationOpen}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -212,39 +257,37 @@ const SignUp = () => {
                       <CommandEmpty>No results found.</CommandEmpty>
                       <CommandList>
                         <CommandGroup>
-                          {[
-                            "plumber",
-                            "electrician",
-                            "house cleaner",
-                            "ac technician",
-                            "appliance repair",
-                            "painter",
-                            "handyman",
-                            "pest control specialist",
-                            "landscaper",
-                            "moving specialist",
-                            "roofer",
-                          ].map((d) => (
-                            <CommandItem
-                              key={d}
-                              value={d}
-                              onSelect={() => {
-                                setSelectedDesignations((prev) => {
-                                  const isSelected = prev.includes(d);
-                                  return isSelected
-                                    ? prev.filter((p) => p !== d)
-                                    : [...prev, d];
-                                });
-                              }}
-                            >
-                              <span className="mr-2 inline-flex items-center justify-center h-4 w-4">
-                                {selectedDesignations.includes(d) && (
-                                  <Check className="h-4 w-4" />
-                                )}
-                              </span>
-                              {d.replace(/\b\w/g, (c) => c.toUpperCase())}
+                          {loadingServices ? (
+                            <CommandItem disabled>
+                              Loading services...
                             </CommandItem>
-                          ))}
+                          ) : services.length === 0 ? (
+                            <CommandItem disabled>
+                              No services available
+                            </CommandItem>
+                          ) : (
+                            services.map((d) => (
+                              <CommandItem
+                                key={d}
+                                value={d}
+                                onSelect={() => {
+                                  setSelectedDesignations((prev) => {
+                                    const isSelected = prev.includes(d);
+                                    return isSelected
+                                      ? prev.filter((p) => p !== d)
+                                      : [...prev, d];
+                                  });
+                                }}
+                              >
+                                <span className="mr-2 inline-flex items-center justify-center h-4 w-4">
+                                  {selectedDesignations.includes(d) && (
+                                    <Check className="h-4 w-4" />
+                                  )}
+                                </span>
+                                {d.replace(/\b\w/g, (c) => c.toUpperCase())}
+                              </CommandItem>
+                            ))
+                          )}
                         </CommandGroup>
                       </CommandList>
                     </Command>
@@ -325,29 +368,45 @@ const SignUp = () => {
                   </PopoverContent>
                 </Popover>
                 {selectedZips.map((zip) => (
-                  <input key={zip} type="hidden" name="zips" value={zip} required />
+                  <input
+                    key={zip}
+                    type="hidden"
+                    name="zips"
+                    value={zip}
+                    required
+                  />
                 ))}
                 {selectedZips.map((zip) => (
-                  <input key={`working-${zip}`} type="hidden" name="workingZipCodes" value={zip} />
+                  <input
+                    key={`working-${zip}`}
+                    type="hidden"
+                    name="workingZipCodes"
+                    value={zip}
+                  />
                 ))}
               </div>
-            <div className="space-y-2">
-              <Label htmlFor="workCities">Work Cities</Label>
-              <Input
-                id="workCities"
-                type="text"
-                placeholder="Auto-filled from selected ZIPs"
-                value={workCities}
-                readOnly
-              />
-              <input type="hidden" name="workCities" value={workCities} />
-              {workCities
-                .split(", ")
-                .filter(Boolean)
-                .map((c) => (
-                  <input key={`wc-${c}`} type="hidden" name="workingCities" value={c} />
-                ))}
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="workCities">Work Cities</Label>
+                <Input
+                  id="workCities"
+                  type="text"
+                  placeholder="Auto-filled from selected ZIPs"
+                  value={workCities}
+                  readOnly
+                />
+                <input type="hidden" name="workCities" value={workCities} />
+                {workCities
+                  .split(", ")
+                  .filter(Boolean)
+                  .map((c) => (
+                    <input
+                      key={`wc-${c}`}
+                      type="hidden"
+                      name="workingCities"
+                      value={c}
+                    />
+                  ))}
+              </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="address">Address</Label>
                 <Input

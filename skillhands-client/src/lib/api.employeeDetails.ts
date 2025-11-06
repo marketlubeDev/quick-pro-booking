@@ -1,5 +1,5 @@
 import { apiFetch } from "./api";
-import type { EmployeeProfileData, ApiResponse } from "./api";
+import type { EmployeeProfileData, ApiResponse, Qualification } from "./api";
 
 export interface EmployeeDetailsUpdateInput {
   // Personal Information
@@ -31,6 +31,7 @@ export interface EmployeeDetailsUpdateInput {
     description: string;
     location?: string;
   }>;
+  qualifications?: Qualification[];
 
   // Verification fields (admin only)
   verified?: boolean;
@@ -76,11 +77,11 @@ export interface EmployeeSearchFilters {
 export async function getMyEmployeeDetails(): Promise<EmployeeProfileData> {
   try {
     const response = await apiFetch<EmployeeDetailsResponse>("/api/profile/");
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to fetch employee details");
   } catch (error) {
     console.error("Error fetching employee details:", error);
@@ -99,11 +100,11 @@ export async function updateMyEmployeeDetails(
       method: "PATCH",
       body: updates,
     });
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to update employee details");
   } catch (error) {
     console.error("Error updating employee details:", error);
@@ -121,11 +122,11 @@ export async function getEmployeeDetailsById(
     const response = await apiFetch<EmployeeDetailsResponse>(
       `/api/profile/employee/${userId}`
     );
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to fetch employee details");
   } catch (error) {
     console.error("Error fetching employee details by ID:", error);
@@ -141,25 +142,27 @@ export async function getAllEmployeeDetails(
 ): Promise<EmployeeDetailsListResponse> {
   try {
     const queryParams = new URLSearchParams();
-    
+
     // Add filters to query params
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== "") {
         if (Array.isArray(value)) {
-          value.forEach(item => queryParams.append(key, item));
+          value.forEach((item) => queryParams.append(key, item));
         } else {
           queryParams.append(key, String(value));
         }
       }
     });
-    
-    const url = `/api/profile/all${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+
+    const url = `/api/profile/all${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`;
     const response = await apiFetch<EmployeeDetailsListResponse>(url);
-    
+
     if (response.success && response.data) {
       return response;
     }
-    
+
     throw new Error("Failed to fetch employee details list");
   } catch (error) {
     console.error("Error fetching employee details list:", error);
@@ -183,11 +186,11 @@ export async function updateEmployeeStatus(
         body: { status, verificationNotes },
       }
     );
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to update employee status");
   } catch (error) {
     console.error("Error updating employee status:", error);
@@ -210,11 +213,11 @@ export async function updateEmployeeRating(
         body: { rating },
       }
     );
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to update employee rating");
   } catch (error) {
     console.error("Error updating employee rating:", error);
@@ -241,11 +244,11 @@ export async function updateEmployeeVerification(
         body: verificationData,
       }
     );
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to update employee verification");
   } catch (error) {
     console.error("Error updating employee verification:", error);
@@ -274,11 +277,11 @@ export async function updateEmployeeProfessionalDetails(
         body: professionalData,
       }
     );
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to update employee professional details");
   } catch (error) {
     console.error("Error updating employee professional details:", error);
@@ -312,11 +315,11 @@ export async function updateEmployeePersonalDetails(
         body: personalData,
       }
     );
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to update employee personal details");
   } catch (error) {
     console.error("Error updating employee personal details:", error);
@@ -327,17 +330,15 @@ export async function updateEmployeePersonalDetails(
 /**
  * Add work experience to employee profile
  */
-export async function addWorkExperience(
-  workExperience: {
-    company: string;
-    position: string;
-    startDate: string;
-    endDate?: string;
-    current: boolean;
-    description: string;
-    location?: string;
-  }
-): Promise<EmployeeProfileData> {
+export async function addWorkExperience(workExperience: {
+  company: string;
+  position: string;
+  startDate: string;
+  endDate?: string;
+  current: boolean;
+  description: string;
+  location?: string;
+}): Promise<EmployeeProfileData> {
   try {
     const response = await apiFetch<EmployeeDetailsResponse>(
       "/api/profile/work-experience",
@@ -346,11 +347,11 @@ export async function addWorkExperience(
         body: workExperience,
       }
     );
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to add work experience");
   } catch (error) {
     console.error("Error adding work experience:", error);
@@ -381,11 +382,11 @@ export async function updateWorkExperience(
         body: workExperience,
       }
     );
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to update work experience");
   } catch (error) {
     console.error("Error updating work experience:", error);
@@ -406,14 +407,108 @@ export async function deleteWorkExperience(
         method: "DELETE",
       }
     );
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to delete work experience");
   } catch (error) {
     console.error("Error deleting work experience:", error);
+    throw error;
+  }
+}
+
+/**
+ * Add qualification to employee profile
+ */
+export async function addQualification(qualification: {
+  degree: string;
+  institution: string;
+  fieldOfStudy?: string;
+  startDate: string;
+  endDate?: string;
+  current: boolean;
+  description?: string;
+  location?: string;
+}): Promise<EmployeeProfileData> {
+  try {
+    const response = await apiFetch<EmployeeDetailsResponse>(
+      "/api/profile/qualification",
+      {
+        method: "POST",
+        body: qualification,
+      }
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error("Failed to add qualification");
+  } catch (error) {
+    console.error("Error adding qualification:", error);
+    throw error;
+  }
+}
+
+/**
+ * Update qualification entry
+ */
+export async function updateQualification(
+  qualificationId: string,
+  qualification: {
+    degree?: string;
+    institution?: string;
+    fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+    current?: boolean;
+    description?: string;
+    location?: string;
+  }
+): Promise<EmployeeProfileData> {
+  try {
+    const response = await apiFetch<EmployeeDetailsResponse>(
+      `/api/profile/qualification/${qualificationId}`,
+      {
+        method: "PATCH",
+        body: qualification,
+      }
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error("Failed to update qualification");
+  } catch (error) {
+    console.error("Error updating qualification:", error);
+    throw error;
+  }
+}
+
+/**
+ * Delete qualification entry
+ */
+export async function deleteQualification(
+  qualificationId: string
+): Promise<EmployeeProfileData> {
+  try {
+    const response = await apiFetch<EmployeeDetailsResponse>(
+      `/api/profile/qualification/${qualificationId}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error("Failed to delete qualification");
+  } catch (error) {
+    console.error("Error deleting qualification:", error);
     throw error;
   }
 }
@@ -435,11 +530,11 @@ export async function getProfileCompletion(): Promise<{
         profileComplete: boolean;
       };
     }>("/api/profile/completion");
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error("Failed to fetch profile completion");
   } catch (error) {
     console.error("Error fetching profile completion:", error);
@@ -450,13 +545,17 @@ export async function getProfileCompletion(): Promise<{
 /**
  * Upload profile image
  */
-export async function uploadProfileImage(file: File): Promise<{ avatarUrl: string }> {
+export async function uploadProfileImage(
+  file: File
+): Promise<{ avatarUrl: string }> {
   try {
     const formData = new FormData();
     formData.append("profileImage", file);
-    
+
     const response = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/api/profile/upload-image`,
+      `${
+        import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
+      }/api/profile/upload-image`,
       {
         method: "POST",
         headers: {
@@ -465,13 +564,15 @@ export async function uploadProfileImage(file: File): Promise<{ avatarUrl: strin
         body: formData,
       }
     );
-    
+
     const result = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(result.message || `HTTP error! status: ${response.status}`);
+      throw new Error(
+        result.message || `HTTP error! status: ${response.status}`
+      );
     }
-    
+
     return result;
   } catch (error) {
     console.error("Error uploading profile image:", error);
@@ -492,9 +593,11 @@ export async function uploadCertificates(files: File[]): Promise<{
   try {
     const formData = new FormData();
     files.forEach((file) => formData.append("certificates", file));
-    
+
     const response = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/api/profile/upload-certificates`,
+      `${
+        import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
+      }/api/profile/upload-certificates`,
       {
         method: "POST",
         headers: {
@@ -503,13 +606,15 @@ export async function uploadCertificates(files: File[]): Promise<{
         body: formData,
       }
     );
-    
+
     const result = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(result.message || `HTTP error! status: ${response.status}`);
+      throw new Error(
+        result.message || `HTTP error! status: ${response.status}`
+      );
     }
-    
+
     return result.data;
   } catch (error) {
     console.error("Error uploading certificates:", error);

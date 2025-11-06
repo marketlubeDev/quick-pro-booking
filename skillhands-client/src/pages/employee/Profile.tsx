@@ -43,6 +43,7 @@ const EmployeeProfile = () => {
     skills: [],
     certifications: [],
     workExperience: [],
+    qualifications: [],
     expectedSalary: undefined,
     verified: false,
     designation: "",
@@ -54,7 +55,8 @@ const EmployeeProfile = () => {
       // Normalize legacy designation values to match current allowed options
       const normalizeDesignation = (value: string | undefined | null) => {
         // Ensure value is a string before calling toLowerCase
-        const stringValue = typeof value === 'string' ? value : String(value || "");
+        const stringValue =
+          typeof value === "string" ? value : String(value || "");
         const v = stringValue.toLowerCase().trim();
         switch (v) {
           case "plumbing":
@@ -93,6 +95,7 @@ const EmployeeProfile = () => {
         skills: profile.skills || [],
         certifications: profile.certifications || [],
         workExperience: profile.workExperience || [],
+        qualifications: profile.qualifications || [],
         expectedSalary: profile.expectedSalary,
         verified: profile.verified || false,
         designation: normalizeDesignation(profile.designation) || "",
@@ -236,8 +239,6 @@ const EmployeeProfile = () => {
                 )}
               </div>
             </div>
-
-            
           </CardContent>
         </Card>
 
@@ -260,7 +261,6 @@ const EmployeeProfile = () => {
               Skills & Certifications
             </TabsTrigger>
           </TabsList>
-          
 
           <form onSubmit={handleSubmit}>
             {/* Personal Information Tab */}
@@ -271,8 +271,6 @@ const EmployeeProfile = () => {
                 loading={loading}
                 // onUploadImage={uploadProfileImage}
               />
-
-      
             </TabsContent>
             {/* Skills & Certifications Tab */}
             <TabsContent value="skills">
@@ -283,8 +281,6 @@ const EmployeeProfile = () => {
                 // onUploadCertificates={uploadCertificates}
               />
             </TabsContent>
-
-        
           </form>
         </Tabs>
       </div>
