@@ -171,7 +171,7 @@ export function useExportReports(
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const exportReports = async (format: string = "csv") => {
+  const exportReports = async (format: string = "xlsx") => {
     try {
       setExporting(true);
       setError(null);
@@ -182,9 +182,11 @@ export function useExportReports(
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `reports-${timePeriod}-${
+      // Use .xlsx extension for Excel files, .csv for CSV files
+      const extension = format === "xlsx" || format === "excel" ? "xlsx" : format;
+      link.download = `Service-Requests-Report-${timePeriod}-${
         new Date().toISOString().split("T")[0]
-      }.${format}`;
+      }.${extension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

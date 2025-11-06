@@ -94,7 +94,7 @@ export function Reports() {
 
   const handleExport = async () => {
     try {
-      await exportReports("csv");
+      await exportReports("xlsx");
     } catch (error) {
       console.error("Export failed:", error);
     }

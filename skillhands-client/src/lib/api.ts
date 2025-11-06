@@ -703,7 +703,7 @@ export const reportsApi = {
 
   async exportReports(
     timePeriod: string = "last-month",
-    format: string = "csv"
+    format: string = "xlsx"
   ): Promise<Blob> {
     const response = await fetch(
       `${API_BASE_URL}/api/reports/export?period=${timePeriod}&format=${format}`,

@@ -1,6 +1,14 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Filter, Plus, Loader2 } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Plus,
+  Loader2,
+  Calendar as CalendarIcon,
+  MapPin,
+  X,
+} from "lucide-react";
 import { ServiceRequestCard } from "./ServiceRequestCard";
 import { ServiceRequest, Employee } from "@/types";
 import { Input } from "@/components/ui/input";
@@ -13,6 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import { useInfiniteServiceRequests } from "../../../hooks/useInfiniteServiceRequests";
 import { useSearchParams } from "react-router-dom";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
@@ -25,12 +40,16 @@ import {
 import { employeeApi } from "@/lib/api";
 import { ScheduleServiceDialog } from "./ScheduleServiceDialog";
 import { RejectServiceDialog } from "./RejectServiceDialog";
+import { marylandZipCodes } from "@/data/marylandZipCodes";
 
 export function ServiceRequests() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [cityFilter, setCityFilter] = useState<string>("all");
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(
     null
@@ -69,7 +88,6 @@ export function ServiceRequests() {
     },
     [searchParams, setSearchParams]
   );
-
 
   // Fetch overall summary once (if backend supports it)
   const { data: summary } = useQuery({
@@ -110,6 +128,53 @@ export function ServiceRequests() {
     return data?.pages.flatMap((page) => page.data) ?? [];
   }, [data]);
   console.log(serviceRequests, "serviceRequests");
+
+  // Extract unique cities from both service requests and Maryland ZIP codes
+  // This ensures we show cities that have service requests + all available cities
+  const uniqueCities = useMemo(() => {
+    // Get cities from service requests (actual data) - normalize by stripping county suffix
+    const citiesFromRequests = serviceRequests
+      .map((r) => r.city)
+      .filter((city): city is string => Boolean(city))
+      .map((city) => city.split(",")[0].trim())
+      .filter((city, index, arr) => arr.indexOf(city) === index);
+
+    // Get all cities from Maryland ZIP codes
+    const citiesFromZips = marylandZipCodes
+      .map((entry) => entry.city)
+      .filter((city): city is string => Boolean(city))
+      .map((city) => city.trim())
+      .filter((city, index, arr) => arr.indexOf(city) === index);
+
+    // Create a map of normalized city names to their original casing from requests
+    const normalizedToOriginal = new Map<string, string>();
+    citiesFromRequests.forEach((city) => {
+      const normalized = city.toLowerCase();
+      if (!normalizedToOriginal.has(normalized)) {
+        normalizedToOriginal.set(normalized, city);
+      }
+    });
+
+    // Merge both lists, using original casing from requests when available
+    // Otherwise use the casing from ZIP codes
+    const allCities = new Set<string>();
+
+    // Add cities from requests first (preserve their casing)
+    citiesFromRequests.forEach((city) => allCities.add(city));
+
+    // Add cities from ZIP codes that aren't already in the list (case-insensitive check)
+    citiesFromZips.forEach((city) => {
+      const normalized = city.toLowerCase();
+      if (!normalizedToOriginal.has(normalized)) {
+        allCities.add(city);
+      }
+    });
+
+    // Sort alphabetically (case-insensitive)
+    return Array.from(allCities).sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" })
+    );
+  }, [serviceRequests]);
   // Use API-reported total when available; otherwise, fallback to loaded count
   const totalServiceRequests = useMemo(() => {
     return (
@@ -227,9 +292,80 @@ export function ServiceRequests() {
         const matchesPriority =
           priorityFilter === "all" || request.priority === priorityFilter;
 
-        return matchesSearch && matchesStatus && matchesPriority;
+        // Date filter: check only createdAt
+        const matchesDate = (() => {
+          if (!dateFrom && !dateTo) return true;
+
+          // Only check createdAt field
+          if (!request.createdAt) return false;
+
+          const requestDate = new Date(request.createdAt);
+          if (isNaN(requestDate.getTime())) return false;
+
+          const dateOnly = new Date(
+            requestDate.getFullYear(),
+            requestDate.getMonth(),
+            requestDate.getDate()
+          );
+
+          if (dateFrom && dateTo) {
+            const fromOnly = new Date(
+              dateFrom.getFullYear(),
+              dateFrom.getMonth(),
+              dateFrom.getDate()
+            );
+            const toOnly = new Date(
+              dateTo.getFullYear(),
+              dateTo.getMonth(),
+              dateTo.getDate()
+            );
+            return dateOnly >= fromOnly && dateOnly <= toOnly;
+          } else if (dateFrom) {
+            const fromOnly = new Date(
+              dateFrom.getFullYear(),
+              dateFrom.getMonth(),
+              dateFrom.getDate()
+            );
+            return dateOnly >= fromOnly;
+          } else if (dateTo) {
+            const toOnly = new Date(
+              dateTo.getFullYear(),
+              dateTo.getMonth(),
+              dateTo.getDate()
+            );
+            return dateOnly <= toOnly;
+          }
+          return true;
+        })();
+
+        // Location filter: check city (case-insensitive, trimmed, strip county suffix)
+        const matchesLocation = (() => {
+          if (cityFilter === "all") return true;
+          if (!request.city) return false;
+
+          const requestCity = request.city.split(",")[0].trim().toLowerCase();
+          const filterCity = cityFilter.trim().toLowerCase();
+
+          return requestCity === filterCity;
+        })();
+
+        return (
+          matchesSearch &&
+          matchesStatus &&
+          matchesPriority &&
+          matchesDate &&
+          matchesLocation
+        );
       }),
-    [serviceRequests, searchQuery, statusFilter, priorityFilter]
+    [
+      serviceRequests,
+      searchQuery,
+      statusFilter,
+      priorityFilter,
+      dateFrom,
+      dateTo,
+      cityFilter,
+    ]
   );
 
   const handleViewDetails = (request: ServiceRequest) => {
@@ -297,49 +433,157 @@ export function ServiceRequests() {
     updateMutation.mutate(updateData);
   };
 
+  const formatDate = (date: Date | undefined): string => {
+    if (!date) return "";
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const clearDateFilters = () => {
+    setDateFrom(undefined);
+    setDateTo(undefined);
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by ID, name, service, or location..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              updateGlobalSearch(e.target.value);
-            }}
-            className="pl-9"
-          />
+      <div className="flex flex-col gap-4">
+        {/* First Row: Search and Status */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by ID, name, service, or location..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                updateGlobalSearch(e.target.value);
+              }}
+              className="pl-9"
+            />
+          </div>
+
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in-process">In Process</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="in-process">In Process</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>{" "}
-          </SelectContent>
-        </Select>
+        {/* Second Row: Date and Location Filters */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Date Range Filter */}
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full sm:w-[240px] justify-start text-left font-normal",
+                    !dateFrom && !dateTo && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateFrom && dateTo
+                    ? `${formatDate(dateFrom)} - ${formatDate(dateTo)}`
+                    : dateFrom
+                    ? `From: ${formatDate(dateFrom)}`
+                    : dateTo
+                    ? `To: ${formatDate(dateTo)}`
+                    : "Select date range"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-auto p-0"
+                align="start"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                <div className="p-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">From Date</label>
+                      <Calendar
+                        mode="single"
+                        selected={dateFrom}
+                        onSelect={setDateFrom}
+                        initialFocus
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">To Date</label>
+                      <Calendar
+                        mode="single"
+                        selected={dateTo}
+                        onSelect={setDateTo}
+                        disabled={(date) =>
+                          dateFrom ? date < dateFrom : false
+                        }
+                      />
+                    </div>
+                  </div>
+                  {(dateFrom || dateTo) && (
+                    <div className="mt-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          clearDateFilters();
+                        }}
+                        className="w-full"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Clear Date Filter
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
 
-        {/* <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="Priority" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Priority</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-          </SelectContent>
-        </Select> */}
+          {/* Location Filter */}
+          <div className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <Select value={cityFilter} onValueChange={setCityFilter}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="City" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Cities</SelectItem>
+                {uniqueCities.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {cityFilter !== "all" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setCityFilter("all");
+                }}
+                className="h-9 px-2"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
-
 
       {/* Stats Summary */}
       <div className="grid grid-cols-5 gap-4">
@@ -375,8 +619,6 @@ export function ServiceRequests() {
         </div>
       </div>
 
-
-      
       {/* Loading / Error */}
       {isLoading && (
         <div className="p-6 flex items-center justify-center min-h-[400px]">
@@ -445,7 +687,12 @@ export function ServiceRequests() {
             No service requests found
           </div>
           <div className="text-muted-foreground text-sm mt-1">
-            {searchQuery || statusFilter !== "all" || priorityFilter !== "all"
+            {searchQuery ||
+            statusFilter !== "all" ||
+            priorityFilter !== "all" ||
+            dateFrom ||
+            dateTo ||
+            cityFilter !== "all"
               ? "Try adjusting your search or filters"
               : "Service requests will appear here when customers submit them"}
           </div>
