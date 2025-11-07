@@ -34,7 +34,7 @@ export interface ServiceRequest {
   actualCost?: number;
 
   // Payment
-  paymentStatus?: "pending" | "paid" | "failed" | "refunded";
+  paymentStatus?: "pending" | "paid" | "partially_paid" | "failed" | "refunded";
   paymentMethod?: "cash" | "stripe" | null;
   stripePaymentIntentId?: string | null;
   amount?: number; // base amount in cents or smallest currency unit

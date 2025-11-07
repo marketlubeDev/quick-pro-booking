@@ -103,15 +103,42 @@ export const confirmPayment = async (req, res) => {
       paymentIntentId
     );
 
+    // Get the service request to check payment percentage
+    const serviceRequest = await ServiceRequest.findById(serviceRequestId);
+    if (!serviceRequest) {
+      return res.status(404).json({
+        success: false,
+        message: "Service request not found",
+      });
+    }
+
+    // Determine payment status based on payment percentage
+    let paymentStatus = "failed";
+    if (paymentIntent.status === "succeeded") {
+      // Check if this is a partial payment (50%)
+      // Both amounts are in cents, so compare directly
+      const paidAmount = paymentIntent.amount; // in cents
+      const totalAmount = serviceRequest.totalAmount; // in cents
+      const paymentPercentage = serviceRequest.paymentPercentage || "100";
+
+      if (paymentPercentage === "50" && paidAmount < totalAmount) {
+        paymentStatus = "partially_paid";
+      } else {
+        paymentStatus = "paid";
+      }
+    }
+
     // Update service request based on payment status
     const updateData = {
-      paymentStatus: paymentIntent.status === "succeeded" ? "paid" : "failed",
+      paymentStatus: paymentStatus,
     };
 
     if (paymentIntent.status === "succeeded") {
       updateData.paidAt = new Date();
-      updateData.totalAmount = paymentIntent.amount / 100; // store dollars
-      updateData.amount = paymentIntent.amount / 100; // store dollars
+      // Don't update totalAmount - keep the original total
+      // Only update the amount field to reflect what was actually paid
+      // paymentIntent.amount is already in cents from Stripe
+      updateData.amount = paymentIntent.amount; // store in cents
     }
 
     await ServiceRequest.findByIdAndUpdate(serviceRequestId, updateData);
@@ -292,15 +319,42 @@ export const verifyCheckoutSession = async (req, res) => {
       session.payment_status === "paid" ||
       (paymentIntent && paymentIntent.status === "succeeded");
 
+    // Get the service request to check payment percentage
+    const serviceRequest = await ServiceRequest.findById(serviceRequestId);
+    if (!serviceRequest) {
+      return res.status(404).json({
+        success: false,
+        message: "Service request not found",
+      });
+    }
+
+    // Determine payment status based on payment percentage
+    let paymentStatus = "failed";
+    if (isPaid) {
+      // Check if this is a partial payment (50%)
+      // Both amounts are in cents, so compare directly
+      const paidAmount = paymentIntent?.amount || 0; // in cents
+      const totalAmount = serviceRequest.totalAmount; // in cents
+      const paymentPercentage = serviceRequest.paymentPercentage || "100";
+
+      if (paymentPercentage === "50" && paidAmount < totalAmount) {
+        paymentStatus = "partially_paid";
+      } else {
+        paymentStatus = "paid";
+      }
+    }
+
     const update = {
-      paymentStatus: isPaid ? "paid" : "failed",
+      paymentStatus: paymentStatus,
     };
 
     if (isPaid) {
       update.paidAt = new Date();
       if (paymentIntent?.amount) {
-        update.amount = paymentIntent.amount / 100; // store dollars
-        update.totalAmount = paymentIntent.amount / 100; // store dollars
+        // Don't update totalAmount - keep the original total
+        // Only update the amount field to reflect what was actually paid
+        // paymentIntent.amount is already in cents from Stripe
+        update.amount = paymentIntent.amount; // store in cents
       }
       if (paymentIntent?.id) {
         update.stripePaymentIntentId = paymentIntent.id;
@@ -382,10 +436,35 @@ export const handleStripeWebhook = async (req, res) => {
     intentId,
     currency
   ) => {
-    const data = { paymentStatus: status };
+    // Get the service request to check payment percentage
+    const serviceRequest = await ServiceRequest.findById(serviceRequestId);
+    if (!serviceRequest) {
+      console.error(
+        `Service request ${serviceRequestId} not found for webhook`
+      );
+      return;
+    }
+
+    // Determine payment status based on payment percentage
+    let paymentStatus = status;
+    if (status === "paid") {
+      // Both amounts are in cents, so compare directly
+      const paidAmount = amount; // in cents
+      const totalAmount = serviceRequest.totalAmount; // in cents
+      const paymentPercentage = serviceRequest.paymentPercentage || "100";
+
+      if (paymentPercentage === "50" && paidAmount < totalAmount) {
+        paymentStatus = "partially_paid";
+      }
+    }
+
+    const data = { paymentStatus: paymentStatus };
     if (status === "paid") {
       data.paidAt = new Date();
-      data.amount = amount / 100;
+      // Don't update totalAmount - keep the original total
+      // Only update the amount field to reflect what was actually paid
+      // amount parameter is already in cents from Stripe webhook
+      data.amount = amount; // store in cents
       data.stripePaymentIntentId = intentId;
     }
     await ServiceRequest.findByIdAndUpdate(serviceRequestId, data);

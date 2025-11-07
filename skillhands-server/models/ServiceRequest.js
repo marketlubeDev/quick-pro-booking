@@ -114,8 +114,13 @@ const ServiceRequestSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ["pending", "paid", "failed", "refunded"],
+      enum: ["pending", "paid", "partially_paid", "failed", "refunded"],
       default: "pending",
+    },
+    paymentPercentage: {
+      type: String,
+      enum: ["50", "100"],
+      default: "100",
     },
     stripePaymentIntentId: { type: String, trim: true, default: null },
     amount: { type: Number, default: 0 }, // Total amount in cents

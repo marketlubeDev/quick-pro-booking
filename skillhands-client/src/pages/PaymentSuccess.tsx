@@ -148,14 +148,20 @@ export default function PaymentSuccess() {
                   </div>
                 </div>
               )}
-              {typeof request.totalAmount === "number" && (
+              {(typeof request.amount === "number" || typeof request.totalAmount === "number") && (
                 <div className="flex items-start gap-2">
                   <BadgeDollarSign className="w-4 h-4 mt-0.5 text-muted-foreground" />
                   <div>
                     <div className="text-muted-foreground">Total Paid</div>
                     <div className="font-semibold text-green-700">
-                      ${Number(request.totalAmount).toFixed(2)}
+                      ${((request.amount || 0) / 100).toFixed(2)}
                     </div>
+                    {request.paymentStatus === "partially_paid" && typeof request.totalAmount === "number" && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Total Amount: ${(request.totalAmount / 100).toFixed(2)} |
+                        Remaining: ${((request.totalAmount - (request.amount || 0)) / 100).toFixed(2)}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

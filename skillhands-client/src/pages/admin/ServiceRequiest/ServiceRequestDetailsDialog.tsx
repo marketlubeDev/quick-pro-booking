@@ -644,10 +644,22 @@ export function ServiceRequestDetailsDialog({
               </div>
               {request.amount !== undefined && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Subtotal</p>
+                  <p className="text-sm text-muted-foreground">
+                    {request.paymentStatus === "partially_paid"
+                      ? "Amount Paid"
+                      : "Subtotal"}
+                  </p>
                   <p className="text-foreground">
                     {formatCurrency(request.amount || 0)}
                   </p>
+                  {request.paymentStatus === "partially_paid" &&
+                   request.totalAmount !== undefined && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Remaining: {formatCurrency(
+                        (request.totalAmount || 0) - (request.amount || 0)
+                      )}
+                    </p>
+                  )}
                 </div>
               )}
               {request.tax !== undefined && (

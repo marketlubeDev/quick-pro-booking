@@ -126,6 +126,7 @@ export interface ServiceRequestData {
   status?: string;
   assignedEmployee?: string;
   paymentMethod?: string;
+  paymentPercentage?: "50" | "100";
   amount?: number;
   tax?: number;
   totalAmount?: number;

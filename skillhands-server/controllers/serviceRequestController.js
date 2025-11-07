@@ -31,6 +31,7 @@ export const createServiceRequest = async (req, res) => {
       isRecurring,
       recurringPattern,
       paymentMethod,
+      paymentPercentage,
       amount,
       tax,
       totalAmount,
@@ -88,6 +89,7 @@ export const createServiceRequest = async (req, res) => {
       isRecurring: isRecurring || false,
       recurringPattern: recurringPattern || null,
       paymentMethod: paymentMethod || null,
+      paymentPercentage: paymentPercentage || "100",
       amount: amount ? Math.round(amount * 100) : 0, // Convert to cents
       tax: tax ? Math.round(tax * 100) : 0, // Convert to cents
       totalAmount: totalAmount ? Math.round(totalAmount * 100) : 0, // Convert to cents
