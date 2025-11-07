@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle, Upload } from "lucide-react";
+import { CheckCircle, Upload, CreditCard, DollarSign } from "lucide-react";
 import {
   Command,
   CommandInput,
@@ -22,8 +22,34 @@ import {
   CommandItem,
   CommandEmpty,
 } from "@/components/ui/command";
-import { contactApi } from "@/lib/api";
+import {
+  serviceRequestApi,
+  employeeApi,
+  Employee,
+  paymentApi,
+} from "@/lib/api";
 import { toast } from "sonner";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
+import {
+  sanitizePhone,
+  sanitizeEmail,
+  sanitizeZipCode,
+  sanitizeTextarea,
+  sanitizeInputField,
+} from "@/lib/utils";
+import { marylandZipCodes } from "@/data/marylandZipCodes";
+import { serviceCategoriesApi } from "@/lib/api.serviceCategories";
+
+// Initialize Stripe
+const stripePromise = loadStripe(
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder"
+);
 
 function isValidEmail(email: string) {
   // Simple regex for email validation
@@ -50,10 +76,297 @@ function isValidUSPhoneNumber(phone: string) {
 
 function formatDateDMYNumeric(dateString: string) {
   if (!dateString) return "";
-  const [year, month, day] = dateString.split("-"); // expect YYYY-MM-DD
-  if (!year || !month || !day) return dateString;
-  return `${day}/${month}/${year}`;
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yyyy = date.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
 }
+
+// Stripe Payment Form Component
+const StripePaymentForm: React.FC<{
+  clientSecret: string;
+  onSuccess: () => void;
+  onError: (error: string) => void;
+  processing: boolean;
+  setProcessing: (value: boolean) => void;
+  serviceRequestId: string | null;
+  paymentIntentId: string | null;
+  totalAmount: number;
+}> = ({
+  clientSecret,
+  onSuccess,
+  onError,
+  processing,
+  setProcessing,
+  serviceRequestId,
+  paymentIntentId,
+  totalAmount,
+}) => {
+  const stripe = useStripe();
+  const elements = useElements();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements || !clientSecret) {
+      onError("Stripe not initialized");
+      return;
+    }
+
+    setProcessing(true);
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      onError("Card element not found");
+      setProcessing(false);
+      return;
+    }
+
+    try {
+      const { error, paymentIntent } = await stripe.confirmCardPayment(
+        clientSecret,
+        {
+          payment_method: {
+            card: cardElement,
+          },
+        }
+      );
+
+      if (error) {
+        onError(error.message || "Payment failed");
+        setProcessing(false);
+      } else if (paymentIntent && paymentIntent.status === "succeeded") {
+        // Confirm payment with backend
+        if (serviceRequestId && paymentIntentId) {
+          try {
+            await paymentApi.confirmPayment({
+              serviceRequestId,
+              paymentIntentId,
+            });
+          } catch (err) {
+            console.error("Error confirming payment:", err);
+          }
+        }
+        onSuccess();
+      }
+    } catch (err) {
+      onError("An unexpected error occurred");
+      setProcessing(false);
+    }
+  };
+
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: "16px",
+        color: "#424770",
+        "::placeholder": {
+          color: "#aab7c4",
+        },
+      },
+      invalid: {
+        color: "#9e2146",
+      },
+    },
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="border rounded-lg p-4">
+        <Label className="mb-2 block">Card Details</Label>
+        <CardElement options={cardElementOptions} />
+      </div>
+      <PrimaryButton
+        type="submit"
+        disabled={!stripe || processing}
+        className="w-full"
+      >
+        {processing ? "Processing..." : `Pay $${totalAmount.toFixed(2)}`}
+      </PrimaryButton>
+    </form>
+  );
+};
+
+// Payment Step Component
+const PaymentStep: React.FC<{
+  formData: any;
+  handleInputChange: (field: string, value: string) => void;
+  clientSecret: string | null;
+  serviceRequestId: string | null;
+  paymentIntentId: string | null;
+  processingPayment: boolean;
+  setProcessingPayment: (value: boolean) => void;
+  onPaymentSuccess: () => void;
+  submitError: string;
+  employees: Employee[];
+}> = ({
+  formData,
+  handleInputChange,
+  clientSecret,
+  serviceRequestId,
+  paymentIntentId,
+  processingPayment,
+  setProcessingPayment,
+  onPaymentSuccess,
+  submitError,
+  employees,
+}) => {
+  const totalAmount = formData.totalAmount || 0;
+
+  const handleCashPayment = async () => {
+    setProcessingPayment(true);
+    try {
+      const result = await serviceRequestApi.submit({
+        service: formData.service,
+        description: formData.description,
+        preferredDate: formData.preferredDate,
+        preferredTime: formData.preferredTime,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address,
+        city: formData.city,
+        state: "MD",
+        zip: formData.zip,
+        status: "pending",
+        assignedEmployee: formData.assignedEmployee || undefined,
+        paymentMethod: "cash",
+        amount: formData.amount,
+        tax: formData.tax,
+        totalAmount: formData.totalAmount,
+      });
+
+      if (result.success) {
+        onPaymentSuccess();
+      }
+    } catch (error) {
+      console.error("Error submitting cash payment:", error);
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Service Summary */}
+      <div className="bg-muted/50 p-4 rounded-lg">
+        <h3 className="font-heading font-semibold mb-4">Service Summary</h3>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Service:</span>
+            <span className="font-medium">{formData.service}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Date:</span>
+            <span className="font-medium">
+              {formatDateDMYNumeric(formData.preferredDate)}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Time:</span>
+            <span className="font-medium">{formData.preferredTime}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Location:</span>
+            <span className="font-medium">
+              {formData.address}, {formData.city}, MD {formData.zip}
+            </span>
+          </div>
+          {formData.assignedEmployee && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Employee:</span>
+              <span className="font-medium">
+                {(() => {
+                  const assignedEmp = employees.find(
+                    (emp) => emp._id === formData.assignedEmployee
+                  );
+                  return assignedEmp ? assignedEmp.name : "Unknown";
+                })()}
+              </span>
+            </div>
+          )}
+          <div className="border-t pt-2 mt-2">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Upfront Fee:</span>
+              <span className="font-medium">${formData.amount.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-lg font-bold pt-2 border-t">
+              <span>Total:</span>
+              <span>${formData.totalAmount.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Method */}
+      {formData.paymentMethod === "cash" ? (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-semibold mb-2 flex items-center gap-2">
+              <DollarSign className="w-5 h-5" />
+              Cash Payment
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              Payment will be collected at the service location. Please have the
+              exact amount ready.
+            </p>
+          </div>
+          <PrimaryButton
+            type="button"
+            onClick={handleCashPayment}
+            disabled={processingPayment}
+            className="w-full"
+          >
+            {processingPayment
+              ? "Submitting..."
+              : "Complete Request (Pay at Location)"}
+          </PrimaryButton>
+        </div>
+      ) : formData.paymentMethod === "stripe" ? (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-semibold mb-2 flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Secure Card Payment
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              Your payment information is encrypted and secure. Powered by
+              Stripe.
+            </p>
+          </div>
+          {clientSecret ? (
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <StripePaymentForm
+                clientSecret={clientSecret}
+                onSuccess={onPaymentSuccess}
+                onError={(error) => {
+                  console.error("Payment error:", error);
+                }}
+                processing={processingPayment}
+                setProcessing={setProcessingPayment}
+                serviceRequestId={serviceRequestId}
+                paymentIntentId={paymentIntentId}
+                totalAmount={totalAmount}
+              />
+            </Elements>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-muted-foreground">Initializing payment...</p>
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {submitError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600 text-sm">{submitError}</p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Request = () => {
   const [searchParams] = useSearchParams();
@@ -103,6 +416,11 @@ const Request = () => {
     city: "",
     zip: searchParams.get("zip") || "",
     image: null as File | null,
+    assignedEmployee: "",
+    paymentMethod: "" as "cash" | "stripe" | "",
+    amount: 0,
+    tax: 0,
+    totalAmount: 0,
   });
 
   const [zipError, setZipError] = useState("");
@@ -113,22 +431,21 @@ const Request = () => {
   const [submitError, setSubmitError] = useState("");
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [step2Error, setStep2Error] = useState("");
+  const [step2PhoneError, setStep2PhoneError] = useState("");
+  const [step2EmailError, setStep2EmailError] = useState("");
   const [imageError, setImageError] = useState("");
   const [step2NameError, setStep2NameError] = useState("");
-
-  const services = [
-    "Home Maintenance",
-    "Cleaning",
-    "Appliance Repairs",
-    "Electrical & Plumbing",
-    "AC & HVAC",
-    "Painting",
-    "Roof & Gutter",
-    "Lawn Care",
-    "Pest Control",
-    "Moving & Storage",
-    "Kitchen Renovation",
-  ];
+  const [serviceRequestId, setServiceRequestId] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+  const [servicePricing, setServicePricing] = useState<{
+    [key: string]: number;
+  }>({});
+  const [services, setServices] = useState<string[]>([]);
 
   const timeSlots = [
     "Morning (8AM - 12PM)",
@@ -136,6 +453,217 @@ const Request = () => {
     "Evening (5PM - 8PM)",
     "Emergency (ASAP)",
   ];
+
+  // Function to filter employees based on ZIP code and service
+  const filterEmployeesByZipAndService = (
+    zipCode: string,
+    service: string,
+    employeeList: Employee[]
+  ) => {
+    let filteredEmployees = employeeList;
+
+    // First filter by ZIP code
+    if (zipCode && zipCode.length === 5) {
+      // Find the ZIP code data to get city and county information
+      const zipData = marylandZipCodes.find((zip) => zip.zip === zipCode);
+      if (zipData) {
+        // Filter employees who are in the same city or county, or have no location data
+        filteredEmployees = filteredEmployees.filter((employee) => {
+          // If employee has no location data, include them (they can work anywhere)
+          if (!employee.city && !employee.postalCode) {
+            return true;
+          }
+
+          // If employee has postal code, check if it matches the selected ZIP
+          if (employee.postalCode && employee.postalCode === zipCode) {
+            return true;
+          }
+
+          // If employee has city data, check if it matches the ZIP code's city
+          if (employee.city) {
+            const employeeCity = employee.city.toLowerCase();
+            const zipCity = zipData.city.toLowerCase();
+            const zipCounty = zipData.county.toLowerCase();
+
+            // Check if employee's city matches ZIP code's city or county
+            return (
+              employeeCity.includes(zipCity) ||
+              employeeCity.includes(zipCounty) ||
+              zipCity.includes(employeeCity) ||
+              zipCounty.includes(employeeCity)
+            );
+          }
+
+          return false;
+        });
+      }
+    }
+
+    // Then filter by service if a service is selected
+    if (service && service.trim()) {
+      const selectedService = service.toLowerCase();
+      filteredEmployees = filteredEmployees.filter((employee) => {
+        // If employee has no skills, include them (they can do any service)
+        if (!employee.skills || employee.skills.length === 0) {
+          return true;
+        }
+
+        // Check if employee has skills that match the selected service
+        return employee.skills.some((skill) => {
+          const skillLower = skill.toLowerCase();
+          const serviceLower = selectedService;
+
+          // Direct match
+          if (skillLower === serviceLower) {
+            return true;
+          }
+
+          // Partial match (e.g., "plumbing" matches "plumber")
+          if (
+            skillLower.includes(serviceLower) ||
+            serviceLower.includes(skillLower)
+          ) {
+            return true;
+          }
+
+          // Special mappings for common variations
+          const serviceMappings: { [key: string]: string[] } = {
+            plumbing: ["plumber", "pipe", "water", "drain"],
+            electrical: ["electrician", "electric", "wiring", "power"],
+            "house cleaning": ["cleaner", "cleaning", "maid", "janitor"],
+            "ac repair": [
+              "hvac",
+              "air conditioning",
+              "cooling",
+              "refrigeration",
+            ],
+            "appliance repair": ["appliance", "repair", "technician", "fix"],
+            painting: ["painter", "paint", "decorator"],
+            handyman: ["handyman", "maintenance", "repair", "fix"],
+            "pest control": ["pest", "exterminator", "bug", "insect"],
+            "lawn care": ["landscaping", "lawn", "gardening", "mowing"],
+            moving: ["mover", "moving", "relocation", "transport"],
+            roofing: ["roofer", "roof", "shingle", "gutter"],
+          };
+
+          if (serviceMappings[serviceLower]) {
+            return serviceMappings[serviceLower].some(
+              (mapping) =>
+                skillLower.includes(mapping) || mapping.includes(skillLower)
+            );
+          }
+
+          return false;
+        });
+      });
+    }
+
+    return filteredEmployees;
+  };
+
+  // Function to fetch employees
+  const fetchEmployees = async () => {
+    try {
+      setLoadingEmployees(true);
+      const response = await employeeApi.getEmployees();
+      if (response.success && response.data) {
+        setEmployees(response.data);
+        // Initially show all employees
+        setFilteredEmployees(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      toast.error("Failed to load employees");
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
+
+  // Calculate service pricing
+  const calculatePricing = () => {
+    const key = (formData.service || "").toLowerCase();
+    const basePrice = servicePricing[key] ?? 100; // default upfront fee
+    const tax = 0;
+    const total = basePrice;
+
+    setFormData((prev) => ({
+      ...prev,
+      amount: basePrice,
+      tax: tax,
+      totalAmount: total,
+    }));
+  };
+
+  // Effect to fetch services and pricing
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await serviceCategoriesApi.list();
+        const categories = res.data || [];
+        const names = categories
+          .filter((c) => c && (c.isActive === undefined || c.isActive))
+          .map((c) => c.name)
+          .filter(Boolean);
+        if (isMounted) {
+          setServices(names);
+          const pricingMap: { [key: string]: number } = {};
+          categories.forEach((c) => {
+            if (c && c.name) {
+              const key = c.name.toLowerCase();
+              if (typeof c.price === "number") {
+                pricingMap[key] = c.price;
+              }
+            }
+          });
+          setServicePricing(pricingMap);
+        }
+      } catch (e) {
+        if (isMounted) setServices([]);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Effect to calculate pricing when service changes
+  useEffect(() => {
+    if (formData.service) {
+      calculatePricing();
+    }
+  }, [formData.service, servicePricing]);
+
+  // Effect to fetch employees on mount
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  // Effect to filter employees when ZIP code or service changes
+  useEffect(() => {
+    const filtered = filterEmployeesByZipAndService(
+      formData.zip,
+      formData.service,
+      employees
+    );
+    setFilteredEmployees(filtered);
+
+    // Clear assigned employee if they're not in the filtered list or if no employees are available
+    if (formData.assignedEmployee) {
+      if (filtered.length === 0) {
+        // No employees available for this ZIP code and service combination, clear assignment
+        setFormData((prev) => ({ ...prev, assignedEmployee: "" }));
+      } else {
+        // Check if the currently assigned employee is still available
+        const isAssignedEmployeeAvailable = filtered.some(
+          (emp) => emp._id === formData.assignedEmployee
+        );
+        if (!isAssignedEmployeeAvailable) {
+          setFormData((prev) => ({ ...prev, assignedEmployee: "" }));
+        }
+      }
+    }
+  }, [formData.zip, formData.service, employees]);
 
   // Maryland ZIP codes with corresponding cities and counties
   const marylandZipCodes = [
@@ -554,33 +1082,63 @@ const Request = () => {
     { zip: "21298", city: "Baltimore", county: "Baltimore City" },
   ];
 
-  const handleInputChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: string, value: string | File | null) => {
+    let sanitizedValue = value;
 
-    // Clear ZIP error when user starts typing
-    if (field === "zip") {
-      setZipError("");
-      setServiceAvailable(true);
+    // Sanitize string inputs based on field type
+    if (typeof value === "string") {
+      switch (field) {
+        case "phone":
+          sanitizedValue = sanitizePhone(value);
+          break;
+        case "email":
+          sanitizedValue = sanitizeEmail(value);
+          break;
+        case "zip":
+          sanitizedValue = sanitizeZipCode(value);
+          // ZIP code must start with '2'
+          if (
+            sanitizedValue &&
+            sanitizedValue.length > 0 &&
+            sanitizedValue[0] !== "2"
+          ) {
+            setZipError(
+              "Service not available in this area. We currently serve Maryland only."
+            );
+            setServiceAvailable(false);
+          } else {
+            setZipError("");
+            setServiceAvailable(true);
+          }
 
-      // ZIP code must start with '2'
-      if (value.length > 0 && value[0] !== "2") {
-        setZipError(
-          "Service not available in this area. We currently serve Maryland only."
-        );
-        setServiceAvailable(false);
-      }
-
-      // Auto-fill city if ZIP code is valid Maryland ZIP
-      if (value.length === 5) {
-        const zipData = marylandZipCodes.find((zip) => zip.zip === value);
-        if (zipData) {
-          setFormData((prev) => ({
-            ...prev,
-            city: `${zipData.city}, ${zipData.county}`,
-          }));
-        }
+          // Auto-fill city if ZIP code is valid Maryland ZIP
+          if (sanitizedValue.length === 5) {
+            const zipData = marylandZipCodes.find(
+              (zip) => zip.zip === sanitizedValue
+            );
+            if (zipData) {
+              setFormData((prev) => ({
+                ...prev,
+                city: `${zipData.city}, ${zipData.county}`,
+              }));
+            }
+          }
+          break;
+        case "description":
+          sanitizedValue = sanitizeTextarea(value);
+          break;
+        case "name":
+        case "address":
+        case "city":
+          sanitizedValue = value;
+          break;
+        default:
+          sanitizedValue = value;
+          break;
       }
     }
+
+    setFormData((prev) => ({ ...prev, [field]: sanitizedValue }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -688,8 +1246,8 @@ const Request = () => {
       return;
     }
 
-    // Validate email format if provided
-    if (formData.email && !isValidEmail(formData.email)) {
+    // Validate email format (required)
+    if (!formData.email || !isValidEmail(formData.email)) {
       setSubmitError("Please enter a valid email address.");
       setIsSubmitting(false);
       return;
@@ -697,14 +1255,22 @@ const Request = () => {
 
     if (!isValidUSPhoneNumber(formData.phone)) {
       setSubmitError(
-        "Please enter a valid US phone number (e.g., (555)1234567 or 15551234567)."
+        "Please enter a valid US phone number (e.g., 555-123-4567 or 1-555-123-4567)."
       );
       setIsSubmitting(false);
       return;
     }
 
+    // Validate payment method
+    if (!formData.paymentMethod) {
+      setSubmitError("Please select a payment method.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      const result = await contactApi.submitForm({
+      // First, create the service request
+      const result = await serviceRequestApi.submit({
         service: formData.service,
         description: formData.description,
         preferredDate: formData.preferredDate,
@@ -714,20 +1280,38 @@ const Request = () => {
         email: formData.email,
         address: formData.address,
         city: formData.city,
+        state: "MD",
         zip: formData.zip,
-        image: formData.image,
+        status: "pending",
+        assignedEmployee: formData.assignedEmployee || undefined,
+        paymentMethod: formData.paymentMethod,
+        amount: formData.amount,
+        tax: formData.tax,
+        totalAmount: formData.totalAmount,
       });
 
       console.log(result);
 
-      if (result.success) {
-        // Show success message using Sonner toast
-        toast.success(
-          "Service request submitted successfully! We will contact you soon."
-        );
+      if (result.success && result.data) {
+        const createdRequestId =
+          (result.data as any)?._id || (result.data as any)?.id;
+
+        // If Stripe payment, handle payment processing
+        if (formData.paymentMethod === "stripe" && clientSecret) {
+          // Payment will be handled by Stripe payment component
+          // The service request is already created, just show success
+          toast.success(
+            "Service request submitted successfully! Payment will be processed."
+          );
+        } else {
+          // Cash payment - just show success
+          toast.success(
+            "Service request submitted successfully! Payment will be collected at the service location."
+          );
+        }
 
         // Redirect to success page
-        setStep(4);
+        setStep(5);
       } else {
         setSubmitError(
           result.message || "Failed to submit request. Please try again."
@@ -744,27 +1328,77 @@ const Request = () => {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (step === 2) {
-      setStep2Error("");
+      setStep2PhoneError("");
+      setStep2EmailError("");
       setStep2NameError("");
+      let hasError = false;
       if (!formData.name.trim()) {
         setStep2NameError("Please enter your name.");
-        setStep2Error(""); // Clear phone/email errors
-        return;
-      } else {
-        setStep2NameError("");
+        hasError = true;
       }
-      if (formData.email && !isValidEmail(formData.email)) {
-        setStep2Error("Please enter a valid email address.");
-        return;
+      if (!formData.email || !isValidEmail(formData.email)) {
+        setStep2EmailError("Please enter a valid email address.");
+        hasError = true;
       }
       if (!formData.phone || !isValidUSPhoneNumber(formData.phone)) {
-        setStep2Error("Invalid phone number format!");
+        setStep2PhoneError("Invalid phone number format!");
+        hasError = true;
+      }
+      if (hasError) return;
+    }
+
+    // If moving to payment and Stripe is selected, create a Checkout session and redirect
+    if (step === 3 && formData.paymentMethod === "stripe") {
+      setProcessingPayment(true);
+      try {
+        // First create service request to get ID
+        const result = await serviceRequestApi.submit({
+          service: formData.service,
+          description: formData.description,
+          preferredDate: formData.preferredDate,
+          preferredTime: formData.preferredTime,
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          city: formData.city,
+          state: "MD",
+          zip: formData.zip,
+          status: "pending",
+          assignedEmployee: formData.assignedEmployee || undefined,
+          paymentMethod: "stripe",
+          amount: formData.amount,
+          tax: formData.tax,
+          totalAmount: formData.totalAmount,
+        });
+
+        if (result.success && result.data) {
+          const requestId =
+            (result.data as any)?._id || (result.data as any)?.id;
+          setServiceRequestId(requestId);
+          // Create Stripe Checkout session and redirect
+          const checkout = await paymentApi.createCheckoutSession({
+            serviceRequestId: requestId,
+            amount: formData.totalAmount,
+            returnUrl: window.location.origin,
+          });
+          if (checkout.success && checkout.data?.checkoutUrl) {
+            window.location.href = checkout.data.checkoutUrl as string;
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Error starting Stripe Checkout:", error);
+        toast.error("Failed to open Stripe Checkout. Please try again.");
         return;
+      } finally {
+        setProcessingPayment(false);
       }
     }
-    if (step < 3) setStep(step + 1);
+
+    if (step < 4) setStep(step + 1);
   };
 
   const prevStep = () => {
@@ -779,7 +1413,7 @@ const Request = () => {
     handleInputChange("zip", zipData.zip);
     setFormData((prev) => ({
       ...prev,
-      city: `${zipData.city}, ${zipData.county}`,
+      city: sanitizeInputField(`${zipData.city}, ${zipData.county}`),
     }));
     setZipDropdownOpen(false);
     // Focus the ZIP input after selection
@@ -791,11 +1425,9 @@ const Request = () => {
     ? marylandZipCodes.filter((zipData) => zipData.zip.startsWith(formData.zip))
     : marylandZipCodes;
 
-  if (step === 4) {
+  if (step === 5) {
     return (
       <div className="min-h-screen bg-background">
-       
-
         <section className="py-16 lg:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
@@ -830,7 +1462,6 @@ const Request = () => {
           </div>
         </section>
 
-       
         <FloatingWhatsApp />
       </div>
     );
@@ -838,15 +1469,13 @@ const Request = () => {
 
   return (
     <div className="min-h-screen bg-background">
-     
-
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
             {/* Progress Indicator */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                {[1, 2, 3].map((num) => (
+                {[1, 2, 3, 4].map((num) => (
                   <div
                     key={num}
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
@@ -862,7 +1491,7 @@ const Request = () => {
               <div className="w-full bg-muted rounded-full h-2">
                 <div
                   className="bg-primary h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(step / 3) * 100}%` }}
+                  style={{ width: `${(step / 4) * 100}%` }}
                 ></div>
               </div>
             </div>
@@ -873,17 +1502,18 @@ const Request = () => {
                   {step === 1 && "Service Details"}
                   {step === 2 && "Schedule & Contact"}
                   {step === 3 && "Address & Final Details"}
+                  {step === 4 && "Payment"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <form
                   onSubmit={(e) => {
-                    // Only allow form submission when in step 3
-                    if (step !== 3) {
+                    // Only allow form submission when in step 4 (payment step handles submission)
+                    if (step !== 4) {
                       e.preventDefault();
                       return;
                     }
-                    handleSubmit(e);
+                    e.preventDefault();
                   }}
                 >
                   {/* Step 1: Service Details */}
@@ -905,7 +1535,10 @@ const Request = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {services.map((service) => (
-                              <SelectItem key={service} value={service}>
+                              <SelectItem
+                                key={service}
+                                value={service.toLowerCase()}
+                              >
                                 {service}
                               </SelectItem>
                             ))}
@@ -1066,17 +1699,14 @@ const Request = () => {
                               sanitizedValue &&
                               isValidUSPhoneNumber(sanitizedValue)
                             ) {
-                              setStep2Error("");
+                              setStep2PhoneError("");
                             }
                           }}
                           placeholder="(555) 123-4567"
                         />
-                        {/* <p className="text-xs text-muted-foreground mt-1">
-                          Only digits and parentheses allowed
-                        </p> */}
-                        {step2Error && step2Error.includes("phone") && (
+                        {step2PhoneError && (
                           <p className="text-red-500 text-sm mt-1">
-                            {step2Error}
+                            {step2PhoneError}
                           </p>
                         )}
                       </div>
@@ -1093,9 +1723,9 @@ const Request = () => {
                           }
                           placeholder="john@example.com"
                         />
-                        {step2Error && step2Error.includes("email") && (
+                        {step2EmailError && (
                           <p className="text-red-500 text-sm mt-1">
-                            {step2Error}
+                            {step2EmailError}
                           </p>
                         )}
                       </div>
@@ -1214,6 +1844,143 @@ const Request = () => {
                             </p>
                           )}
                         </div>
+                        <div>
+                          <Label htmlFor="assignedEmployee">
+                            Assign to Employee
+                          </Label>
+                          <Select
+                            value={formData.assignedEmployee || undefined}
+                            onValueChange={(value) =>
+                              handleInputChange("assignedEmployee", value || "")
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  loadingEmployees
+                                    ? "Loading employees..."
+                                    : filteredEmployees.length === 0
+                                    ? "No employees available for this area"
+                                    : "Select an employee"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {filteredEmployees.length === 0 ? (
+                                <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                                  No employees available for{" "}
+                                  {formData.service
+                                    ? `${formData.service} service in `
+                                    : ""}
+                                  this ZIP code
+                                </div>
+                              ) : (
+                                filteredEmployees.map((employee) => (
+                                  <SelectItem
+                                    key={employee._id}
+                                    value={employee._id}
+                                  >
+                                    <div className="flex flex-col">
+                                      <span>
+                                        {employee.name} ({employee.email})
+                                      </span>
+                                      <div className="flex flex-col gap-1">
+                                        {employee.city && (
+                                          <span className="text-xs text-muted-foreground">
+                                            📍 {employee.city}
+                                            {employee.state &&
+                                              `, ${employee.state}`}
+                                          </span>
+                                        )}
+                                        {employee.skills &&
+                                          employee.skills.length > 0 && (
+                                            <span className="text-xs text-blue-600">
+                                              🛠️{" "}
+                                              {employee.skills
+                                                .slice(0, 3)
+                                                .join(", ")}
+                                              {employee.skills.length > 3 &&
+                                                ` +${
+                                                  employee.skills.length - 3
+                                                } more`}
+                                            </span>
+                                          )}
+                                      </div>
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                          {formData.zip && filteredEmployees.length === 0 && (
+                            <p className="text-orange-600 text-sm mt-1">
+                              ⚠ No employees available for{" "}
+                              {formData.service
+                                ? `${formData.service} service in `
+                                : ""}
+                              ZIP code {formData.zip}.
+                              {employees.length > 0 &&
+                                " Try selecting a different ZIP code or service."}
+                            </p>
+                          )}
+                          {formData.zip && filteredEmployees.length > 0 && (
+                            <p className="text-green-600 text-sm mt-1">
+                              ✓ {filteredEmployees.length} employee
+                              {filteredEmployees.length !== 1 ? "s" : ""}{" "}
+                              available for{" "}
+                              {formData.service
+                                ? `${formData.service} service in `
+                                : ""}
+                              this area
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="paymentMethod">Payment Method *</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                          <div
+                            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                              formData.paymentMethod === "cash"
+                                ? "border-primary bg-primary/5"
+                                : "border-muted hover:border-primary/50"
+                            }`}
+                            onClick={() =>
+                              handleInputChange("paymentMethod", "cash")
+                            }
+                          >
+                            <div className="flex items-center gap-3">
+                              <DollarSign className="w-6 h-6 text-primary" />
+                              <div>
+                                <h4 className="font-semibold">Cash Payment</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  Pay at service location
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                              formData.paymentMethod === "stripe"
+                                ? "border-primary bg-primary/5"
+                                : "border-muted hover:border-primary/50"
+                            }`}
+                            onClick={() =>
+                              handleInputChange("paymentMethod", "stripe")
+                            }
+                          >
+                            <div className="flex items-center gap-3">
+                              <CreditCard className="w-6 h-6 text-primary" />
+                              <div>
+                                <h4 className="font-semibold">Card Payment</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  Pay securely with card
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="bg-muted/50 p-4 rounded-lg">
@@ -1225,7 +1992,8 @@ const Request = () => {
                             <strong>Service:</strong> {formData.service}
                           </li>
                           <li>
-                            <strong>Date:</strong> {formatDateDMYNumeric(formData.preferredDate)}
+                            <strong>Date:</strong>{" "}
+                            {formatDateDMYNumeric(formData.preferredDate)}
                           </li>
                           <li>
                             <strong>Time:</strong> {formData.preferredTime}
@@ -1239,16 +2007,72 @@ const Request = () => {
                               <strong>Email:</strong> {formData.email}
                             </li>
                           )}
+                          {formData.assignedEmployee && (
+                            <li>
+                              <strong>Assigned Employee:</strong>{" "}
+                              {(() => {
+                                const assignedEmp = employees.find(
+                                  (emp) => emp._id === formData.assignedEmployee
+                                );
+                                if (assignedEmp) {
+                                  return `${assignedEmp.name}${
+                                    assignedEmp.city
+                                      ? ` (${assignedEmp.city})`
+                                      : ""
+                                  }`;
+                                }
+                                return "Unknown";
+                              })()}
+                            </li>
+                          )}
+                          <li className="pt-2 border-t">
+                            <strong>Upfront Fee:</strong> $
+                            {formData.amount.toFixed(2)}
+                          </li>
+                          <li>
+                            <strong>Total:</strong> $
+                            {formData.totalAmount.toFixed(2)}
+                          </li>
                         </ul>
+                        <div className="mt-3 text-xs text-muted-foreground">
+                          <p>
+                            Upfront fee covers the initial visit + company
+                            service charge.
+                          </p>
+                          <p>
+                            Additional on-site charges may apply for extra work
+                            or parts.
+                          </p>
+                        </div>
                       </div>
+
+                      {submitError && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                          <p className="text-red-600 text-sm">{submitError}</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {/* Submit Error Display */}
-                  {submitError && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
-                      <p className="text-red-600 text-sm">{submitError}</p>
-                    </div>
+                  {/* Step 4: Payment */}
+                  {step === 4 && (
+                    <PaymentStep
+                      formData={formData}
+                      handleInputChange={handleInputChange}
+                      clientSecret={clientSecret}
+                      serviceRequestId={serviceRequestId}
+                      paymentIntentId={paymentIntentId}
+                      processingPayment={processingPayment}
+                      setProcessingPayment={setProcessingPayment}
+                      onPaymentSuccess={() => {
+                        toast.success(
+                          "Payment processed successfully! Your service request has been submitted."
+                        );
+                        setStep(5);
+                      }}
+                      submitError={submitError}
+                      employees={employees}
+                    />
                   )}
 
                   {/* Navigation Buttons */}
@@ -1283,28 +2107,23 @@ const Request = () => {
                             Next
                           </PrimaryButton>
                         </div>
-                      ) : (
+                      ) : step === 3 ? (
                         <PrimaryButton
-                          type="submit"
+                          type="button"
+                          onClick={nextStep}
                           disabled={
                             !formData.address ||
                             !formData.city ||
                             !formData.zip ||
-                            !!zipError ||
-                            !serviceAvailable ||
-                            !formData.service ||
-                            !formData.description ||
-                            !formData.preferredDate ||
-                            !formData.preferredTime ||
-                            !formData.name ||
-                            !formData.phone ||
-                            !formData.email ||
-                            isSubmitting
+                            !formData.paymentMethod ||
+                            processingPayment
                           }
                         >
-                          {isSubmitting ? "Submitting..." : "Submit Request"}
+                          {processingPayment
+                            ? "Processing..."
+                            : "Continue to Payment"}
                         </PrimaryButton>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </form>
@@ -1314,7 +2133,6 @@ const Request = () => {
         </div>
       </section>
 
-     
       <FloatingWhatsApp />
     </div>
   );
