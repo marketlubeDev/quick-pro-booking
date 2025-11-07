@@ -515,6 +515,202 @@ export async function deleteQualification(
 }
 
 /**
+ * Admin: Add qualification to employee profile by profileId
+ */
+export async function addEmployeeQualification(
+  profileId: string,
+  qualification: {
+    degree: string;
+    institution: string;
+    fieldOfStudy?: string;
+    startDate: string;
+    endDate?: string;
+    current: boolean;
+    description?: string;
+    location?: string;
+  }
+): Promise<EmployeeProfileData> {
+  try {
+    const response = await apiFetch<EmployeeDetailsResponse>(
+      `/api/profile/${profileId}/qualification`,
+      {
+        method: "POST",
+        body: qualification,
+      }
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error("Failed to add qualification");
+  } catch (error) {
+    console.error("Error adding qualification:", error);
+    throw error;
+  }
+}
+
+/**
+ * Admin: Update qualification entry by profileId
+ */
+export async function updateEmployeeQualification(
+  profileId: string,
+  qualificationId: string,
+  qualification: {
+    degree?: string;
+    institution?: string;
+    fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+    current?: boolean;
+    description?: string;
+    location?: string;
+  }
+): Promise<EmployeeProfileData> {
+  try {
+    const response = await apiFetch<EmployeeDetailsResponse>(
+      `/api/profile/${profileId}/qualification/${qualificationId}`,
+      {
+        method: "PATCH",
+        body: qualification,
+      }
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error("Failed to update qualification");
+  } catch (error) {
+    console.error("Error updating qualification:", error);
+    throw error;
+  }
+}
+
+/**
+ * Admin: Delete qualification entry by profileId
+ */
+export async function deleteEmployeeQualification(
+  profileId: string,
+  qualificationId: string
+): Promise<EmployeeProfileData> {
+  try {
+    const response = await apiFetch<EmployeeDetailsResponse>(
+      `/api/profile/${profileId}/qualification/${qualificationId}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error("Failed to delete qualification");
+  } catch (error) {
+    console.error("Error deleting qualification:", error);
+    throw error;
+  }
+}
+
+/**
+ * Admin: Add work experience to employee profile by profileId
+ */
+export async function addEmployeeWorkExperience(
+  profileId: string,
+  workExperience: {
+    company: string;
+    position: string;
+    startDate: string;
+    endDate?: string;
+    current: boolean;
+    description: string;
+    location?: string;
+  }
+): Promise<EmployeeProfileData> {
+  try {
+    const response = await apiFetch<EmployeeDetailsResponse>(
+      `/api/profile/${profileId}/work-experience`,
+      {
+        method: "POST",
+        body: workExperience,
+      }
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error("Failed to add work experience");
+  } catch (error) {
+    console.error("Error adding work experience:", error);
+    throw error;
+  }
+}
+
+/**
+ * Admin: Update work experience entry by profileId
+ */
+export async function updateEmployeeWorkExperience(
+  profileId: string,
+  experienceId: string,
+  workExperience: {
+    company?: string;
+    position?: string;
+    startDate?: string;
+    endDate?: string;
+    current?: boolean;
+    description?: string;
+    location?: string;
+  }
+): Promise<EmployeeProfileData> {
+  try {
+    const response = await apiFetch<EmployeeDetailsResponse>(
+      `/api/profile/${profileId}/work-experience/${experienceId}`,
+      {
+        method: "PATCH",
+        body: workExperience,
+      }
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error("Failed to update work experience");
+  } catch (error) {
+    console.error("Error updating work experience:", error);
+    throw error;
+  }
+}
+
+/**
+ * Admin: Delete work experience entry by profileId
+ */
+export async function deleteEmployeeWorkExperience(
+  profileId: string,
+  experienceId: string
+): Promise<EmployeeProfileData> {
+  try {
+    const response = await apiFetch<EmployeeDetailsResponse>(
+      `/api/profile/${profileId}/work-experience/${experienceId}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error("Failed to delete work experience");
+  } catch (error) {
+    console.error("Error deleting work experience:", error);
+    throw error;
+  }
+}
+
+/**
  * Get profile completion status
  */
 export async function getProfileCompletion(): Promise<{

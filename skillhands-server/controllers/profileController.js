@@ -1046,3 +1046,322 @@ export const deleteQualification = async (req, res, next) => {
     next(err);
   }
 };
+
+// Admin: Add work experience to employee profile by profileId
+export const addEmployeeWorkExperience = async (req, res, next) => {
+  try {
+    const { profileId } = req.params;
+    const {
+      company,
+      position,
+      startDate,
+      endDate,
+      current,
+      description,
+      location,
+    } = req.body;
+
+    if (!company || !position || !startDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Company, position, and start date are required",
+      });
+    }
+
+    const profile = await Profile.findById(profileId).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const newExperience = {
+      company,
+      position,
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : undefined,
+      current: current || false,
+      description: description || "",
+      location: location || "",
+    };
+
+    profile.workExperience = [...(profile.workExperience || []), newExperience];
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Work experience added successfully",
+      data: profile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Admin: Update work experience entry by profileId
+export const updateEmployeeWorkExperience = async (req, res, next) => {
+  try {
+    const { profileId, experienceId } = req.params;
+    const {
+      company,
+      position,
+      startDate,
+      endDate,
+      current,
+      description,
+      location,
+    } = req.body;
+
+    const profile = await Profile.findById(profileId).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const experienceIndex = profile.workExperience.findIndex(
+      (exp) => exp._id.toString() === experienceId
+    );
+
+    if (experienceIndex === -1) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Work experience not found" });
+    }
+
+    // Update the experience entry
+    const experience = profile.workExperience[experienceIndex];
+    if (company !== undefined) experience.company = company;
+    if (position !== undefined) experience.position = position;
+    if (startDate !== undefined) experience.startDate = new Date(startDate);
+    if (endDate !== undefined)
+      experience.endDate = endDate ? new Date(endDate) : undefined;
+    if (current !== undefined) experience.current = current;
+    if (description !== undefined) experience.description = description;
+    if (location !== undefined) experience.location = location;
+
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Work experience updated successfully",
+      data: profile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Admin: Delete work experience entry by profileId
+export const deleteEmployeeWorkExperience = async (req, res, next) => {
+  try {
+    const { profileId, experienceId } = req.params;
+
+    const profile = await Profile.findById(profileId).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const experienceIndex = profile.workExperience.findIndex(
+      (exp) => exp._id.toString() === experienceId
+    );
+
+    if (experienceIndex === -1) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Work experience not found" });
+    }
+
+    // Remove the experience entry
+    profile.workExperience.splice(experienceIndex, 1);
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Work experience deleted successfully",
+      data: profile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Admin: Add qualification to employee profile by profileId
+export const addEmployeeQualification = async (req, res, next) => {
+  try {
+    const { profileId } = req.params;
+    const {
+      degree,
+      institution,
+      fieldOfStudy,
+      startDate,
+      endDate,
+      current,
+      description,
+      location,
+    } = req.body;
+
+    if (!degree || !institution || !startDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Degree, institution, and start date are required",
+      });
+    }
+
+    const profile = await Profile.findById(profileId).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const newQualification = {
+      degree,
+      institution,
+      fieldOfStudy: fieldOfStudy || "",
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : undefined,
+      current: current || false,
+      description: description || "",
+      location: location || "",
+    };
+
+    profile.qualifications = [
+      ...(profile.qualifications || []),
+      newQualification,
+    ];
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Qualification added successfully",
+      data: profile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Admin: Update qualification entry by profileId
+export const updateEmployeeQualification = async (req, res, next) => {
+  try {
+    const { profileId, qualificationId } = req.params;
+    const {
+      degree,
+      institution,
+      fieldOfStudy,
+      startDate,
+      endDate,
+      current,
+      description,
+      location,
+    } = req.body;
+
+    const profile = await Profile.findById(profileId).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const qualificationIndex = profile.qualifications.findIndex(
+      (qual) => qual._id.toString() === qualificationId
+    );
+
+    if (qualificationIndex === -1) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Qualification not found" });
+    }
+
+    // Update the qualification entry
+    const qualification = profile.qualifications[qualificationIndex];
+    if (degree !== undefined) qualification.degree = degree;
+    if (institution !== undefined) qualification.institution = institution;
+    if (fieldOfStudy !== undefined) qualification.fieldOfStudy = fieldOfStudy;
+    if (startDate !== undefined) qualification.startDate = new Date(startDate);
+    if (endDate !== undefined)
+      qualification.endDate = endDate ? new Date(endDate) : undefined;
+    if (current !== undefined) qualification.current = current;
+    if (description !== undefined) qualification.description = description;
+    if (location !== undefined) qualification.location = location;
+
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Qualification updated successfully",
+      data: profile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Admin: Delete qualification entry by profileId
+export const deleteEmployeeQualification = async (req, res, next) => {
+  try {
+    const { profileId, qualificationId } = req.params;
+
+    const profile = await Profile.findById(profileId).populate(
+      "user",
+      "name email role isActive createdAt"
+    );
+
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+    }
+
+    const qualificationIndex = profile.qualifications.findIndex(
+      (qual) => qual._id.toString() === qualificationId
+    );
+
+    if (qualificationIndex === -1) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Qualification not found" });
+    }
+
+    // Remove the qualification entry
+    profile.qualifications.splice(qualificationIndex, 1);
+    profile.lastUpdated = new Date();
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Qualification deleted successfully",
+      data: profile,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

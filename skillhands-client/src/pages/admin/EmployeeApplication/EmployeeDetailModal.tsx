@@ -49,16 +49,24 @@ import {
   Loader2,
   ChevronsUpDown,
   Check,
+  GraduationCap,
 } from "lucide-react";
 import { marylandZipCodes } from "@/data/marylandZipCodes";
 import { EmployeeApplication, WorkExperience } from "@/types";
+import type { Qualification } from "@/lib/api";
 import { fetchEmployeeJobs, type EmployeeJob } from "@/lib/api.employeeJobs";
 import { adminApi, type EmployeeProfileData } from "@/lib/api";
 import {
   updateEmployeePersonalDetails,
   updateEmployeeProfessionalDetails,
   updateEmployeeStatus,
-  type EmployeeDetailsUpdateInput
+  addEmployeeQualification,
+  updateEmployeeQualification,
+  deleteEmployeeQualification,
+  addEmployeeWorkExperience,
+  updateEmployeeWorkExperience,
+  deleteEmployeeWorkExperience,
+  type EmployeeDetailsUpdateInput,
 } from "@/lib/api.employeeDetails";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -130,6 +138,20 @@ function formatDateTime(dateString: string) {
   });
 }
 
+function formatDateForInput(dateString: string | undefined): string {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  } catch {
+    return "";
+  }
+}
+
 export function EmployeeDetailModal({
   application,
   isOpen,
@@ -151,6 +173,8 @@ export function EmployeeDetailModal({
   const [isEditingBasic, setIsEditingBasic] = useState(false);
   const [isEditingWorking, setIsEditingWorking] = useState(false);
   const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [isEditingQualifications, setIsEditingQualifications] = useState(false);
+  const [isEditingExperience, setIsEditingExperience] = useState(false);
   const [editingDetails, setEditingDetails] = useState({
     name: "",
     phone: "",
@@ -169,9 +193,28 @@ export function EmployeeDetailModal({
   const [zipOpen, setZipOpen] = useState(false);
   const [newWorkingCity, setNewWorkingCity] = useState("");
   const [savingDetails, setSavingDetails] = useState(false);
-  const [updatingStatus, setUpdatingStatus] = useState<"pending" | "approved" | "rejected" | null>(null);
+  const [newQualification, setNewQualification] = useState<
+    Partial<Qualification>
+  >({});
+  const [editingQualificationId, setEditingQualificationId] = useState<
+    string | null
+  >(null);
+  const [showQualificationForm, setShowQualificationForm] = useState(false);
+  const [savingQualification, setSavingQualification] = useState(false);
+  const [newWorkExperience, setNewWorkExperience] = useState<
+    Partial<WorkExperience>
+  >({});
+  const [editingExperienceId, setEditingExperienceId] = useState<string | null>(
+    null
+  );
+  const [showExperienceForm, setShowExperienceForm] = useState(false);
+  const [savingExperience, setSavingExperience] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState<
+    "pending" | "approved" | "rejected" | null
+  >(null);
   const [statusUpdateNotes, setStatusUpdateNotes] = useState("");
-  const [localApplication, setLocalApplication] = useState<EmployeeApplication | null>(null);
+  const [localApplication, setLocalApplication] =
+    useState<EmployeeApplication | null>(null);
   const { toast } = useToast();
 
   console.log(application, "dsfdffasfsadsadas");
@@ -195,7 +238,11 @@ export function EmployeeDetailModal({
         city: employeeProfile?.city || application.city || "",
         zip: employeeProfile?.postalCode || application.zip || "",
         expectedSalary: String(application.expectedSalary || ""),
-        yearsOfExperience: String(employeeProfile?.yearsOfExperience || application.yearsOfExperience || ""),
+        yearsOfExperience: String(
+          employeeProfile?.yearsOfExperience ||
+            application.yearsOfExperience ||
+            ""
+        ),
         experienceLevel: application.experienceLevel || "",
         skills: employeeProfile?.skills || application.skills || [],
         workingZipCodes:
@@ -308,6 +355,8 @@ export function EmployeeDetailModal({
   const handleEditBasic = () => setIsEditingBasic(true);
   const handleEditWorking = () => setIsEditingWorking(true);
   const handleEditSkills = () => setIsEditingSkills(true);
+  const handleEditQualifications = () => setIsEditingQualifications(true);
+  const handleEditExperience = () => setIsEditingExperience(true);
 
   const handleCancelBasic = () => {
     setIsEditingBasic(false);
@@ -317,17 +366,26 @@ export function EmployeeDetailModal({
         name: localApplication.name || "",
         phone: localApplication.phone || "",
         designation: localApplication.designation || "",
-        address: employeeProfile?.addressLine1 || localApplication.address || "",
+        address:
+          employeeProfile?.addressLine1 || localApplication.address || "",
         city: employeeProfile?.city || localApplication.city || "",
         zip: employeeProfile?.postalCode || localApplication.zip || "",
         expectedSalary: String(localApplication.expectedSalary || ""),
-        yearsOfExperience: String(employeeProfile?.yearsOfExperience || localApplication.yearsOfExperience || ""),
+        yearsOfExperience: String(
+          employeeProfile?.yearsOfExperience ||
+            localApplication.yearsOfExperience ||
+            ""
+        ),
         experienceLevel: localApplication.experienceLevel || "",
         skills: employeeProfile?.skills || localApplication.skills || [],
         workingZipCodes:
-          employeeProfile?.workingZipCodes || localApplication.workingZipCodes || [],
+          employeeProfile?.workingZipCodes ||
+          localApplication.workingZipCodes ||
+          [],
         workingCities:
-          employeeProfile?.workingCities || localApplication.workingCities || [],
+          employeeProfile?.workingCities ||
+          localApplication.workingCities ||
+          [],
       });
     }
   };
@@ -337,8 +395,14 @@ export function EmployeeDetailModal({
     if (localApplication) {
       setEditingDetails((prev) => ({
         ...prev,
-        workingZipCodes: employeeProfile?.workingZipCodes || localApplication.workingZipCodes || [],
-        workingCities: employeeProfile?.workingCities || localApplication.workingCities || [],
+        workingZipCodes:
+          employeeProfile?.workingZipCodes ||
+          localApplication.workingZipCodes ||
+          [],
+        workingCities:
+          employeeProfile?.workingCities ||
+          localApplication.workingCities ||
+          [],
       }));
     }
   };
@@ -374,16 +438,28 @@ export function EmployeeDetailModal({
       // Prepare professional details update (basic-related fields only if needed)
       const professionalDetailsUpdate = {
         designation: editingDetails.designation,
-        level: editingDetails.experienceLevel as "Beginner" | "Intermediate" | "Expert",
+        level: editingDetails.experienceLevel as
+          | "Beginner"
+          | "Intermediate"
+          | "Expert",
         expectedSalary: Number(editingDetails.expectedSalary) || 0,
-        yearsOfExperience: editingDetails.yearsOfExperience ? Number(editingDetails.yearsOfExperience) : undefined,
+        yearsOfExperience: editingDetails.yearsOfExperience
+          ? Number(editingDetails.yearsOfExperience)
+          : undefined,
       };
 
       // Update personal details
-      const updatedPersonalProfile = await updateEmployeePersonalDetails(selectedProfileId, personalDetailsUpdate);
+      const updatedPersonalProfile = await updateEmployeePersonalDetails(
+        selectedProfileId,
+        personalDetailsUpdate
+      );
 
       // Update professional details
-      const updatedProfessionalProfile = await updateEmployeeProfessionalDetails(selectedProfileId, professionalDetailsUpdate);
+      const updatedProfessionalProfile =
+        await updateEmployeeProfessionalDetails(
+          selectedProfileId,
+          professionalDetailsUpdate
+        );
 
       // Update the employee profile state with the latest data
       if (updatedProfessionalProfile) {
@@ -403,9 +479,14 @@ export function EmployeeDetailModal({
           city: editingDetails.city,
           postalCode: editingDetails.zip,
           designation: editingDetails.designation,
-          level: editingDetails.experienceLevel as "Beginner" | "Intermediate" | "Expert",
+          level: editingDetails.experienceLevel as
+            | "Beginner"
+            | "Intermediate"
+            | "Expert",
           expectedSalary: Number(editingDetails.expectedSalary) || 0,
-          yearsOfExperience: editingDetails.yearsOfExperience ? Number(editingDetails.yearsOfExperience) : undefined,
+          yearsOfExperience: editingDetails.yearsOfExperience
+            ? Number(editingDetails.yearsOfExperience)
+            : undefined,
           skills: editingDetails.skills,
           workingZipCodes: editingDetails.workingZipCodes,
           workingCities: editingDetails.workingCities,
@@ -427,7 +508,9 @@ export function EmployeeDetailModal({
           city: editingDetails.city,
           zip: editingDetails.zip,
           expectedSalary: Number(editingDetails.expectedSalary) || 0,
-          yearsOfExperience: editingDetails.yearsOfExperience ? Number(editingDetails.yearsOfExperience) : undefined,
+          yearsOfExperience: editingDetails.yearsOfExperience
+            ? Number(editingDetails.yearsOfExperience)
+            : undefined,
           experienceLevel: editingDetails.experienceLevel,
           skills: editingDetails.skills,
         };
@@ -448,14 +531,19 @@ export function EmployeeDetailModal({
           city: editingDetails.city,
           zip: editingDetails.zip,
           expectedSalary: Number(editingDetails.expectedSalary) || 0,
-          yearsOfExperience: editingDetails.yearsOfExperience ? Number(editingDetails.yearsOfExperience) : undefined,
+          yearsOfExperience: editingDetails.yearsOfExperience
+            ? Number(editingDetails.yearsOfExperience)
+            : undefined,
           experienceLevel: editingDetails.experienceLevel,
           skills: editingDetails.skills,
         };
 
         // Update the application prop by calling a callback if provided
         // This ensures the parent component also gets the updated data
-        console.log("Updated original application:", updatedOriginalApplication);
+        console.log(
+          "Updated original application:",
+          updatedOriginalApplication
+        );
 
         // Notify parent component of the update
         if (onApplicationUpdate) {
@@ -489,7 +577,10 @@ export function EmployeeDetailModal({
         workingZipCodes: editingDetails.workingZipCodes,
         workingCities: editingDetails.workingCities,
       };
-      await updateEmployeeProfessionalDetails(selectedProfileId, professionalDetailsUpdate);
+      await updateEmployeeProfessionalDetails(
+        selectedProfileId,
+        professionalDetailsUpdate
+      );
       if (employeeProfile) {
         setEmployeeProfile({
           ...employeeProfile,
@@ -501,7 +592,8 @@ export function EmployeeDetailModal({
     } catch (err) {
       toast({
         title: "Failed to update working areas",
-        description: err instanceof Error ? err.message : "Please try again later",
+        description:
+          err instanceof Error ? err.message : "Please try again later",
         variant: "destructive",
       });
     } finally {
@@ -516,7 +608,10 @@ export function EmployeeDetailModal({
       const professionalDetailsUpdate = {
         skills: editingDetails.skills,
       };
-      await updateEmployeeProfessionalDetails(selectedProfileId, professionalDetailsUpdate);
+      await updateEmployeeProfessionalDetails(
+        selectedProfileId,
+        professionalDetailsUpdate
+      );
       if (employeeProfile) {
         setEmployeeProfile({
           ...employeeProfile,
@@ -527,7 +622,8 @@ export function EmployeeDetailModal({
     } catch (err) {
       toast({
         title: "Failed to update skills",
-        description: err instanceof Error ? err.message : "Please try again later",
+        description:
+          err instanceof Error ? err.message : "Please try again later",
         variant: "destructive",
       });
     } finally {
@@ -536,43 +632,375 @@ export function EmployeeDetailModal({
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setEditingDetails(prev => ({
+    setEditingDetails((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleAddSkill = () => {
     if (newSkill.trim() && !editingDetails.skills.includes(newSkill.trim())) {
-      setEditingDetails(prev => ({
+      setEditingDetails((prev) => ({
         ...prev,
-        skills: [...prev.skills, newSkill.trim()]
+        skills: [...prev.skills, newSkill.trim()],
       }));
       setNewSkill("");
     }
   };
 
   const handleRemoveSkill = (skillToRemove: string) => {
-    setEditingDetails(prev => ({
+    setEditingDetails((prev) => ({
       ...prev,
-      skills: prev.skills.filter(skill => skill !== skillToRemove)
+      skills: prev.skills.filter((skill) => skill !== skillToRemove),
     }));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleAddSkill();
     }
   };
 
-  const handleStatusUpdate = async (newStatus: "pending" | "approved" | "rejected") => {
+  const handleAddQualification = async () => {
+    if (
+      !selectedProfileId ||
+      !newQualification.degree ||
+      !newQualification.institution ||
+      !newQualification.startDate
+    ) {
+      toast({
+        title: "Missing required fields",
+        description: "Degree, institution, and start date are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSavingQualification(true);
+      const qualificationData = {
+        degree: newQualification.degree,
+        institution: newQualification.institution,
+        fieldOfStudy: newQualification.fieldOfStudy,
+        startDate: newQualification.startDate,
+        endDate: newQualification.current
+          ? undefined
+          : newQualification.endDate,
+        current: newQualification.current || false,
+        description: newQualification.description,
+        location: newQualification.location,
+      };
+
+      const updatedProfile = await addEmployeeQualification(
+        selectedProfileId,
+        qualificationData
+      );
+      setEmployeeProfile(updatedProfile);
+      await fetchWorkExperience(); // Refresh to get latest data
+
+      setNewQualification({});
+      setShowQualificationForm(false);
+      toast({ title: "Qualification added successfully" });
+    } catch (error) {
+      toast({
+        title: "Failed to add qualification",
+        description:
+          error instanceof Error ? error.message : "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingQualification(false);
+    }
+  };
+
+  const handleUpdateQualification = async () => {
+    if (
+      !selectedProfileId ||
+      !editingQualificationId ||
+      !newQualification.degree ||
+      !newQualification.institution ||
+      !newQualification.startDate
+    ) {
+      toast({
+        title: "Missing required fields",
+        description: "Degree, institution, and start date are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSavingQualification(true);
+      const qualificationData = {
+        degree: newQualification.degree,
+        institution: newQualification.institution,
+        fieldOfStudy: newQualification.fieldOfStudy,
+        startDate: newQualification.startDate,
+        endDate: newQualification.current
+          ? undefined
+          : newQualification.endDate,
+        current: newQualification.current || false,
+        description: newQualification.description,
+        location: newQualification.location,
+      };
+
+      const updatedProfile = await updateEmployeeQualification(
+        selectedProfileId,
+        editingQualificationId,
+        qualificationData
+      );
+      setEmployeeProfile(updatedProfile);
+      await fetchWorkExperience(); // Refresh to get latest data
+
+      setNewQualification({});
+      setEditingQualificationId(null);
+      setShowQualificationForm(false);
+      toast({ title: "Qualification updated successfully" });
+    } catch (error) {
+      toast({
+        title: "Failed to update qualification",
+        description:
+          error instanceof Error ? error.message : "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingQualification(false);
+    }
+  };
+
+  const handleEditQualification = (qual: Qualification) => {
+    const qualId = qual.id || (qual as any)._id;
+    setEditingQualificationId(qualId || null);
+    setNewQualification({
+      degree: qual.degree,
+      institution: qual.institution,
+      fieldOfStudy: qual.fieldOfStudy,
+      startDate: formatDateForInput(qual.startDate),
+      endDate: formatDateForInput(qual.endDate),
+      current: qual.current,
+      description: qual.description,
+      location: qual.location,
+    });
+    setShowQualificationForm(true);
+  };
+
+  const handleRemoveQualification = async (qual: Qualification) => {
+    if (!selectedProfileId) return;
+    const qualId = qual.id || (qual as any)._id;
+    if (!qualId) {
+      toast({
+        title: "Error",
+        description: "Qualification ID not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSavingQualification(true);
+      const updatedProfile = await deleteEmployeeQualification(
+        selectedProfileId,
+        qualId
+      );
+      setEmployeeProfile(updatedProfile);
+      await fetchWorkExperience(); // Refresh to get latest data
+      toast({ title: "Qualification removed" });
+    } catch (error) {
+      toast({
+        title: "Failed to remove qualification",
+        description:
+          error instanceof Error ? error.message : "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingQualification(false);
+    }
+  };
+
+  const handleCancelQualifications = () => {
+    setIsEditingQualifications(false);
+    setShowQualificationForm(false);
+    setEditingQualificationId(null);
+    setNewQualification({});
+  };
+
+  const handleAddWorkExperience = async () => {
+    if (
+      !selectedProfileId ||
+      !newWorkExperience.company ||
+      !newWorkExperience.position ||
+      !newWorkExperience.startDate
+    ) {
+      toast({
+        title: "Missing required fields",
+        description: "Company, position, and start date are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSavingExperience(true);
+      const experienceData = {
+        company: newWorkExperience.company,
+        position: newWorkExperience.position,
+        startDate: newWorkExperience.startDate,
+        endDate: newWorkExperience.current
+          ? undefined
+          : newWorkExperience.endDate,
+        current: newWorkExperience.current || false,
+        description: newWorkExperience.description || "",
+        location: newWorkExperience.location,
+      };
+
+      const updatedProfile = await addEmployeeWorkExperience(
+        selectedProfileId,
+        experienceData
+      );
+      setEmployeeProfile(updatedProfile);
+      setWorkExperience(updatedProfile.workExperience || []);
+      await fetchWorkExperience(); // Refresh to get latest data
+
+      setNewWorkExperience({});
+      setShowExperienceForm(false);
+      toast({ title: "Work experience added successfully" });
+    } catch (error) {
+      toast({
+        title: "Failed to add work experience",
+        description:
+          error instanceof Error ? error.message : "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingExperience(false);
+    }
+  };
+
+  const handleUpdateWorkExperience = async () => {
+    if (
+      !selectedProfileId ||
+      !editingExperienceId ||
+      !newWorkExperience.company ||
+      !newWorkExperience.position ||
+      !newWorkExperience.startDate
+    ) {
+      toast({
+        title: "Missing required fields",
+        description: "Company, position, and start date are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSavingExperience(true);
+      const experienceData = {
+        company: newWorkExperience.company,
+        position: newWorkExperience.position,
+        startDate: newWorkExperience.startDate,
+        endDate: newWorkExperience.current
+          ? undefined
+          : newWorkExperience.endDate,
+        current: newWorkExperience.current || false,
+        description: newWorkExperience.description,
+        location: newWorkExperience.location,
+      };
+
+      const updatedProfile = await updateEmployeeWorkExperience(
+        selectedProfileId,
+        editingExperienceId,
+        experienceData
+      );
+      setEmployeeProfile(updatedProfile);
+      setWorkExperience(updatedProfile.workExperience || []);
+      await fetchWorkExperience(); // Refresh to get latest data
+
+      setNewWorkExperience({});
+      setEditingExperienceId(null);
+      setShowExperienceForm(false);
+      toast({ title: "Work experience updated successfully" });
+    } catch (error) {
+      toast({
+        title: "Failed to update work experience",
+        description:
+          error instanceof Error ? error.message : "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingExperience(false);
+    }
+  };
+
+  const handleEditWorkExperience = (exp: WorkExperience) => {
+    const expId = exp.id || (exp as any)._id;
+    setEditingExperienceId(expId || null);
+    setNewWorkExperience({
+      company: exp.company,
+      position: exp.position,
+      startDate: formatDateForInput(exp.startDate),
+      endDate: formatDateForInput(exp.endDate),
+      current: exp.current,
+      description: exp.description,
+      location: exp.location,
+    });
+    setShowExperienceForm(true);
+  };
+
+  const handleRemoveWorkExperience = async (exp: WorkExperience) => {
+    if (!selectedProfileId) return;
+    const expId = exp.id || (exp as any)._id;
+    if (!expId) {
+      toast({
+        title: "Error",
+        description: "Work experience ID not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSavingExperience(true);
+      const updatedProfile = await deleteEmployeeWorkExperience(
+        selectedProfileId,
+        expId
+      );
+      setEmployeeProfile(updatedProfile);
+      setWorkExperience(updatedProfile.workExperience || []);
+      await fetchWorkExperience(); // Refresh to get latest data
+      toast({ title: "Work experience removed" });
+    } catch (error) {
+      toast({
+        title: "Failed to remove work experience",
+        description:
+          error instanceof Error ? error.message : "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingExperience(false);
+    }
+  };
+
+  const handleCancelExperience = () => {
+    setIsEditingExperience(false);
+    setShowExperienceForm(false);
+    setEditingExperienceId(null);
+    setNewWorkExperience({});
+  };
+
+  const handleStatusUpdate = async (
+    newStatus: "pending" | "approved" | "rejected"
+  ) => {
     if (!selectedProfileId) return;
 
     try {
       setUpdatingStatus(newStatus);
 
-      await updateEmployeeStatus(selectedProfileId, newStatus, statusUpdateNotes);
+      await updateEmployeeStatus(
+        selectedProfileId,
+        newStatus,
+        statusUpdateNotes
+      );
 
       // Update local application state
       if (localApplication) {
@@ -604,7 +1032,8 @@ export function EmployeeDetailModal({
       console.error("Error updating employee status:", err);
       toast({
         title: "Failed to update status",
-        description: err instanceof Error ? err.message : "Please try again later",
+        description:
+          err instanceof Error ? err.message : "Please try again later",
         variant: "destructive",
       });
     } finally {
@@ -684,7 +1113,9 @@ export function EmployeeDetailModal({
                     {isEditingBasic ? (
                       <Input
                         value={editingDetails.name}
-                        onChange={(e) => handleInputChange("name", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("name", e.target.value)
+                        }
                         className="mt-1"
                       />
                     ) : (
@@ -702,10 +1133,12 @@ export function EmployeeDetailModal({
                       <label className="text-sm font-medium text-muted-foreground">
                         Phone
                       </label>
-                    {isEditingBasic ? (
+                      {isEditingBasic ? (
                         <Input
                           value={editingDetails.phone}
-                          onChange={(e) => handleInputChange("phone", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("phone", e.target.value)
+                          }
                           className="mt-1"
                         />
                       ) : (
@@ -721,11 +1154,15 @@ export function EmployeeDetailModal({
                       {isEditingBasic ? (
                         <Input
                           value={editingDetails.designation}
-                          onChange={(e) => handleInputChange("designation", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("designation", e.target.value)
+                          }
                           className="mt-1"
                         />
                       ) : (
-                        <p className="text-sm">{currentApplication.designation}</p>
+                        <p className="text-sm">
+                          {currentApplication.designation}
+                        </p>
                       )}
                     </div>
                   )}
@@ -738,7 +1175,9 @@ export function EmployeeDetailModal({
                       <span>{application.location}</span>
                     </p>
                   </div> */}
-                  {((employeeProfile?.addressLine1 || currentApplication.address) || isEditingBasic) && (
+                  {(employeeProfile?.addressLine1 ||
+                    currentApplication.address ||
+                    isEditingBasic) && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         Address
@@ -746,20 +1185,25 @@ export function EmployeeDetailModal({
                       {isEditingBasic ? (
                         <Input
                           value={editingDetails.address}
-                          onChange={(e) => handleInputChange("address", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("address", e.target.value)
+                          }
                           className="mt-1"
                         />
                       ) : (
                         <p className="text-sm flex items-center space-x-1">
                           <MapPin className="h-3 w-3" />
                           <span>
-                            {employeeProfile?.addressLine1 || currentApplication.address}
+                            {employeeProfile?.addressLine1 ||
+                              currentApplication.address}
                           </span>
                         </p>
                       )}
                     </div>
                   )}
-                  {((employeeProfile?.city || currentApplication.city) || isEditingBasic) && (
+                  {(employeeProfile?.city ||
+                    currentApplication.city ||
+                    isEditingBasic) && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         City
@@ -767,7 +1211,9 @@ export function EmployeeDetailModal({
                       {isEditingBasic ? (
                         <Input
                           value={editingDetails.city}
-                          onChange={(e) => handleInputChange("city", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("city", e.target.value)
+                          }
                           className="mt-1"
                         />
                       ) : (
@@ -777,7 +1223,9 @@ export function EmployeeDetailModal({
                       )}
                     </div>
                   )}
-                  {((employeeProfile?.postalCode || currentApplication.zip) || isEditingBasic) && (
+                  {(employeeProfile?.postalCode ||
+                    currentApplication.zip ||
+                    isEditingBasic) && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         ZIP Code
@@ -785,12 +1233,15 @@ export function EmployeeDetailModal({
                       {isEditingBasic ? (
                         <Input
                           value={editingDetails.zip}
-                          onChange={(e) => handleInputChange("zip", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("zip", e.target.value)
+                          }
                           className="mt-1"
                         />
                       ) : (
                         <p className="text-sm">
-                          {employeeProfile?.postalCode || currentApplication.zip}
+                          {employeeProfile?.postalCode ||
+                            currentApplication.zip}
                         </p>
                       )}
                     </div>
@@ -802,14 +1253,18 @@ export function EmployeeDetailModal({
                     {isEditingBasic ? (
                       <Select
                         value={editingDetails.experienceLevel}
-                        onValueChange={(value) => handleInputChange("experienceLevel", value)}
+                        onValueChange={(value) =>
+                          handleInputChange("experienceLevel", value)
+                        }
                       >
                         <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Select experience level" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Beginner">Beginner</SelectItem>
-                          <SelectItem value="Intermediate">Intermediate</SelectItem>
+                          <SelectItem value="Intermediate">
+                            Intermediate
+                          </SelectItem>
                           <SelectItem value="Expert">Expert</SelectItem>
                         </SelectContent>
                       </Select>
@@ -818,7 +1273,8 @@ export function EmployeeDetailModal({
                         variant={
                           currentApplication.experienceLevel === "Expert"
                             ? "success"
-                            : currentApplication.experienceLevel === "Intermediate"
+                            : currentApplication.experienceLevel ===
+                              "Intermediate"
                             ? "info"
                             : "warning"
                         }
@@ -834,7 +1290,9 @@ export function EmployeeDetailModal({
                     {isEditingBasic ? (
                       <Input
                         value={editingDetails.expectedSalary}
-                        onChange={(e) => handleInputChange("expectedSalary", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("expectedSalary", e.target.value)
+                        }
                         className="mt-1"
                         placeholder="e.g., 5000 AED"
                       />
@@ -856,7 +1314,9 @@ export function EmployeeDetailModal({
                         min={0}
                         step="1"
                         value={editingDetails.yearsOfExperience}
-                        onChange={(e) => handleInputChange("yearsOfExperience", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("yearsOfExperience", e.target.value)
+                        }
                         className="mt-1"
                         placeholder="e.g., 5"
                       />
@@ -864,7 +1324,9 @@ export function EmployeeDetailModal({
                       <p className="text-sm flex items-center space-x-1">
                         <Clock className="h-3 w-3" />
                         <span>
-                          {employeeProfile?.yearsOfExperience ?? currentApplication.yearsOfExperience ?? "—"}
+                          {employeeProfile?.yearsOfExperience ??
+                            currentApplication.yearsOfExperience ??
+                            "—"}
                         </span>
                       </p>
                     )}
@@ -904,7 +1366,12 @@ export function EmployeeDetailModal({
                         0}
                     </span>
                     <span className="text-sm text-muted-foreground">
-                      ({(application.previousJobCount && application.previousJobCount > 0 ? application.previousJobCount : workExperience.length) || 0} jobs)
+                      (
+                      {(application.previousJobCount &&
+                      application.previousJobCount > 0
+                        ? application.previousJobCount
+                        : workExperience.length) || 0}{" "}
+                      jobs)
                     </span>
                     {isEditingBasic && (
                       <Button
@@ -943,10 +1410,7 @@ export function EmployeeDetailModal({
                     >
                       Cancel
                     </Button>
-                    <Button
-                      onClick={handleSaveBasic}
-                      disabled={savingDetails}
-                    >
+                    <Button onClick={handleSaveBasic} disabled={savingDetails}>
                       {savingDetails ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin mr-1" />
@@ -960,8 +1424,6 @@ export function EmployeeDetailModal({
                 )}
               </CardContent>
             </Card>
-
-
 
             {/* Working Areas */}
             <Card>
@@ -1008,7 +1470,10 @@ export function EmployeeDetailModal({
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                          <PopoverContent
+                            className="p-0 w-[--radix-popover-trigger-width]"
+                            align="start"
+                          >
                             <Command>
                               <CommandInput placeholder="Type ZIP or city..." />
                               <CommandEmpty>No results found.</CommandEmpty>
@@ -1020,25 +1485,40 @@ export function EmployeeDetailModal({
                                       value={`${z.zip} ${z.city}`}
                                       onSelect={() => {
                                         setEditingDetails((prev) => {
-                                          const isSelected = prev.workingZipCodes.includes(z.zip);
+                                          const isSelected =
+                                            prev.workingZipCodes.includes(
+                                              z.zip
+                                            );
                                           const nextZips = isSelected
-                                            ? prev.workingZipCodes.filter((p) => p !== z.zip)
+                                            ? prev.workingZipCodes.filter(
+                                                (p) => p !== z.zip
+                                              )
                                             : [...prev.workingZipCodes, z.zip];
-                                          const citiesFromZips = marylandZipCodes
-                                            .filter((mz) => nextZips.includes(mz.zip))
-                                            .map((mz) => mz.city)
-                                            .filter(Boolean);
+                                          const citiesFromZips =
+                                            marylandZipCodes
+                                              .filter((mz) =>
+                                                nextZips.includes(mz.zip)
+                                              )
+                                              .map((mz) => mz.city)
+                                              .filter(Boolean);
                                           const nextCities = Array.from(
-                                            new Set([...(prev.workingCities || []), ...citiesFromZips])
+                                            new Set([
+                                              ...(prev.workingCities || []),
+                                              ...citiesFromZips,
+                                            ])
                                           );
-                                          return { ...prev, workingZipCodes: nextZips, workingCities: nextCities };
+                                          return {
+                                            ...prev,
+                                            workingZipCodes: nextZips,
+                                            workingCities: nextCities,
+                                          };
                                         });
                                       }}
                                     >
                                       <span className="mr-2 inline-flex items-center justify-center h-4 w-4">
-                                        {editingDetails.workingZipCodes.includes(z.zip) && (
-                                          <Check className="h-4 w-4" />
-                                        )}
+                                        {editingDetails.workingZipCodes.includes(
+                                          z.zip
+                                        ) && <Check className="h-4 w-4" />}
                                       </span>
                                       {z.zip} — {z.city}
                                     </CommandItem>
@@ -1050,22 +1530,35 @@ export function EmployeeDetailModal({
                         </Popover>
                         <div className="flex flex-wrap gap-2">
                           {editingDetails.workingZipCodes.map((zip) => (
-                            <Badge key={zip} variant="outline" className="flex items-center space-x-1">
+                            <Badge
+                              key={zip}
+                              variant="outline"
+                              className="flex items-center space-x-1"
+                            >
                               <span>{zip}</span>
                               <button
                                 type="button"
                                 onClick={() =>
                                   setEditingDetails((prev) => {
-                                    const nextZips = prev.workingZipCodes.filter((p) => p !== zip);
+                                    const nextZips =
+                                      prev.workingZipCodes.filter(
+                                        (p) => p !== zip
+                                      );
                                     const nextCities = Array.from(
                                       new Set(
                                         marylandZipCodes
-                                          .filter((mz) => nextZips.includes(mz.zip))
+                                          .filter((mz) =>
+                                            nextZips.includes(mz.zip)
+                                          )
                                           .map((mz) => mz.city)
                                           .filter(Boolean)
                                       )
                                     );
-                                    return { ...prev, workingZipCodes: nextZips, workingCities: nextCities };
+                                    return {
+                                      ...prev,
+                                      workingZipCodes: nextZips,
+                                      workingCities: nextCities,
+                                    };
                                   })
                                 }
                                 className="ml-1 hover:text-red-500"
@@ -1101,10 +1594,18 @@ export function EmployeeDetailModal({
                               if (e.key === "Enter") {
                                 e.preventDefault();
                                 const candidate = newWorkingCity.trim();
-                                if (candidate && !editingDetails.workingCities.includes(candidate)) {
+                                if (
+                                  candidate &&
+                                  !editingDetails.workingCities.includes(
+                                    candidate
+                                  )
+                                ) {
                                   setEditingDetails((prev) => ({
                                     ...prev,
-                                    workingCities: [...prev.workingCities, candidate],
+                                    workingCities: [
+                                      ...prev.workingCities,
+                                      candidate,
+                                    ],
                                   }));
                                   setNewWorkingCity("");
                                 }
@@ -1117,10 +1618,18 @@ export function EmployeeDetailModal({
                             disabled={!newWorkingCity.trim()}
                             onClick={() => {
                               const candidate = newWorkingCity.trim();
-                              if (candidate && !editingDetails.workingCities.includes(candidate)) {
+                              if (
+                                candidate &&
+                                !editingDetails.workingCities.includes(
+                                  candidate
+                                )
+                              ) {
                                 setEditingDetails((prev) => ({
                                   ...prev,
-                                  workingCities: [...prev.workingCities, candidate],
+                                  workingCities: [
+                                    ...prev.workingCities,
+                                    candidate,
+                                  ],
                                 }));
                                 setNewWorkingCity("");
                               }
@@ -1131,25 +1640,40 @@ export function EmployeeDetailModal({
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {editingDetails.workingCities.map((city) => (
-                            <Badge key={city} variant="secondary" className="flex items-center space-x-1">
+                            <Badge
+                              key={city}
+                              variant="secondary"
+                              className="flex items-center space-x-1"
+                            >
                               <span>{city}</span>
                               <button
                                 type="button"
                                 onClick={() =>
                                   setEditingDetails((prev) => {
-                                    const remainingZips = prev.workingZipCodes.filter((zip) => {
-                                      const found = marylandZipCodes.find((mz) => mz.zip === zip);
-                                      return found ? found.city !== city : true;
-                                    });
+                                    const remainingZips =
+                                      prev.workingZipCodes.filter((zip) => {
+                                        const found = marylandZipCodes.find(
+                                          (mz) => mz.zip === zip
+                                        );
+                                        return found
+                                          ? found.city !== city
+                                          : true;
+                                      });
                                     const nextCities = Array.from(
                                       new Set(
                                         marylandZipCodes
-                                          .filter((mz) => remainingZips.includes(mz.zip))
+                                          .filter((mz) =>
+                                            remainingZips.includes(mz.zip)
+                                          )
                                           .map((mz) => mz.city)
                                           .filter(Boolean)
                                       )
                                     );
-                                    return { ...prev, workingZipCodes: remainingZips, workingCities: nextCities };
+                                    return {
+                                      ...prev,
+                                      workingZipCodes: remainingZips,
+                                      workingCities: nextCities,
+                                    };
                                   })
                                 }
                                 className="ml-1 hover:text-red-500"
@@ -1172,10 +1696,17 @@ export function EmployeeDetailModal({
                 </div>
                 {isEditingWorking && (
                   <div className="flex justify-end space-x-2 pt-2">
-                    <Button variant="outline" onClick={handleCancelWorking} disabled={savingDetails}>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelWorking}
+                      disabled={savingDetails}
+                    >
                       Cancel
                     </Button>
-                    <Button onClick={handleSaveWorking} disabled={savingDetails}>
+                    <Button
+                      onClick={handleSaveWorking}
+                      disabled={savingDetails}
+                    >
                       {savingDetails ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin mr-1" />
@@ -1190,8 +1721,8 @@ export function EmployeeDetailModal({
               </CardContent>
             </Card>
 
-                 {/* Skills */}
-                 <Card>
+            {/* Skills */}
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -1235,7 +1766,11 @@ export function EmployeeDetailModal({
                     {/* Current skills with remove option */}
                     <div className="flex flex-wrap gap-2">
                       {editingDetails.skills.map((skill) => (
-                        <Badge key={skill} variant="secondary" className="flex items-center space-x-1">
+                        <Badge
+                          key={skill}
+                          variant="secondary"
+                          className="flex items-center space-x-1"
+                        >
                           <span>{skill}</span>
                           <button
                             type="button"
@@ -1250,29 +1785,40 @@ export function EmployeeDetailModal({
                     </div>
 
                     {editingDetails.skills.length === 0 && (
-                      <p className="text-sm text-muted-foreground">No skills added yet</p>
+                      <p className="text-sm text-muted-foreground">
+                        No skills added yet
+                      </p>
                     )}
                   </div>
                 ) : (
                   <div>
                     {(employeeProfile?.skills || currentApplication.skills) &&
-                     (employeeProfile?.skills || currentApplication.skills).length > 0 ? (
+                    (employeeProfile?.skills || currentApplication.skills)
+                      .length > 0 ? (
                       <div className="flex flex-wrap gap-2">
-                        {(employeeProfile?.skills || currentApplication.skills).map((skill) => (
+                        {(
+                          employeeProfile?.skills || currentApplication.skills
+                        ).map((skill) => (
                           <Badge key={skill} variant="secondary">
                             {skill}
                           </Badge>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">No skills listed</p>
+                      <p className="text-sm text-muted-foreground">
+                        No skills listed
+                      </p>
                     )}
                   </div>
                 )}
               </CardContent>
               {isEditingSkills && (
                 <div className="flex justify-end space-x-2 pt-2">
-                  <Button variant="outline" onClick={handleCancelSkills} disabled={savingDetails}>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelSkills}
+                    disabled={savingDetails}
+                  >
                     Cancel
                   </Button>
                   <Button onClick={handleSaveSkills} disabled={savingDetails}>
@@ -1287,6 +1833,444 @@ export function EmployeeDetailModal({
                   </Button>
                 </div>
               )}
+            </Card>
+
+            {/* Qualifications */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <GraduationCap className="h-5 w-5" />
+                    <span>Qualifications</span>
+                  </div>
+                  {!isEditingQualifications && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleEditQualifications}
+                      className="h-8 w-8 p-0"
+                    >
+                      <CiEdit className="h-4 w-4" />
+                    </Button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isEditingQualifications ? (
+                  <>
+                    {/* Add Qualification Form */}
+                    {showQualificationForm && (
+                      <div className="p-4 border rounded-lg space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Degree *
+                            </label>
+                            <Input
+                              value={newQualification.degree || ""}
+                              onChange={(e) =>
+                                setNewQualification((prev) => ({
+                                  ...prev,
+                                  degree: e.target.value,
+                                }))
+                              }
+                              className="mt-1"
+                              placeholder="e.g., Bachelor's Degree"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Institution *
+                            </label>
+                            <Input
+                              value={newQualification.institution || ""}
+                              onChange={(e) =>
+                                setNewQualification((prev) => ({
+                                  ...prev,
+                                  institution: e.target.value,
+                                }))
+                              }
+                              className="mt-1"
+                              placeholder="e.g., University Name"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Field of Study
+                            </label>
+                            <Input
+                              value={newQualification.fieldOfStudy || ""}
+                              onChange={(e) =>
+                                setNewQualification((prev) => ({
+                                  ...prev,
+                                  fieldOfStudy: e.target.value,
+                                }))
+                              }
+                              className="mt-1"
+                              placeholder="e.g., Computer Science"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Location
+                            </label>
+                            <Input
+                              value={newQualification.location || ""}
+                              onChange={(e) =>
+                                setNewQualification((prev) => ({
+                                  ...prev,
+                                  location: e.target.value,
+                                }))
+                              }
+                              className="mt-1"
+                              placeholder="e.g., City, Country"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Start Date *
+                            </label>
+                            <Input
+                              type="date"
+                              value={newQualification.startDate || ""}
+                              onChange={(e) =>
+                                setNewQualification((prev) => ({
+                                  ...prev,
+                                  startDate: e.target.value,
+                                }))
+                              }
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              End Date
+                            </label>
+                            <Input
+                              type="date"
+                              value={newQualification.endDate || ""}
+                              onChange={(e) =>
+                                setNewQualification((prev) => ({
+                                  ...prev,
+                                  endDate: e.target.value,
+                                }))
+                              }
+                              className="mt-1"
+                              disabled={newQualification.current}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="qualification-current"
+                            checked={newQualification.current || false}
+                            onChange={(e) => {
+                              setNewQualification((prev) => ({
+                                ...prev,
+                                current: e.target.checked,
+                                endDate: e.target.checked ? "" : prev.endDate,
+                              }));
+                            }}
+                            className="h-4 w-4"
+                          />
+                          <label
+                            htmlFor="qualification-current"
+                            className="text-sm font-medium text-muted-foreground"
+                          >
+                            Currently pursuing
+                          </label>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Description
+                          </label>
+                          <Input
+                            value={newQualification.description || ""}
+                            onChange={(e) =>
+                              setNewQualification((prev) => ({
+                                ...prev,
+                                description: e.target.value,
+                              }))
+                            }
+                            className="mt-1"
+                            placeholder="Additional details about your qualification..."
+                          />
+                        </div>
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setShowQualificationForm(false);
+                              setEditingQualificationId(null);
+                              setNewQualification({});
+                            }}
+                            disabled={savingQualification}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={
+                              editingQualificationId
+                                ? handleUpdateQualification
+                                : handleAddQualification
+                            }
+                            disabled={savingQualification}
+                          >
+                            {savingQualification ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                Saving...
+                              </>
+                            ) : editingQualificationId ? (
+                              "Update Qualification"
+                            ) : (
+                              "Add Qualification"
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Add Qualification Button */}
+                    {!showQualificationForm && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowQualificationForm(true);
+                          setEditingQualificationId(null);
+                          setNewQualification({});
+                        }}
+                        className="w-full"
+                      >
+                        Add Qualification
+                      </Button>
+                    )}
+
+                    {/* Existing Qualifications with Edit/Delete */}
+                    {employeeProfile?.qualifications &&
+                      employeeProfile.qualifications.length > 0 && (
+                        <div className="space-y-4">
+                          {employeeProfile.qualifications.map(
+                            (qual: Qualification, index: number) => (
+                              <div
+                                key={qual.id || index}
+                                className="p-4 border rounded-lg space-y-2"
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-base">
+                                      {qual.degree}
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground flex items-center space-x-1 mt-1">
+                                      <Building className="h-3 w-3" />
+                                      <span>{qual.institution}</span>
+                                      {qual.location && (
+                                        <>
+                                          <span>•</span>
+                                          <MapPin className="h-3 w-3" />
+                                          <span>{qual.location}</span>
+                                        </>
+                                      )}
+                                    </p>
+                                    {qual.fieldOfStudy && (
+                                      <p className="text-sm text-muted-foreground mt-1">
+                                        Field: {qual.fieldOfStudy}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    {qual.current && (
+                                      <Badge variant="success">Current</Badge>
+                                    )}
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleEditQualification(qual)
+                                      }
+                                      className="h-8 w-8 p-0"
+                                      title="Edit qualification"
+                                    >
+                                      <CiEdit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleRemoveQualification(qual)
+                                      }
+                                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                      disabled={savingQualification}
+                                      title="Delete qualification"
+                                    >
+                                      ×
+                                    </Button>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                  <div>
+                                    <label className="text-muted-foreground">
+                                      Start Date
+                                    </label>
+                                    <p className="flex items-center space-x-1">
+                                      <Calendar className="h-3 w-3" />
+                                      <span>{formatDate(qual.startDate)}</span>
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <label className="text-muted-foreground">
+                                      {qual.current ? "Started" : "End Date"}
+                                    </label>
+                                    <p className="flex items-center space-x-1">
+                                      <Calendar className="h-3 w-3" />
+                                      <span>
+                                        {qual.current
+                                          ? `${Math.floor(
+                                              (new Date().getTime() -
+                                                new Date(
+                                                  qual.startDate
+                                                ).getTime()) /
+                                                (1000 * 60 * 60 * 24 * 30)
+                                            )} months ago`
+                                          : qual.endDate
+                                          ? formatDate(qual.endDate)
+                                          : "Not specified"}
+                                      </span>
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {qual.description && (
+                                  <div className="mt-3 pt-3 border-t">
+                                    <label className="text-sm text-muted-foreground">
+                                      Description
+                                    </label>
+                                    <p className="text-sm mt-1">
+                                      {qual.description}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
+
+                    {(!employeeProfile?.qualifications ||
+                      employeeProfile.qualifications.length === 0) &&
+                      !showQualificationForm && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No qualifications added yet
+                        </p>
+                      )}
+
+                    {/* Save/Cancel Buttons */}
+                    <div className="flex justify-end space-x-2 pt-2 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelQualifications}
+                        disabled={savingQualification}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* View Mode */}
+                    {employeeProfile?.qualifications &&
+                    employeeProfile.qualifications.length > 0 ? (
+                      <div className="space-y-4">
+                        {employeeProfile.qualifications.map(
+                          (qual: Qualification, index: number) => (
+                            <div
+                              key={qual.id || index}
+                              className="p-4 border rounded-lg space-y-2"
+                            >
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <h4 className="font-semibold text-base">
+                                    {qual.degree}
+                                  </h4>
+                                  <p className="text-sm text-muted-foreground flex items-center space-x-1 mt-1">
+                                    <Building className="h-3 w-3" />
+                                    <span>{qual.institution}</span>
+                                    {qual.location && (
+                                      <>
+                                        <span>•</span>
+                                        <MapPin className="h-3 w-3" />
+                                        <span>{qual.location}</span>
+                                      </>
+                                    )}
+                                  </p>
+                                  {qual.fieldOfStudy && (
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                      Field: {qual.fieldOfStudy}
+                                    </p>
+                                  )}
+                                </div>
+                                {qual.current && (
+                                  <Badge variant="success">Current</Badge>
+                                )}
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <label className="text-muted-foreground">
+                                    Start Date
+                                  </label>
+                                  <p className="flex items-center space-x-1">
+                                    <Calendar className="h-3 w-3" />
+                                    <span>{formatDate(qual.startDate)}</span>
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="text-muted-foreground">
+                                    {qual.current ? "Started" : "End Date"}
+                                  </label>
+                                  <p className="flex items-center space-x-1">
+                                    <Calendar className="h-3 w-3" />
+                                    <span>
+                                      {qual.current
+                                        ? `${Math.floor(
+                                            (new Date().getTime() -
+                                              new Date(
+                                                qual.startDate
+                                              ).getTime()) /
+                                              (1000 * 60 * 60 * 24 * 30)
+                                          )} months ago`
+                                        : qual.endDate
+                                        ? formatDate(qual.endDate)
+                                        : "Not specified"}
+                                    </span>
+                                  </p>
+                                </div>
+                              </div>
+
+                              {qual.description && (
+                                <div className="mt-3 pt-3 border-t">
+                                  <label className="text-sm text-muted-foreground">
+                                    Description
+                                  </label>
+                                  <p className="text-sm mt-1">
+                                    {qual.description}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No qualifications listed
+                      </p>
+                    )}
+                  </>
+                )}
+              </CardContent>
             </Card>
 
             {/* Certifications */}
@@ -1331,7 +2315,9 @@ export function EmployeeDetailModal({
                     </label>
                     <div className="mt-1 flex items-center space-x-2">
                       <Badge
-                        variant={getStatusBadgeVariant(currentApplication.status)}
+                        variant={getStatusBadgeVariant(
+                          currentApplication.status
+                        )}
                       >
                         {currentApplication.status}
                       </Badge>
@@ -1356,9 +2342,16 @@ export function EmployeeDetailModal({
                   <div className="flex space-x-2">
                     <Button
                       size="sm"
-                      variant={currentApplication.status === "approved" ? "default" : "outline"}
+                      variant={
+                        currentApplication.status === "approved"
+                          ? "default"
+                          : "outline"
+                      }
                       onClick={() => handleStatusUpdate("approved")}
-                      disabled={updatingStatus !== null || currentApplication.status === "approved"}
+                      disabled={
+                        updatingStatus !== null ||
+                        currentApplication.status === "approved"
+                      }
                     >
                       {updatingStatus === "approved" ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-1" />
@@ -1367,9 +2360,16 @@ export function EmployeeDetailModal({
                     </Button>
                     <Button
                       size="sm"
-                      variant={currentApplication.status === "rejected" ? "destructive" : "outline"}
+                      variant={
+                        currentApplication.status === "rejected"
+                          ? "destructive"
+                          : "outline"
+                      }
                       onClick={() => handleStatusUpdate("rejected")}
-                      disabled={updatingStatus !== null || currentApplication.status === "rejected"}
+                      disabled={
+                        updatingStatus !== null ||
+                        currentApplication.status === "rejected"
+                      }
                     >
                       {updatingStatus === "rejected" ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-1" />
@@ -1378,9 +2378,16 @@ export function EmployeeDetailModal({
                     </Button>
                     <Button
                       size="sm"
-                      variant={currentApplication.status === "pending" ? "default" : "outline"}
+                      variant={
+                        currentApplication.status === "pending"
+                          ? "default"
+                          : "outline"
+                      }
                       onClick={() => handleStatusUpdate("pending")}
-                      disabled={updatingStatus !== null || currentApplication.status === "pending"}
+                      disabled={
+                        updatingStatus !== null ||
+                        currentApplication.status === "pending"
+                      }
                     >
                       {updatingStatus === "pending" ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-1" />
@@ -1402,13 +2409,15 @@ export function EmployeeDetailModal({
                   </div> */}
                 </div>
 
-                {(currentApplication.verificationNotes || application.verificationNotes) && (
+                {(currentApplication.verificationNotes ||
+                  application.verificationNotes) && (
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Verification Notes
                     </label>
                     <p className="text-sm mt-1">
-                      {currentApplication.verificationNotes || application.verificationNotes}
+                      {currentApplication.verificationNotes ||
+                        application.verificationNotes}
                     </p>
                   </div>
                 )}
@@ -1438,86 +2447,424 @@ export function EmployeeDetailModal({
                   Error loading work experience: {workExperienceError}
                 </AlertDescription>
               </Alert>
-            ) : workExperience.length === 0 ? (
-              <div className="text-center py-8">
-                <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  No work experience added yet
-                </p>
-              </div>
             ) : (
-              <div className="space-y-4">
-                {workExperience.map((exp, index) => (
-                  <Card
-                    key={exp.id || index}
-                    className="hover:shadow-md transition-shadow"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h4 className="font-semibold text-lg">
-                            {exp.position}
-                          </h4>
-                          <p className="text-sm text-muted-foreground flex items-center space-x-1">
-                            <Building className="h-3 w-3" />
-                            <span>{exp.company}</span>
-                            {exp.location && (
-                              <>
-                                <span>•</span>
-                                <MapPin className="h-3 w-3" />
-                                <span>{exp.location}</span>
-                              </>
-                            )}
-                          </p>
-                        </div>
-                        <Badge variant={exp.current ? "success" : "secondary"}>
-                          {exp.current ? "Current" : "Previous"}
-                        </Badge>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
-                        <div>
-                          <label className="text-muted-foreground">
-                            Start Date
-                          </label>
-                          <p className="flex items-center space-x-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>{formatDate(exp.startDate)}</span>
-                          </p>
-                        </div>
-                        <div>
-                          <label className="text-muted-foreground">
-                            {exp.current ? "Started" : "End Date"}
-                          </label>
-                          <p className="flex items-center space-x-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>
-                              {exp.current
-                                ? `${Math.floor(
-                                    (new Date().getTime() -
-                                      new Date(exp.startDate).getTime()) /
-                                      (1000 * 60 * 60 * 24 * 30)
-                                  )} months ago`
-                                : exp.endDate
-                                ? formatDate(exp.endDate)
-                                : "Not specified"}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-
-                      {exp.description && (
-                        <div className="mt-3 pt-3 border-t">
-                          <label className="text-sm text-muted-foreground">
-                            Description
-                          </label>
-                          <p className="text-sm mt-1">{exp.description}</p>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Briefcase className="h-5 w-5" />
+                      <span>Work Experience</span>
+                    </div>
+                    {!isEditingExperience && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleEditExperience}
+                        className="h-8 w-8 p-0"
+                      >
+                        <CiEdit className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {isEditingExperience ? (
+                    <>
+                      {/* Add Work Experience Form */}
+                      {showExperienceForm && (
+                        <div className="p-4 border rounded-lg space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">
+                                Position *
+                              </label>
+                              <Input
+                                value={newWorkExperience.position || ""}
+                                onChange={(e) =>
+                                  setNewWorkExperience((prev) => ({
+                                    ...prev,
+                                    position: e.target.value,
+                                  }))
+                                }
+                                className="mt-1"
+                                placeholder="e.g., Senior Technician"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">
+                                Company *
+                              </label>
+                              <Input
+                                value={newWorkExperience.company || ""}
+                                onChange={(e) =>
+                                  setNewWorkExperience((prev) => ({
+                                    ...prev,
+                                    company: e.target.value,
+                                  }))
+                                }
+                                className="mt-1"
+                                placeholder="e.g., Company Name"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">
+                                Location
+                              </label>
+                              <Input
+                                value={newWorkExperience.location || ""}
+                                onChange={(e) =>
+                                  setNewWorkExperience((prev) => ({
+                                    ...prev,
+                                    location: e.target.value,
+                                  }))
+                                }
+                                className="mt-1"
+                                placeholder="e.g., City, State"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">
+                                Start Date *
+                              </label>
+                              <Input
+                                type="date"
+                                value={newWorkExperience.startDate || ""}
+                                onChange={(e) =>
+                                  setNewWorkExperience((prev) => ({
+                                    ...prev,
+                                    startDate: e.target.value,
+                                  }))
+                                }
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">
+                                End Date
+                              </label>
+                              <Input
+                                type="date"
+                                value={newWorkExperience.endDate || ""}
+                                onChange={(e) =>
+                                  setNewWorkExperience((prev) => ({
+                                    ...prev,
+                                    endDate: e.target.value,
+                                  }))
+                                }
+                                className="mt-1"
+                                disabled={newWorkExperience.current}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="experience-current"
+                              checked={newWorkExperience.current || false}
+                              onChange={(e) => {
+                                setNewWorkExperience((prev) => ({
+                                  ...prev,
+                                  current: e.target.checked,
+                                  endDate: e.target.checked ? "" : prev.endDate,
+                                }));
+                              }}
+                              className="h-4 w-4"
+                            />
+                            <label
+                              htmlFor="experience-current"
+                              className="text-sm font-medium text-muted-foreground"
+                            >
+                              Current position
+                            </label>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Description
+                            </label>
+                            <Input
+                              value={newWorkExperience.description || ""}
+                              onChange={(e) =>
+                                setNewWorkExperience((prev) => ({
+                                  ...prev,
+                                  description: e.target.value,
+                                }))
+                              }
+                              className="mt-1"
+                              placeholder="Describe your responsibilities and achievements..."
+                            />
+                          </div>
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setShowExperienceForm(false);
+                                setEditingExperienceId(null);
+                                setNewWorkExperience({});
+                              }}
+                              disabled={savingExperience}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={
+                                editingExperienceId
+                                  ? handleUpdateWorkExperience
+                                  : handleAddWorkExperience
+                              }
+                              disabled={savingExperience}
+                            >
+                              {savingExperience ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                  Saving...
+                                </>
+                              ) : editingExperienceId ? (
+                                "Update Experience"
+                              ) : (
+                                "Add Experience"
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+
+                      {/* Add Experience Button */}
+                      {!showExperienceForm && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowExperienceForm(true);
+                            setEditingExperienceId(null);
+                            setNewWorkExperience({});
+                          }}
+                          className="w-full"
+                        >
+                          Add Work Experience
+                        </Button>
+                      )}
+
+                      {/* Existing Work Experience with Edit/Delete */}
+                      {workExperience.length > 0 && (
+                        <div className="space-y-4">
+                          {workExperience.map((exp, index) => (
+                            <Card
+                              key={exp.id || index}
+                              className="hover:shadow-md transition-shadow"
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-lg">
+                                      {exp.position}
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground flex items-center space-x-1">
+                                      <Building className="h-3 w-3" />
+                                      <span>{exp.company}</span>
+                                      {exp.location && (
+                                        <>
+                                          <span>•</span>
+                                          <MapPin className="h-3 w-3" />
+                                          <span>{exp.location}</span>
+                                        </>
+                                      )}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <Badge
+                                      variant={
+                                        exp.current ? "success" : "secondary"
+                                      }
+                                    >
+                                      {exp.current ? "Current" : "Previous"}
+                                    </Badge>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleEditWorkExperience(exp)
+                                      }
+                                      className="h-8 w-8 p-0"
+                                      title="Edit work experience"
+                                    >
+                                      <CiEdit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleRemoveWorkExperience(exp)
+                                      }
+                                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                      disabled={savingExperience}
+                                      title="Delete work experience"
+                                    >
+                                      ×
+                                    </Button>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
+                                  <div>
+                                    <label className="text-muted-foreground">
+                                      Start Date
+                                    </label>
+                                    <p className="flex items-center space-x-1">
+                                      <Calendar className="h-3 w-3" />
+                                      <span>{formatDate(exp.startDate)}</span>
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <label className="text-muted-foreground">
+                                      {exp.current ? "Started" : "End Date"}
+                                    </label>
+                                    <p className="flex items-center space-x-1">
+                                      <Calendar className="h-3 w-3" />
+                                      <span>
+                                        {exp.current
+                                          ? `${Math.floor(
+                                              (new Date().getTime() -
+                                                new Date(
+                                                  exp.startDate
+                                                ).getTime()) /
+                                                (1000 * 60 * 60 * 24 * 30)
+                                            )} months ago`
+                                          : exp.endDate
+                                          ? formatDate(exp.endDate)
+                                          : "Not specified"}
+                                      </span>
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {exp.description && (
+                                  <div className="mt-3 pt-3 border-t">
+                                    <label className="text-sm text-muted-foreground">
+                                      Description
+                                    </label>
+                                    <p className="text-sm mt-1">
+                                      {exp.description}
+                                    </p>
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+
+                      {workExperience.length === 0 && !showExperienceForm && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No work experience added yet
+                        </p>
+                      )}
+
+                      {/* Cancel Button */}
+                      <div className="flex justify-end space-x-2 pt-2 border-t">
+                        <Button
+                          variant="outline"
+                          onClick={handleCancelExperience}
+                          disabled={savingExperience}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* View Mode */}
+                      {workExperience.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-muted-foreground">
+                            No work experience added yet
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {workExperience.map((exp, index) => (
+                            <Card
+                              key={exp.id || index}
+                              className="hover:shadow-md transition-shadow"
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div>
+                                    <h4 className="font-semibold text-lg">
+                                      {exp.position}
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground flex items-center space-x-1">
+                                      <Building className="h-3 w-3" />
+                                      <span>{exp.company}</span>
+                                      {exp.location && (
+                                        <>
+                                          <span>•</span>
+                                          <MapPin className="h-3 w-3" />
+                                          <span>{exp.location}</span>
+                                        </>
+                                      )}
+                                    </p>
+                                  </div>
+                                  <Badge
+                                    variant={
+                                      exp.current ? "success" : "secondary"
+                                    }
+                                  >
+                                    {exp.current ? "Current" : "Previous"}
+                                  </Badge>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
+                                  <div>
+                                    <label className="text-muted-foreground">
+                                      Start Date
+                                    </label>
+                                    <p className="flex items-center space-x-1">
+                                      <Calendar className="h-3 w-3" />
+                                      <span>{formatDate(exp.startDate)}</span>
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <label className="text-muted-foreground">
+                                      {exp.current ? "Started" : "End Date"}
+                                    </label>
+                                    <p className="flex items-center space-x-1">
+                                      <Calendar className="h-3 w-3" />
+                                      <span>
+                                        {exp.current
+                                          ? `${Math.floor(
+                                              (new Date().getTime() -
+                                                new Date(
+                                                  exp.startDate
+                                                ).getTime()) /
+                                                (1000 * 60 * 60 * 24 * 30)
+                                            )} months ago`
+                                          : exp.endDate
+                                          ? formatDate(exp.endDate)
+                                          : "Not specified"}
+                                      </span>
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {exp.description && (
+                                  <div className="mt-3 pt-3 border-t">
+                                    <label className="text-sm text-muted-foreground">
+                                      Description
+                                    </label>
+                                    <p className="text-sm mt-1">
+                                      {exp.description}
+                                    </p>
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
 

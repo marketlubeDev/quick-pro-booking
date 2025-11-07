@@ -18,6 +18,12 @@ import {
   addQualification,
   updateQualification,
   deleteQualification,
+  addEmployeeWorkExperience,
+  updateEmployeeWorkExperience,
+  deleteEmployeeWorkExperience,
+  addEmployeeQualification,
+  updateEmployeeQualification,
+  deleteEmployeeQualification,
 } from "../controllers/profileController.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { upload } from "../middleware/uploads.js";
@@ -57,5 +63,15 @@ router.patch("/:profileId/rating", requireRole("admin"), updateEmployeeRating);
 router.patch("/:profileId/verification", requireRole("admin"), updateEmployeeVerification);
 router.patch("/:profileId/professional", requireRole("admin"), updateEmployeeProfessionalDetails);
 router.patch("/:profileId/personal", requireRole("admin"), updateEmployeePersonalDetails);
+
+// Admin-only routes for work experience management
+router.post("/:profileId/work-experience", requireRole("admin"), addEmployeeWorkExperience);
+router.patch("/:profileId/work-experience/:experienceId", requireRole("admin"), updateEmployeeWorkExperience);
+router.delete("/:profileId/work-experience/:experienceId", requireRole("admin"), deleteEmployeeWorkExperience);
+
+// Admin-only routes for qualification management
+router.post("/:profileId/qualification", requireRole("admin"), addEmployeeQualification);
+router.patch("/:profileId/qualification/:qualificationId", requireRole("admin"), updateEmployeeQualification);
+router.delete("/:profileId/qualification/:qualificationId", requireRole("admin"), deleteEmployeeQualification);
 
 export default router;
