@@ -11,6 +11,13 @@ import {
   ClipboardList,
 } from "lucide-react";
 
+function formatStatus(status: string): string {
+  return status
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export default function PaymentSuccess() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -181,7 +188,7 @@ export default function PaymentSuccess() {
               >
                 {request.paymentStatus === "paid"
                   ? "Payment Confirmed"
-                  : `Payment Status: ${request.paymentStatus}`}
+                  : `Payment Status: ${formatStatus(request.paymentStatus)}`}
               </span>
             </div>
           )}

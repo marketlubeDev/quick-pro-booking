@@ -83,6 +83,8 @@ function getPaymentBadgeVariant(
   switch (status) {
     case "paid":
       return "success";
+    case "partially_paid":
+      return "warning";
     case "failed":
       return "destructive";
     case "refunded":
@@ -91,6 +93,13 @@ function getPaymentBadgeVariant(
     default:
       return "warning";
   }
+}
+
+function formatStatus(status: string): string {
+  return status
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 }
 
 function formatDate(dateString: string) {
@@ -152,11 +161,11 @@ export function ServiceRequestCard({
                 <AlertTriangle className="h-4 w-4 text-red-600" />
               )}
             <Badge variant={getStatusBadgeVariant(request.status)}>
-              {request.status}
+              {formatStatus(request.status)}
             </Badge>
             {request.paymentStatus && (
               <Badge variant={getPaymentBadgeVariant(request.paymentStatus)}>
-                {request.paymentStatus}
+                {formatStatus(request.paymentStatus)}
               </Badge>
             )}
           </div>

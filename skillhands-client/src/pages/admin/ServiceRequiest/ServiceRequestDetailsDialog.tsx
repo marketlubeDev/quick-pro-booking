@@ -100,6 +100,13 @@ function formatCurrency(amount?: number | null) {
   }).format(Number(value));
 }
 
+function formatStatus(status: string): string {
+  return status
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 const getPriorityColor = (priority: string) => {
   switch (priority) {
     case "urgent":
@@ -627,7 +634,7 @@ export function ServiceRequestDetailsDialog({
                     (request.paymentStatus as any) || "pending"
                   )}
                 >
-                  {request.paymentStatus || "pending"}
+                  {formatStatus(request.paymentStatus || "pending")}
                 </Badge>
               </div>
               <div>
@@ -700,7 +707,7 @@ export function ServiceRequestDetailsDialog({
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
                 <Badge className={getStatusColor(request.status)}>
-                  {request.status}
+                  {formatStatus(request.status)}
                 </Badge>
               </div>
               {/* <div>
