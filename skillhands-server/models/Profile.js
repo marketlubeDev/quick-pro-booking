@@ -60,6 +60,7 @@ const profileSchema = new mongoose.Schema(
       trim: true,
     },
     expectedSalary: { type: Number, min: 0 },
+    yearsOfExperience: { type: Number, min: 0 },
 
     // Service Areas
     workingZipCodes: { type: [String], default: [] },

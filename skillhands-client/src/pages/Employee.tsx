@@ -1,3 +1,4 @@
+import React from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import {
   Card,
@@ -21,7 +22,19 @@ import { useEmployeeDashboard } from "@/hooks/useEmployeeDashboard";
 
 const Employee = () => {
   const { logout } = useAuth();
-  const { stats, loading, error } = useEmployeeDashboard();
+  const { stats, loading, error, refetch } = useEmployeeDashboard();
+
+  // Listen for profile updates and refresh dashboard stats
+  React.useEffect(() => {
+    const handleProfileUpdate = () => {
+      refetch();
+    };
+
+    window.addEventListener("profileUpdated", handleProfileUpdate);
+    return () => {
+      window.removeEventListener("profileUpdated", handleProfileUpdate);
+    };
+  }, [refetch]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

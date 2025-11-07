@@ -58,6 +58,7 @@ export const updateMyProfile = async (req, res, next) => {
       "designation",
       "level",
       "expectedSalary",
+      "yearsOfExperience",
 
       // Service Areas
       "workingZipCodes",
@@ -610,7 +611,7 @@ export const updateEmployeeVerification = async (req, res, next) => {
 export const updateEmployeeProfessionalDetails = async (req, res, next) => {
   try {
     const { profileId } = req.params;
-    const { designation, level, expectedSalary, skills, totalJobs } = req.body;
+    const { designation, level, expectedSalary, yearsOfExperience, skills, totalJobs } = req.body;
 
     const profile = await Profile.findById(profileId).populate(
       "user",
@@ -635,6 +636,15 @@ export const updateEmployeeProfessionalDetails = async (req, res, next) => {
       profile.level = level;
     }
     if (expectedSalary !== undefined) profile.expectedSalary = expectedSalary;
+    if (yearsOfExperience !== undefined) {
+      if (yearsOfExperience < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Years of experience must be a non-negative number",
+        });
+      }
+      profile.yearsOfExperience = yearsOfExperience;
+    }
     if (skills !== undefined) profile.skills = skills;
     if (totalJobs !== undefined) profile.totalJobs = totalJobs;
 

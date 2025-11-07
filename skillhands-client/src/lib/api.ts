@@ -386,6 +386,8 @@ export const authApi = {
       state?: string;
       postalCode?: string;
       expectedSalary?: number;
+      phone?: string;
+      yearsOfExperience?: number;
     }
   ): Promise<AuthResponse> {
     return api.post<AuthResponse>("/api/auth/register", {
@@ -461,6 +463,7 @@ export interface EmployeeProfileData {
   workExperience?: WorkExperience[];
   qualifications?: Qualification[];
   expectedSalary?: number;
+  yearsOfExperience?: number;
   profileComplete?: boolean;
   lastUpdated?: string;
   appliedDate?: string; // ISO string

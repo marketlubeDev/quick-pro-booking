@@ -44,17 +44,24 @@ import {
   addQualification,
   updateQualification,
   deleteQualification,
+  addWorkExperience,
+  updateWorkExperience,
+  deleteWorkExperience,
 } from "@/lib/api.employeeDetails";
 import { useToast } from "@/hooks/use-toast";
 
 interface SkillsCertificationsTabProps {
   form: EmployeeProfileData;
   onFormChange: (field: keyof EmployeeProfileData, value: any) => void;
+  onSave?: (data: Partial<EmployeeProfileData>) => Promise<boolean>;
+  loading?: boolean;
 }
 
 const SkillsCertificationsTab = ({
   form,
   onFormChange,
+  onSave,
+  loading = false,
 }: SkillsCertificationsTabProps) => {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
@@ -99,6 +106,7 @@ const SkillsCertificationsTab = ({
     string | null
   >(null);
   const [savingQualification, setSavingQualification] = useState(false);
+  const [savingWorkExperience, setSavingWorkExperience] = useState(false);
   const [deleteQualificationDialog, setDeleteQualificationDialog] = useState<{
     open: boolean;
     qualification: Qualification | null;
@@ -136,6 +144,8 @@ const SkillsCertificationsTab = ({
         ) as HTMLInputElement | null;
         if (fileInput) fileInput.value = "";
         toast({ title: "Certification added" });
+        // Notify dashboard to refresh stats
+        window.dispatchEvent(new CustomEvent("profileUpdated"));
       } else {
         toast({ title: "Upload failed", description: res.message });
       }
@@ -153,7 +163,7 @@ const SkillsCertificationsTab = ({
     );
   };
 
-  const handleAddWorkExperience = () => {
+  const handleAddWorkExperience = async () => {
     if (!newWorkExp.company || !newWorkExp.position || !newWorkExp.startDate) {
       toast({
         title: "Missing information",
@@ -162,39 +172,72 @@ const SkillsCertificationsTab = ({
       return;
     }
 
-    const workExp: WorkExperience = {
-      id: Date.now().toString(),
-      company: newWorkExp.company,
-      position: newWorkExp.position,
-      startDate: newWorkExp.startDate,
-      endDate: newWorkExp.current ? undefined : newWorkExp.endDate,
-      current: newWorkExp.current || false,
-      description: newWorkExp.description || "",
-      location: newWorkExp.location || "",
-    };
+    try {
+      setSavingWorkExperience(true);
+      const workExperienceData = {
+        company: newWorkExp.company,
+        position: newWorkExp.position,
+        startDate: newWorkExp.startDate,
+        endDate: newWorkExp.current ? undefined : newWorkExp.endDate,
+        current: newWorkExp.current || false,
+        description: newWorkExp.description || "",
+        location: newWorkExp.location || "",
+      };
 
-    onFormChange("workExperience", [...(form.workExperience || []), workExp]);
+      const updatedProfile = await addWorkExperience(workExperienceData);
 
-    // Reset form
-    setNewWorkExp({
-      company: "",
-      position: "",
-      startDate: "",
-      endDate: "",
-      current: false,
-      description: "",
-      location: "",
-    });
-    setShowWorkExpForm(false);
-    toast({ title: "Work experience added successfully" });
+      // Update form with the response from server
+      onFormChange("workExperience", updatedProfile.workExperience || []);
+
+      // Reset form
+      setNewWorkExp({
+        company: "",
+        position: "",
+        startDate: "",
+        endDate: "",
+        current: false,
+        description: "",
+        location: "",
+      });
+      setShowWorkExpForm(false);
+      toast({ title: "Work experience added successfully" });
+      // Notify dashboard to refresh stats
+      window.dispatchEvent(new CustomEvent("profileUpdated"));
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add work experience",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingWorkExperience(false);
+    }
   };
 
-  const handleRemoveWorkExperience = (id: string) => {
-    onFormChange(
-      "workExperience",
-      (form.workExperience || []).filter((exp) => exp.id !== id)
-    );
-    toast({ title: "Work experience removed" });
+  const handleRemoveWorkExperience = async (id: string | undefined) => {
+    if (!id) {
+      toast({
+        title: "Error",
+        description: "Work experience ID not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const updatedProfile = await deleteWorkExperience(id);
+      // Update form with the response from server
+      onFormChange("workExperience", updatedProfile.workExperience || []);
+      toast({ title: "Work experience removed" });
+      // Notify dashboard to refresh stats
+      window.dispatchEvent(new CustomEvent("profileUpdated"));
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove work experience",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleWorkExpChange = (field: keyof WorkExperience, value: any) => {
@@ -245,6 +288,8 @@ const SkillsCertificationsTab = ({
       });
       setShowQualificationForm(false);
       toast({ title: "Qualification added successfully" });
+      // Notify dashboard to refresh stats
+      window.dispatchEvent(new CustomEvent("profileUpdated"));
     } catch (error: any) {
       toast({
         title: "Error",
@@ -305,6 +350,8 @@ const SkillsCertificationsTab = ({
       setEditingQualificationId(null);
       setShowQualificationForm(false);
       toast({ title: "Qualification updated successfully" });
+      // Notify dashboard to refresh stats
+      window.dispatchEvent(new CustomEvent("profileUpdated"));
     } catch (error: any) {
       toast({
         title: "Error",
@@ -359,6 +406,8 @@ const SkillsCertificationsTab = ({
       onFormChange("qualifications", updatedProfile.qualifications || []);
       toast({ title: "Qualification removed" });
       setDeleteQualificationDialog({ open: false, qualification: null });
+      // Notify dashboard to refresh stats
+      window.dispatchEvent(new CustomEvent("profileUpdated"));
     } catch (error: any) {
       toast({
         title: "Error",
@@ -373,6 +422,51 @@ const SkillsCertificationsTab = ({
     value: any
   ) => {
     setNewQualification((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveChanges = async () => {
+    if (!onSave) {
+      toast({
+        title: "Error",
+        description: "Save function not available",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Ensure skills are processed from input
+    const skills = skillsInput
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const skillsToSave = skills.length > 0 ? skills : form.skills || [];
+
+    try {
+      const success = await onSave({
+        skills: skillsToSave,
+        certifications: form.certifications,
+      });
+
+      if (success) {
+        toast({
+          title: "Changes saved",
+          description: "Your skills and certifications have been updated.",
+        });
+        // Clear skills input if saved
+        if (skills.length > 0) {
+          setSkillsInput("");
+        }
+        // Notify dashboard to refresh stats
+        window.dispatchEvent(new CustomEvent("profileUpdated"));
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save changes",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -719,10 +813,20 @@ const SkillsCertificationsTab = ({
                     <Button
                       type="button"
                       onClick={handleAddWorkExperience}
+                      disabled={savingWorkExperience}
                       className="flex-1"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Experience
+                      {savingWorkExperience ? (
+                        <>
+                          <Plus className="h-4 w-4 mr-2 animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Experience
+                        </>
+                      )}
                     </Button>
                     <Button
                       type="button"
@@ -752,7 +856,10 @@ const SkillsCertificationsTab = ({
             {form.workExperience && form.workExperience.length > 0 && (
               <div className="space-y-3">
                 {form.workExperience.map((exp) => (
-                  <Card key={exp.id} className="border-l-4 border-l-blue-500">
+                  <Card
+                    key={(exp as any)._id || exp.id || Math.random()}
+                    className="border-l-4 border-l-blue-500"
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -806,7 +913,11 @@ const SkillsCertificationsTab = ({
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleRemoveWorkExperience(exp.id!)}
+                          onClick={() =>
+                            handleRemoveWorkExperience(
+                              (exp as any)._id || exp.id
+                            )
+                          }
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -1192,6 +1303,18 @@ const SkillsCertificationsTab = ({
                   </p>
                 </div>
               )}
+          </div>
+
+          {/* Save Changes Button */}
+          <div className="flex justify-end pt-6 border-t mt-6">
+            <Button
+              type="button"
+              onClick={handleSaveChanges}
+              disabled={loading || !onSave}
+              className="min-w-[120px]"
+            >
+              {loading ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </CardContent>
       </Card>

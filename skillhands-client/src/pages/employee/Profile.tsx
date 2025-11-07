@@ -45,8 +45,11 @@ const EmployeeProfile = () => {
     workExperience: [],
     qualifications: [],
     expectedSalary: undefined,
+    yearsOfExperience: undefined,
     verified: false,
     designation: "",
+    workingZipCodes: [],
+    workingCities: [],
   });
 
   // Update form when profile data is loaded
@@ -97,8 +100,11 @@ const EmployeeProfile = () => {
         workExperience: profile.workExperience || [],
         qualifications: profile.qualifications || [],
         expectedSalary: profile.expectedSalary,
+        yearsOfExperience: profile.yearsOfExperience,
         verified: profile.verified || false,
         designation: normalizeDesignation(profile.designation) || "",
+        workingZipCodes: profile.workingZipCodes || [],
+        workingCities: profile.workingCities || [],
       });
     }
   }, [profile]);
@@ -124,7 +130,18 @@ const EmployeeProfile = () => {
       return;
     }
 
-    await updateProfile(form);
+    // Ensure workingZipCodes and workingCities are included in the update
+    const updateData = {
+      ...form,
+      workingZipCodes: form.workingZipCodes || [],
+      workingCities: form.workingCities || [],
+    };
+
+    const success = await updateProfile(updateData);
+    if (success) {
+      // Dispatch custom event to notify dashboard to refresh stats
+      window.dispatchEvent(new CustomEvent("profileUpdated"));
+    }
   };
 
   if (error && !profile) {
@@ -277,7 +294,8 @@ const EmployeeProfile = () => {
               <SkillsCertificationsTab
                 form={form}
                 onFormChange={handleChange}
-
+                onSave={updateProfile}
+                loading={loading}
                 // onUploadCertificates={uploadCertificates}
               />
             </TabsContent>

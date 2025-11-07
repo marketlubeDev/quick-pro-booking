@@ -138,6 +138,7 @@ export interface EmployeeApplication {
   previousJobCount: number;
   certifications: string[];
   expectedSalary: number;
+  yearsOfExperience?: number;
   status: "pending" | "approved" | "rejected";
   appliedDate: string;
   location: string;

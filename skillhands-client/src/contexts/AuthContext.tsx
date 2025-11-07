@@ -23,6 +23,8 @@ type AuthContextValue = {
       state?: string;
       postalCode?: string;
       expectedSalary?: number;
+      phone?: string;
+      yearsOfExperience?: number;
     }
   ) => Promise<AuthResponse>;
   logout: () => void;
@@ -193,6 +195,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         state?: string;
         postalCode?: string;
         expectedSalary?: number;
+        phone?: string;
+        yearsOfExperience?: number;
       }
     ) => {
       const resp = await authApi.register(name, email, password, extra);

@@ -54,11 +54,11 @@ import { marylandZipCodes } from "@/data/marylandZipCodes";
 import { EmployeeApplication, WorkExperience } from "@/types";
 import { fetchEmployeeJobs, type EmployeeJob } from "@/lib/api.employeeJobs";
 import { adminApi, type EmployeeProfileData } from "@/lib/api";
-import { 
+import {
   updateEmployeePersonalDetails,
   updateEmployeeProfessionalDetails,
   updateEmployeeStatus,
-  type EmployeeDetailsUpdateInput 
+  type EmployeeDetailsUpdateInput
 } from "@/lib/api.employeeDetails";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -159,6 +159,7 @@ export function EmployeeDetailModal({
     city: "",
     zip: "",
     expectedSalary: "",
+    yearsOfExperience: "",
     experienceLevel: "",
     skills: [] as string[],
     workingZipCodes: [] as string[],
@@ -194,6 +195,7 @@ export function EmployeeDetailModal({
         city: employeeProfile?.city || application.city || "",
         zip: employeeProfile?.postalCode || application.zip || "",
         expectedSalary: String(application.expectedSalary || ""),
+        yearsOfExperience: String(employeeProfile?.yearsOfExperience || application.yearsOfExperience || ""),
         experienceLevel: application.experienceLevel || "",
         skills: employeeProfile?.skills || application.skills || [],
         workingZipCodes:
@@ -274,7 +276,7 @@ export function EmployeeDetailModal({
       if (employeeProfile) {
         setEmployeeProfile({ ...employeeProfile, rating: editingRating });
       }
-      
+
       // Also update the local application and notify parent
       if (localApplication && onApplicationUpdate) {
         const updatedLocalApplication = {
@@ -282,7 +284,7 @@ export function EmployeeDetailModal({
           rating: editingRating,
         };
         setLocalApplication(updatedLocalApplication);
-        
+
         if (application) {
           const updatedOriginalApplication = {
             ...application,
@@ -319,6 +321,7 @@ export function EmployeeDetailModal({
         city: employeeProfile?.city || localApplication.city || "",
         zip: employeeProfile?.postalCode || localApplication.zip || "",
         expectedSalary: String(localApplication.expectedSalary || ""),
+        yearsOfExperience: String(employeeProfile?.yearsOfExperience || localApplication.yearsOfExperience || ""),
         experienceLevel: localApplication.experienceLevel || "",
         skills: employeeProfile?.skills || localApplication.skills || [],
         workingZipCodes:
@@ -354,10 +357,10 @@ export function EmployeeDetailModal({
     if (!selectedProfileId) return;
     try {
       setSavingDetails(true);
-      
+
       console.log("Saving details:", editingDetails);
       console.log("Current localApplication:", localApplication);
-      
+
       // Prepare personal details update
       const personalDetailsUpdate = {
         fullName: editingDetails.name,
@@ -373,14 +376,15 @@ export function EmployeeDetailModal({
         designation: editingDetails.designation,
         level: editingDetails.experienceLevel as "Beginner" | "Intermediate" | "Expert",
         expectedSalary: Number(editingDetails.expectedSalary) || 0,
+        yearsOfExperience: editingDetails.yearsOfExperience ? Number(editingDetails.yearsOfExperience) : undefined,
       };
 
       // Update personal details
       const updatedPersonalProfile = await updateEmployeePersonalDetails(selectedProfileId, personalDetailsUpdate);
-      
+
       // Update professional details
       const updatedProfessionalProfile = await updateEmployeeProfessionalDetails(selectedProfileId, professionalDetailsUpdate);
-      
+
       // Update the employee profile state with the latest data
       if (updatedProfessionalProfile) {
         setEmployeeProfile(updatedProfessionalProfile);
@@ -388,7 +392,7 @@ export function EmployeeDetailModal({
         // If professional profile update didn't return data, use personal profile data
         setEmployeeProfile(updatedPersonalProfile);
       }
-      
+
       // Also update employeeProfile with the new values to ensure UI reflects changes
       if (employeeProfile) {
         const updatedProfile = {
@@ -401,16 +405,17 @@ export function EmployeeDetailModal({
           designation: editingDetails.designation,
           level: editingDetails.experienceLevel as "Beginner" | "Intermediate" | "Expert",
           expectedSalary: Number(editingDetails.expectedSalary) || 0,
+          yearsOfExperience: editingDetails.yearsOfExperience ? Number(editingDetails.yearsOfExperience) : undefined,
           skills: editingDetails.skills,
           workingZipCodes: editingDetails.workingZipCodes,
           workingCities: editingDetails.workingCities,
         };
         setEmployeeProfile(updatedProfile);
       }
-      
+
       // Force refresh work experience to get latest data
       await fetchWorkExperience();
-      
+
       // Update the local application state to reflect changes immediately
       if (localApplication) {
         const updatedApplication: EmployeeApplication = {
@@ -422,14 +427,15 @@ export function EmployeeDetailModal({
           city: editingDetails.city,
           zip: editingDetails.zip,
           expectedSalary: Number(editingDetails.expectedSalary) || 0,
+          yearsOfExperience: editingDetails.yearsOfExperience ? Number(editingDetails.yearsOfExperience) : undefined,
           experienceLevel: editingDetails.experienceLevel,
           skills: editingDetails.skills,
         };
-        
+
         console.log("Updated application:", updatedApplication);
         setLocalApplication(updatedApplication);
       }
-      
+
       // Also update the original application prop if possible (for parent component)
       // This ensures the parent component also gets the updated data
       if (application) {
@@ -442,20 +448,21 @@ export function EmployeeDetailModal({
           city: editingDetails.city,
           zip: editingDetails.zip,
           expectedSalary: Number(editingDetails.expectedSalary) || 0,
+          yearsOfExperience: editingDetails.yearsOfExperience ? Number(editingDetails.yearsOfExperience) : undefined,
           experienceLevel: editingDetails.experienceLevel,
           skills: editingDetails.skills,
         };
-        
+
         // Update the application prop by calling a callback if provided
         // This ensures the parent component also gets the updated data
         console.log("Updated original application:", updatedOriginalApplication);
-        
+
         // Notify parent component of the update
         if (onApplicationUpdate) {
           onApplicationUpdate(updatedOriginalApplication);
         }
       }
-      
+
       toast({
         title: "Details updated",
         description: "Employee details have been updated successfully",
@@ -561,12 +568,12 @@ export function EmployeeDetailModal({
 
   const handleStatusUpdate = async (newStatus: "pending" | "approved" | "rejected") => {
     if (!selectedProfileId) return;
-    
+
     try {
       setUpdatingStatus(newStatus);
-      
+
       await updateEmployeeStatus(selectedProfileId, newStatus, statusUpdateNotes);
-      
+
       // Update local application state
       if (localApplication) {
         const updatedLocalApplication = {
@@ -575,7 +582,7 @@ export function EmployeeDetailModal({
           verificationNotes: statusUpdateNotes,
         };
         setLocalApplication(updatedLocalApplication);
-        
+
         // Also update the original application and notify parent
         if (application && onApplicationUpdate) {
           const updatedOriginalApplication = {
@@ -586,12 +593,12 @@ export function EmployeeDetailModal({
           onApplicationUpdate(updatedOriginalApplication);
         }
       }
-      
+
       toast({
         title: "Status updated",
         description: `Employee status changed to ${newStatus}`,
       });
-      
+
       setStatusUpdateNotes("");
     } catch (err) {
       console.error("Error updating employee status:", err);
@@ -609,7 +616,7 @@ export function EmployeeDetailModal({
 
   // Use local application for display, fallback to original application
   const currentApplication = localApplication || application;
-  
+
   console.log("localApplication:", localApplication);
   console.log("application:", application);
   console.log("currentApplication:", currentApplication);
@@ -838,6 +845,30 @@ export function EmployeeDetailModal({
                       </p>
                     )}
                   </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Years of Experience
+                    </label>
+                    {isEditingBasic ? (
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        step="1"
+                        value={editingDetails.yearsOfExperience}
+                        onChange={(e) => handleInputChange("yearsOfExperience", e.target.value)}
+                        className="mt-1"
+                        placeholder="e.g., 5"
+                      />
+                    ) : (
+                      <p className="text-sm flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>
+                          {employeeProfile?.yearsOfExperience ?? currentApplication.yearsOfExperience ?? "—"}
+                        </span>
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -930,7 +961,7 @@ export function EmployeeDetailModal({
               </CardContent>
             </Card>
 
-       
+
 
             {/* Working Areas */}
             <Card>
@@ -1200,7 +1231,7 @@ export function EmployeeDetailModal({
                         Add
                       </Button>
                     </div>
-                    
+
                     {/* Current skills with remove option */}
                     <div className="flex flex-wrap gap-2">
                       {editingDetails.skills.map((skill) => (
@@ -1217,14 +1248,14 @@ export function EmployeeDetailModal({
                         </Badge>
                       ))}
                     </div>
-                    
+
                     {editingDetails.skills.length === 0 && (
                       <p className="text-sm text-muted-foreground">No skills added yet</p>
                     )}
                   </div>
                 ) : (
                   <div>
-                    {(employeeProfile?.skills || currentApplication.skills) && 
+                    {(employeeProfile?.skills || currentApplication.skills) &&
                      (employeeProfile?.skills || currentApplication.skills).length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {(employeeProfile?.skills || currentApplication.skills).map((skill) => (
@@ -1357,7 +1388,7 @@ export function EmployeeDetailModal({
                       Set Pending
                     </Button>
                   </div>
-                  
+
                   {/* <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Status Notes

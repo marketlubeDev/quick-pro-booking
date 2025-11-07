@@ -117,6 +117,11 @@ const SignUp = () => {
       const addressZip = (formData.get("addressZip") as string)
         ?.toString()
         .trim();
+      const phone = (formData.get("phone") as string)?.toString().trim();
+      const yearsOfExperienceStr = (formData.get("yearsOfExperience") as string)
+        ?.toString()
+        .trim();
+      const yearsOfExperience = Number(yearsOfExperienceStr);
       const finalCity = formCity || city;
       if (
         !name ||
@@ -128,7 +133,9 @@ const SignUp = () => {
         !zips.length ||
         !designation ||
         !finalCity ||
-        !expectedSalaryStr
+        !expectedSalaryStr ||
+        !phone ||
+        !yearsOfExperienceStr
       ) {
         setError("All fields are required");
         setSubmitting(false);
@@ -136,6 +143,11 @@ const SignUp = () => {
       }
       if (Number.isNaN(expectedSalary) || expectedSalary < 0) {
         setError("Expected Salary must be a non-negative number");
+        setSubmitting(false);
+        return;
+      }
+      if (Number.isNaN(yearsOfExperience) || yearsOfExperience < 0) {
+        setError("Years of Experience must be a non-negative number");
         setSubmitting(false);
         return;
       }
@@ -164,12 +176,15 @@ const SignUp = () => {
         state: "MD",
         postalCode: addressZip,
         expectedSalary,
+        phone,
+        yearsOfExperience,
       });
       // Best-effort profile bootstrap with address info
       try {
         await employeeApi.updateProfile({
           fullName: name,
           email,
+          phone,
           addressLine1: address,
           city: finalCity || undefined,
           state: "MD",
@@ -179,6 +194,7 @@ const SignUp = () => {
           expectedSalary,
           workingZipCodes: zips,
           workingCities: workCities ? workCities.split(", ") : [],
+          yearsOfExperience,
         });
       } catch {
         // ignore profile update failure; user can complete later
@@ -224,6 +240,16 @@ const SignUp = () => {
                   type="email"
                   placeholder="you@example.com"
                   name="email"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="(123) 456-7890"
+                  name="phone"
                   required
                 />
               </div>
@@ -310,6 +336,19 @@ const SignUp = () => {
                   step="0.01"
                   placeholder="0"
                   name="expectedSalary"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="yearsOfExperience">Years of Experience</Label>
+                <Input
+                  id="yearsOfExperience"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step="1"
+                  placeholder="0"
+                  name="yearsOfExperience"
                   required
                 />
               </div>

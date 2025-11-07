@@ -42,6 +42,7 @@ import {
   Shield,
   DollarSign,
   Star,
+  Clock,
   ChevronsUpDown,
   Check,
 } from "lucide-react";
@@ -68,6 +69,8 @@ const PersonalInfoTab = ({
     form.designation ? form.designation.split(", ") : []
   );
   const [designationOpen, setDesignationOpen] = useState(false);
+  const [zipOpen, setZipOpen] = useState(false);
+  const [newWorkingCity, setNewWorkingCity] = useState("");
 
   // Sync selectedDesignations when form.designation changes
   useEffect(() => {
@@ -348,6 +351,210 @@ const PersonalInfoTab = ({
                 Your expected annual salary in USD
               </p>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="yearsOfExperience" className="text-sm font-medium">
+                Years of Experience
+              </Label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="yearsOfExperience"
+                  type="number"
+                  inputMode="numeric"
+                  value={form.yearsOfExperience || ""}
+                  onChange={(e) =>
+                    onFormChange(
+                      "yearsOfExperience",
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
+                  placeholder="Enter years of experience"
+                  className="h-11 pl-10"
+                  min="0"
+                  step="1"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Total years of professional experience
+              </p>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="workingZipCodes" className="text-sm font-medium">
+                Work Location ZIP codes
+              </Label>
+              <Popover open={zipOpen} onOpenChange={setZipOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={zipOpen}
+                    className="w-full justify-between h-11"
+                    id="workingZipCodes"
+                    type="button"
+                  >
+                    {form.workingZipCodes && form.workingZipCodes.length > 0
+                      ? form.workingZipCodes.join(", ")
+                      : "Select ZIPs"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="p-0 w-[--radix-popover-trigger-width]"
+                  align="start"
+                >
+                  <Command>
+                    <CommandInput placeholder="Type ZIP or city..." />
+                    <CommandEmpty>No results found.</CommandEmpty>
+                    <CommandList>
+                      <CommandGroup>
+                        {marylandZipCodes.map((z) => (
+                          <CommandItem
+                            key={z.zip}
+                            value={`${z.zip} ${z.city}`}
+                            onSelect={() => {
+                              const currentZips = form.workingZipCodes || [];
+                              const isSelected = currentZips.includes(z.zip);
+                              const nextZips = isSelected
+                                ? currentZips.filter((p) => p !== z.zip)
+                                : [...currentZips, z.zip];
+                              onFormChange("workingZipCodes", nextZips);
+
+                              // Auto-update cities based on selected ZIPs
+                              const citiesFromZips = marylandZipCodes
+                                .filter((mz) => nextZips.includes(mz.zip))
+                                .map((mz) => mz.city)
+                                .filter(Boolean);
+                              const uniqueCities = Array.from(new Set(citiesFromZips));
+                              onFormChange("workingCities", uniqueCities);
+                            }}
+                          >
+                            <span className="mr-2 inline-flex items-center justify-center h-4 w-4">
+                              {form.workingZipCodes?.includes(z.zip) && (
+                                <Check className="h-4 w-4" />
+                              )}
+                            </span>
+                            {z.zip} — {z.city}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {form.workingZipCodes?.map((zip) => (
+                  <Badge
+                    key={zip}
+                    variant="outline"
+                    className="flex items-center space-x-1"
+                  >
+                    <span>{zip}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextZips = (form.workingZipCodes || []).filter(
+                          (p) => p !== zip
+                        );
+                        onFormChange("workingZipCodes", nextZips);
+
+                        // Update cities when ZIP is removed
+                        const citiesFromZips = marylandZipCodes
+                          .filter((mz) => nextZips.includes(mz.zip))
+                          .map((mz) => mz.city)
+                          .filter(Boolean);
+                        const uniqueCities = Array.from(new Set(citiesFromZips));
+                        onFormChange("workingCities", uniqueCities);
+                      }}
+                      className="ml-1 hover:text-red-500"
+                      aria-label={`Remove ${zip}`}
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                ZIP codes where you are available to work
+              </p>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="workingCities" className="text-sm font-medium">
+                Work Cities
+              </Label>
+              <div className="flex space-x-2">
+                <Input
+                  id="workingCities"
+                  value={newWorkingCity}
+                  onChange={(e) => setNewWorkingCity(e.target.value)}
+                  placeholder="Add a city..."
+                  className="flex-1 h-11"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const candidate = newWorkingCity.trim();
+                      if (
+                        candidate &&
+                        !form.workingCities?.includes(candidate)
+                      ) {
+                        onFormChange("workingCities", [
+                          ...(form.workingCities || []),
+                          candidate,
+                        ]);
+                        setNewWorkingCity("");
+                      }
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={!newWorkingCity.trim()}
+                  onClick={() => {
+                    const candidate = newWorkingCity.trim();
+                    if (
+                      candidate &&
+                      !form.workingCities?.includes(candidate)
+                    ) {
+                      onFormChange("workingCities", [
+                        ...(form.workingCities || []),
+                        candidate,
+                      ]);
+                      setNewWorkingCity("");
+                    }
+                  }}
+                  className="h-11"
+                >
+                  Add
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {form.workingCities?.map((city) => (
+                  <Badge
+                    key={city}
+                    variant="outline"
+                    className="flex items-center space-x-1"
+                  >
+                    <span>{city}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onFormChange(
+                          "workingCities",
+                          (form.workingCities || []).filter((c) => c !== city)
+                        );
+                      }}
+                      className="ml-1 hover:text-red-500"
+                      aria-label={`Remove ${city}`}
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Cities where you are available to work
+              </p>
+            </div>
           </div>
 
                    {/* Save Button */}
@@ -467,7 +674,7 @@ const PersonalInfoTab = ({
             )}
           </div>
 
-          
+
         </CardContent>
       </Card>
     </div>

@@ -18,6 +18,7 @@ export interface EmployeeDetailsUpdateInput {
   designation?: string;
   level?: "Beginner" | "Intermediate" | "Expert";
   expectedSalary?: number;
+  yearsOfExperience?: number;
 
   // Skills & Experience
   skills?: string[];
