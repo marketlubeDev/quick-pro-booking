@@ -139,7 +139,9 @@ const getEmployeePerformanceData = async (startDate, endDate) => {
       $or: [{ status: "approved" }, { verificationStatus: "approved" }],
     })
       .populate("user", "name email")
-      .select("_id fullName email phone city state postalCode country designation level skills rating totalJobs user appliedDate createdAt");
+      .select(
+        "_id fullName email phone city state postalCode country designation level skills rating totalJobs user appliedDate createdAt"
+      );
 
     const employeePerformance = [];
 
@@ -185,11 +187,11 @@ const getEmployeePerformanceData = async (startDate, endDate) => {
         country: employee.country || "",
         designation: Array.isArray(employee.designation)
           ? employee.designation.join(", ")
-          : (employee.designation || ""),
+          : employee.designation || "",
         level: employee.level || "",
         skills: Array.isArray(employee.skills)
           ? employee.skills.join(", ")
-          : (employee.skills || ""),
+          : employee.skills || "",
         completedJobs: overallCompletedJobs,
         rating: rating,
         efficiency: Math.min(efficiency, 100),
@@ -212,7 +214,11 @@ const escapeCSV = (value) => {
   if (value === null || value === undefined) return "";
   const stringValue = String(value);
   // If value contains comma, quote, or newline, wrap in quotes and escape quotes
-  if (stringValue.includes(",") || stringValue.includes('"') || stringValue.includes("\n")) {
+  if (
+    stringValue.includes(",") ||
+    stringValue.includes('"') ||
+    stringValue.includes("\n")
+  ) {
     return `"${stringValue.replace(/"/g, '""')}"`;
   }
   return stringValue;
@@ -225,7 +231,9 @@ const formatPhoneNumber = (phone) => {
 
   // Format 10-digit numbers as (XXX) XXX-XXXX
   if (phoneStr.length === 10) {
-    return `(${phoneStr.slice(0, 3)}) ${phoneStr.slice(3, 6)}-${phoneStr.slice(6)}`;
+    return `(${phoneStr.slice(0, 3)}) ${phoneStr.slice(3, 6)}-${phoneStr.slice(
+      6
+    )}`;
   }
 
   // For other lengths, format with dashes if possible, or return as-is
@@ -298,14 +306,18 @@ export const exportReports = async (req, res) => {
         "Service",
         "Status",
         "Priority",
-        "Created Date"
+        "Created Date",
       ];
       serviceRequestsData.push(headers);
 
       // Add data rows
       serviceRequests.forEach((request) => {
         // Convert _id to string to ensure it's displayed
-        const requestId = request._id ? String(request._id) : (request.id ? String(request.id) : "");
+        const requestId = request._id
+          ? String(request._id)
+          : request.id
+          ? String(request.id)
+          : "";
         serviceRequestsData.push([
           requestId,
           request.name || "",
@@ -314,7 +326,7 @@ export const exportReports = async (req, res) => {
           request.service || "",
           request.status || "",
           request.priority || "",
-          formatDate(request.createdAt)
+          formatDate(request.createdAt),
         ]);
       });
 
@@ -330,7 +342,7 @@ export const exportReports = async (req, res) => {
         { wch: 25 }, // Service
         { wch: 18 }, // Status
         { wch: 15 }, // Priority
-        { wch: 25 }  // Created Date - wider to show full date/time
+        { wch: 25 }, // Created Date - wider to show full date/time
       ];
 
       // Add worksheet to workbook
@@ -364,7 +376,7 @@ export const exportReports = async (req, res) => {
         "Rating",
         "Efficiency",
         "Success Rate",
-        "Applied Date"
+        "Applied Date",
       ];
       empData.push(empHeaders);
 
@@ -389,12 +401,14 @@ export const exportReports = async (req, res) => {
             employee.rating || 0,
             employee.efficiency || 0,
             `${employee.successRate || 0}%`,
-            formatDate(employee.appliedDate)
+            formatDate(employee.appliedDate),
           ]);
         });
       } else {
         // Add a message row if no data
-        empData.push(["No employee performance data available for this period"]);
+        empData.push([
+          "No employee performance data available for this period",
+        ]);
       }
 
       // Create worksheet
@@ -418,7 +432,7 @@ export const exportReports = async (req, res) => {
         { wch: 12 }, // Rating
         { wch: 15 }, // Efficiency
         { wch: 15 }, // Success Rate
-        { wch: 20 }  // Applied Date
+        { wch: 20 }, // Applied Date
       ];
 
       XLSX.utils.book_append_sheet(workbook, empWs, "Employee Performance");
@@ -426,7 +440,7 @@ export const exportReports = async (req, res) => {
       // Generate Excel file buffer
       const excelBuffer = XLSX.write(workbook, {
         type: "buffer",
-        bookType: "xlsx"
+        bookType: "xlsx",
       });
 
       res.setHeader(
@@ -459,14 +473,18 @@ export const exportReports = async (req, res) => {
         "Service",
         "Status",
         "Priority",
-        "Created Date"
+        "Created Date",
       ];
       csvContent += headers.map(escapeCSV).join(",") + "\n";
 
       // Data rows with proper formatting
       serviceRequests.forEach((request) => {
         // Convert _id to string to ensure it's displayed
-        const requestId = request._id ? String(request._id) : (request.id ? String(request.id) : "");
+        const requestId = request._id
+          ? String(request._id)
+          : request.id
+          ? String(request.id)
+          : "";
         const row = [
           requestId,
           request.name || "",
@@ -475,7 +493,7 @@ export const exportReports = async (req, res) => {
           request.service || "",
           request.status || "",
           request.priority || "",
-          formatDate(request.createdAt)
+          formatDate(request.createdAt),
         ];
         csvContent += row.map(escapeCSV).join(",") + "\n";
       });
@@ -499,7 +517,7 @@ export const exportReports = async (req, res) => {
         "Rating",
         "Efficiency",
         "Success Rate",
-        "Applied Date"
+        "Applied Date",
       ];
       csvContent += empHeaders.map(escapeCSV).join(",") + "\n";
 
@@ -523,12 +541,13 @@ export const exportReports = async (req, res) => {
             employee.rating || 0,
             employee.efficiency || 0,
             `${employee.successRate || 0}%`,
-            formatDate(employee.appliedDate)
+            formatDate(employee.appliedDate),
           ];
           csvContent += row.map(escapeCSV).join(",") + "\n";
         });
       } else {
-        csvContent += "No employee performance data available for this period\n";
+        csvContent +=
+          "No employee performance data available for this period\n";
       }
 
       res.setHeader("Content-Type", "text/csv; charset=utf-8");
