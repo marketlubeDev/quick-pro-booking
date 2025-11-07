@@ -39,21 +39,26 @@ export interface AddRemarksInput {
   remarks: string;
 }
 
+export interface MarkPaidInput {
+  jobId: string;
+  employeeId: string;
+}
+
 export async function fetchEmployeeJobs(
   employeeId: string,
   status?: string
 ): Promise<EmployeeJob[]> {
   try {
-    const url = status 
+    const url = status
       ? `/api/service-requests/employee/${employeeId}?status=${status}`
       : `/api/service-requests/employee/${employeeId}`;
-    
+
     const response = await apiFetch<EmployeeJobsResponse>(url);
-    
+
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     return [];
   } catch (error) {
     console.error("Error fetching employee jobs:", error);
@@ -61,38 +66,66 @@ export async function fetchEmployeeJobs(
   }
 }
 
-export async function acceptJob(input: AcceptJobInput): Promise<JobActionResponse> {
+export async function acceptJob(
+  input: AcceptJobInput
+): Promise<JobActionResponse> {
   const { jobId, employeeId } = input;
-  
+
   return apiFetch<JobActionResponse>(`/api/service-requests/${jobId}/accept`, {
     method: "POST",
     body: { employeeId },
   });
 }
 
-export async function markJobAsDone(input: AcceptJobInput): Promise<JobActionResponse> {
+export async function markJobAsDone(
+  input: AcceptJobInput
+): Promise<JobActionResponse> {
   const { jobId, employeeId } = input;
-  
-  return apiFetch<JobActionResponse>(`/api/service-requests/${jobId}/mark-done`, {
-    method: "POST",
-    body: { employeeId },
-  });
+
+  return apiFetch<JobActionResponse>(
+    `/api/service-requests/${jobId}/mark-done`,
+    {
+      method: "POST",
+      body: { employeeId },
+    }
+  );
 }
 
-export async function completeJob(input: CompleteJobInput): Promise<JobActionResponse> {
+export async function completeJob(
+  input: CompleteJobInput
+): Promise<JobActionResponse> {
   const { jobId, employeeId, completionNotes } = input;
-  
-  return apiFetch<JobActionResponse>(`/api/service-requests/${jobId}/complete`, {
-    method: "POST",
-    body: { employeeId, completionNotes },
-  });
+
+  return apiFetch<JobActionResponse>(
+    `/api/service-requests/${jobId}/complete`,
+    {
+      method: "POST",
+      body: { employeeId, completionNotes },
+    }
+  );
 }
 
-export async function addJobRemarks(input: AddRemarksInput): Promise<JobActionResponse> {
+export async function addJobRemarks(
+  input: AddRemarksInput
+): Promise<JobActionResponse> {
   const { jobId, employeeId, remarks } = input;
-  
+
   return apiFetch<JobActionResponse>(`/api/service-requests/${jobId}/remarks`, {
     method: "POST",
     body: { employeeId, remarks },
   });
+}
+
+export async function markJobPaid(
+  input: MarkPaidInput
+): Promise<JobActionResponse> {
+  const { jobId, employeeId } = input;
+
+  return apiFetch<JobActionResponse>(
+    `/api/service-requests/${jobId}/mark-paid`,
+    {
+      method: "POST",
+      body: { employeeId },
+    }
+  );
 }

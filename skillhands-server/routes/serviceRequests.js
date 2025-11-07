@@ -19,6 +19,7 @@ import {
   getServiceRequestAnalytics,
   searchServiceRequests,
   bulkUpdateServiceRequests,
+  markPaymentAsPaidByEmployee,
 } from "../controllers/serviceRequestController.js";
 
 const router = express.Router();
@@ -40,6 +41,7 @@ router.post("/:id/accept", acceptJob);
 router.post("/:id/mark-done", markJobAsDone);
 router.post("/:id/complete", completeJob);
 router.post("/:id/remarks", addJobRemarks);
+router.post("/:id/mark-paid", markPaymentAsPaidByEmployee);
 router.post("/:id/assign", assignJobToEmployee);
 router.patch("/:id/assigned-employee", updateAssignedEmployee);
 

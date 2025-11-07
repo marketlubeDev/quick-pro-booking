@@ -606,6 +606,53 @@ export const markJobAsDone = async (req, res) => {
   }
 };
 
+// Employee marks remaining/full payment as paid (cash collection on site)
+export const markPaymentAsPaidByEmployee = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { employeeId } = req.body || {};
+
+    const job = await ServiceRequest.findById(id);
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found" });
+    }
+
+    // Optional: basic authorization – allow only assigned employee to mark paid
+    if (employeeId && job.assignedEmployee) {
+      // Resolve Profile by user id (assignedEmployee stores Profile _id)
+      const Profile = (await import("../models/Profile.js")).default;
+      const profile = await Profile.findOne({ user: employeeId });
+      if (!profile || String(job.assignedEmployee) !== String(profile._id)) {
+        return res.status(403).json({
+          success: false,
+          message: "Not authorized to update payment for this job",
+        });
+      }
+    }
+
+    // Mark as fully paid
+    job.paymentStatus = "paid";
+    job.paymentMethod = job.paymentMethod || "cash";
+    // Set amount to total (in cents) to represent fully paid after collection
+    job.amount = job.totalAmount;
+    job.paidAt = new Date();
+
+    await job.save();
+
+    return res.json({
+      success: true,
+      data: job,
+      message: "Payment marked as paid",
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("markPaymentAsPaidByEmployee error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to mark payment as paid" });
+  }
+};
+
 export const completeJob = async (req, res) => {
   try {
     const { id } = req.params;

@@ -21,6 +21,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import type { EmployeeJob } from "@/lib/api.employeeJobs";
+import { markJobPaid as markJobPaidAction } from "@/lib/api.employeeJobs";
+import { useAuth } from "@/hooks/useAuth";
 
 const statusToVariant: Record<string, any> = {
   pending: "secondary",
@@ -45,6 +47,7 @@ const EmployeeJobs = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const {
     jobs: allJobs,
@@ -148,6 +151,18 @@ const EmployeeJobs = () => {
         description: "Failed to add remarks. Please try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleMarkPaid = async (jobId: string) => {
+    try {
+      if (!user?._id) throw new Error("Not authenticated");
+      await markJobPaidAction({ jobId, employeeId: user._id });
+      toast({ title: "Payment Updated", description: "Payment marked as paid." });
+      await refetch();
+      setIsModalOpen(false);
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update payment.", variant: "destructive" });
     }
   };
 
@@ -627,6 +642,7 @@ const EmployeeJobs = () => {
         onAccept={handleAcceptJob}
         onComplete={handleCompleteJob}
         onAddRemarks={handleAddRemarks}
+        onMarkPaid={handleMarkPaid}
         loading={loading}
       />
     </div>

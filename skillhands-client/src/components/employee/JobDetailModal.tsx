@@ -19,6 +19,7 @@ import {
   Calendar,
   Clock,
   DollarSign,
+  BadgeDollarSign,
   FileText,
   CheckCircle,
   XCircle,
@@ -32,6 +33,7 @@ interface JobDetailModalProps {
   onAccept: (jobId: string) => Promise<void>;
   onComplete: (jobId: string, completionNotes?: string) => Promise<void>;
   onAddRemarks: (jobId: string, remarks: string) => Promise<void>;
+  onMarkPaid?: (jobId: string) => Promise<void>;
   loading?: boolean;
 }
 
@@ -60,6 +62,7 @@ export function JobDetailModal({
   onAccept,
   onComplete,
   onAddRemarks,
+  onMarkPaid,
   loading = false,
 }: JobDetailModalProps) {
   const [completionNotes, setCompletionNotes] = useState("");
@@ -109,6 +112,18 @@ export function JobDetailModal({
     }
   };
 
+  const handleMarkPaid = async () => {
+    if (!onMarkPaid || !job) return;
+    try {
+      setIsSubmitting(true);
+      await onMarkPaid(job.id || job._id || "");
+    } catch (error) {
+      console.error("Error marking payment as paid:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const canMarkAsDone = job.status === "in-process"; // Show "Mark as Done" only when admin has accepted (status is in-process)
   const canComplete = job.employeeAccepted && job.status === "in-progress";
   const isCompleted = job.status === "completed";
@@ -143,6 +158,71 @@ export function JobDetailModal({
               <p className="text-sm text-muted-foreground">
                 {job.description || "No description provided"}
               </p>
+            </CardContent>
+          </Card>
+
+          {/* Payment Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BadgeDollarSign className="h-5 w-5" /> Payment
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Status</span>
+                <Badge
+                  variant={
+                    job.paymentStatus === "paid"
+                      ? "success"
+                      : job.paymentStatus === "partially_paid"
+                      ? "warning"
+                      : "secondary"
+                  }
+                >
+                  {(job.paymentStatus || "pending").replace(/_/g, " ")}
+                </Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total</span>
+                <span className="font-medium">
+                  ${((job.totalAmount || 0) / 100).toFixed(2)}
+                </span>
+              </div>
+              {typeof job.amount === "number" && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Paid</span>
+                  <span className="font-medium">
+                    ${((job.amount || 0) / 100).toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {job.paymentStatus === "partially_paid" && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Remaining</span>
+                  <span className="font-medium">
+                    $
+                    {(
+                      ((job.totalAmount || 0) - (job.amount || 0)) /
+                      100
+                    ).toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {(job.paymentStatus === "partially_paid" ||
+                (job.paymentStatus !== "paid" &&
+                  job.paymentMethod === "cash")) &&
+                onMarkPaid && (
+                  <Button
+                    onClick={handleMarkPaid}
+                    disabled={isSubmitting || loading}
+                    className="w-full mt-2"
+                  >
+                    {job.paymentStatus === "partially_paid"
+                      ? "Mark Remaining Paid (Cash)"
+                      : "Mark Fully Paid (Cash)"}
+                  </Button>
+                )}
             </CardContent>
           </Card>
 
