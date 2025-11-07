@@ -54,6 +54,8 @@ const SignUp = () => {
   const [services, setServices] = useState<string[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
 
+  console.log(selectedDesignations, "asjgdkgaskjgselectedDesignations");
+
   const workCities = selectedZips
     .map((zip) => marylandZipCodes.find((z) => z.zip === zip)?.city || "")
     .filter(Boolean)

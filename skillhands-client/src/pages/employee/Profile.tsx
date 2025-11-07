@@ -85,6 +85,24 @@ const EmployeeProfile = () => {
         }
       };
 
+      // Handle designation - it can be an array or a string
+      let designationValue = "";
+      if (profile.designation) {
+        if (Array.isArray(profile.designation)) {
+          // If it's an array, convert to comma-separated string
+          // Keep original values as-is (normalization will happen in PersonalInfoTab if needed)
+          designationValue = profile.designation
+            .map((d) => (typeof d === "string" ? d.trim() : String(d).trim()))
+            .filter(Boolean)
+            .join(", ");
+        } else if (typeof profile.designation === "string") {
+          // If it's a string, use it as-is (may already be comma-separated)
+          designationValue = profile.designation.trim();
+        } else {
+          designationValue = String(profile.designation).trim();
+        }
+      }
+
       setForm({
         fullName: profile.fullName || profile.user?.name || "",
         email: profile.email || profile.user?.email || "",
@@ -102,7 +120,7 @@ const EmployeeProfile = () => {
         expectedSalary: profile.expectedSalary,
         yearsOfExperience: profile.yearsOfExperience,
         verified: profile.verified || false,
-        designation: normalizeDesignation(profile.designation) || "",
+        designation: designationValue,
         workingZipCodes: profile.workingZipCodes || [],
         workingCities: profile.workingCities || [],
       });

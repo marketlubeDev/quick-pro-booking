@@ -47,6 +47,7 @@ import {
   Check,
 } from "lucide-react";
 import { employeeApi, type EmployeeProfileData } from "@/lib/api";
+import { serviceCategoriesApi } from "@/lib/api.serviceCategories";
 import { marylandZipCodes } from "@/data/marylandZipCodes";
 import { useToast } from "@/hooks/use-toast";
 
@@ -71,6 +72,8 @@ const PersonalInfoTab = ({
   const [designationOpen, setDesignationOpen] = useState(false);
   const [zipOpen, setZipOpen] = useState(false);
   const [newWorkingCity, setNewWorkingCity] = useState("");
+  const [designations, setDesignations] = useState<string[]>([]);
+  const [loadingDesignations, setLoadingDesignations] = useState(true);
 
   // Sync selectedDesignations when form.designation changes
   useEffect(() => {
@@ -80,6 +83,68 @@ const PersonalInfoTab = ({
       setSelectedDesignations([]);
     }
   }, [form.designation]);
+
+  // Fetch designations from API
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await serviceCategoriesApi.list();
+        const categories = res.data || [];
+        const apiNames = categories
+          .filter((c) => c && (c.isActive === undefined || c.isActive))
+          .map((c) => c.name.toLowerCase())
+          .filter(Boolean);
+
+        if (isMounted) {
+          setDesignations(apiNames.sort());
+        }
+      } catch (e) {
+        console.error("Failed to fetch designations:", e);
+        if (isMounted) {
+          setDesignations([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingDesignations(false);
+        }
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Validate designation against API list when both are available
+  useEffect(() => {
+    // Only validate if designations are loaded
+    if (loadingDesignations || designations.length === 0) {
+      return;
+    }
+
+    if (form.designation) {
+      const currentDesignations = form.designation
+        .split(", ")
+        .map((d) => d.toLowerCase().trim())
+        .filter(Boolean);
+
+      // Filter to only include designations that exist in API
+      const validDesignations = currentDesignations.filter((d) =>
+        designations.includes(d)
+      );
+
+      // If some designations are invalid, update the form
+      if (validDesignations.length !== currentDesignations.length) {
+        if (validDesignations.length > 0) {
+          onFormChange("designation", validDesignations.join(", "));
+        } else {
+          // Clear designation if none are valid
+          onFormChange("designation", "");
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [designations, loadingDesignations, form.designation]); // Validate when designations are loaded or form.designation changes
 
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -260,38 +325,42 @@ const PersonalInfoTab = ({
                     <CommandEmpty>No results found.</CommandEmpty>
                     <CommandList>
                       <CommandGroup>
-                        {[
-                          "plumber",
-                          "electrician",
-                          "house cleaner",
-                          "ac technician",
-                          "appliance repair",
-                          "painter",
-                          "handyman",
-                          "pest control specialist",
-                          "landscaper",
-                          "moving specialist",
-                          "roofer",
-                        ].map((d) => (
-                          <CommandItem
-                            key={d}
-                            value={d}
-                            onSelect={() => {
-                              const newDesignations = selectedDesignations.includes(d)
-                                ? selectedDesignations.filter((p) => p !== d)
-                                : [...selectedDesignations, d];
-                              setSelectedDesignations(newDesignations);
-                              onFormChange("designation", newDesignations.join(", "));
-                            }}
-                          >
-                            <span className="mr-2 inline-flex items-center justify-center h-4 w-4">
-                              {selectedDesignations.includes(d) && (
-                                <Check className="h-4 w-4" />
-                              )}
-                            </span>
-                            {d.replace(/\b\w/g, (c) => c.toUpperCase())}
+                        {loadingDesignations ? (
+                          <CommandItem disabled>
+                            Loading designations...
                           </CommandItem>
-                        ))}
+                        ) : designations.length === 0 ? (
+                          <CommandItem disabled>
+                            No designations available
+                          </CommandItem>
+                        ) : (
+                          designations.map((d) => (
+                            <CommandItem
+                              key={d}
+                              value={d}
+                              onSelect={() => {
+                                const newDesignations =
+                                  selectedDesignations.includes(d)
+                                    ? selectedDesignations.filter(
+                                        (p) => p !== d
+                                      )
+                                    : [...selectedDesignations, d];
+                                setSelectedDesignations(newDesignations);
+                                onFormChange(
+                                  "designation",
+                                  newDesignations.join(", ")
+                                );
+                              }}
+                            >
+                              <span className="mr-2 inline-flex items-center justify-center h-4 w-4">
+                                {selectedDesignations.includes(d) && (
+                                  <Check className="h-4 w-4" />
+                                )}
+                              </span>
+                              {d.replace(/\b\w/g, (c) => c.toUpperCase())}
+                            </CommandItem>
+                          ))
+                        )}
                       </CommandGroup>
                     </CommandList>
                   </Command>
@@ -352,7 +421,10 @@ const PersonalInfoTab = ({
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="yearsOfExperience" className="text-sm font-medium">
+              <Label
+                htmlFor="yearsOfExperience"
+                className="text-sm font-medium"
+              >
                 Years of Experience
               </Label>
               <div className="relative">
@@ -424,7 +496,9 @@ const PersonalInfoTab = ({
                                 .filter((mz) => nextZips.includes(mz.zip))
                                 .map((mz) => mz.city)
                                 .filter(Boolean);
-                              const uniqueCities = Array.from(new Set(citiesFromZips));
+                              const uniqueCities = Array.from(
+                                new Set(citiesFromZips)
+                              );
                               onFormChange("workingCities", uniqueCities);
                             }}
                           >
@@ -462,7 +536,9 @@ const PersonalInfoTab = ({
                           .filter((mz) => nextZips.includes(mz.zip))
                           .map((mz) => mz.city)
                           .filter(Boolean);
-                        const uniqueCities = Array.from(new Set(citiesFromZips));
+                        const uniqueCities = Array.from(
+                          new Set(citiesFromZips)
+                        );
                         onFormChange("workingCities", uniqueCities);
                       }}
                       className="ml-1 hover:text-red-500"
@@ -511,10 +587,7 @@ const PersonalInfoTab = ({
                   disabled={!newWorkingCity.trim()}
                   onClick={() => {
                     const candidate = newWorkingCity.trim();
-                    if (
-                      candidate &&
-                      !form.workingCities?.includes(candidate)
-                    ) {
+                    if (candidate && !form.workingCities?.includes(candidate)) {
                       onFormChange("workingCities", [
                         ...(form.workingCities || []),
                         candidate,
@@ -557,16 +630,12 @@ const PersonalInfoTab = ({
             </div>
           </div>
 
-                   {/* Save Button */}
-                   <div className="flex justify-end mt-6">
-              <Button
-                type="submit"
-                disabled={loading}
-                className="min-w-[120px]"
-              >
-                {loading ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
+          {/* Save Button */}
+          <div className="flex justify-end mt-6">
+            <Button type="submit" disabled={loading} className="min-w-[120px]">
+              {loading ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -673,8 +742,6 @@ const PersonalInfoTab = ({
               </div>
             )}
           </div>
-
-
         </CardContent>
       </Card>
     </div>
