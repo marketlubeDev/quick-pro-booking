@@ -81,6 +81,15 @@ export function JobDetailModal({
   if (!job) return null;
 
   const handleAccept = async () => {
+    // Prevent accepting rejected, cancelled, or completed jobs
+    if (
+      job.status === "rejected" ||
+      job.status === "cancelled" ||
+      job.status === "completed"
+    ) {
+      console.warn("Cannot accept job with status:", job.status);
+      return;
+    }
     try {
       setIsSubmitting(true);
       await onAccept(job.id || job._id || "");
@@ -128,6 +137,15 @@ export function JobDetailModal({
 
   const handleMarkPaid = async () => {
     if (!onMarkPaid || !job) return;
+    // Prevent marking as paid for rejected, cancelled, or completed jobs
+    if (
+      job.status === "rejected" ||
+      job.status === "cancelled" ||
+      job.status === "completed"
+    ) {
+      console.warn("Cannot mark as paid for job with status:", job.status);
+      return;
+    }
     try {
       setIsSubmitting(true);
       await onMarkPaid(job.id || job._id || "");
@@ -139,7 +157,13 @@ export function JobDetailModal({
   };
 
   // Show "Accept Job" when job is assigned but not yet accepted by the employee
-  const canAccept = (job.assignedEmployee || job.status === "in-process") && !job.employeeAccepted;
+  // Prevent accepting jobs that are rejected, cancelled, or completed
+  const canAccept =
+    (job.assignedEmployee || job.status === "in-process") &&
+    !job.employeeAccepted &&
+    job.status !== "rejected" &&
+    job.status !== "cancelled" &&
+    job.status !== "completed";
   // Show "Mark as Done" only when job is accepted and status is in-process (this seems to be a legacy feature)
   const canMarkAsDone = job.status === "in-process" && job.employeeAccepted;
   const canComplete = job.employeeAccepted && job.status === "in-progress";
@@ -229,7 +253,10 @@ export function JobDetailModal({
               {(job.paymentStatus === "partially_paid" ||
                 (job.paymentStatus !== "paid" &&
                   job.paymentMethod === "cash")) &&
-                onMarkPaid && (
+                onMarkPaid &&
+                job.status !== "rejected" &&
+                job.status !== "cancelled" &&
+                job.status !== "completed" && (
                   <Button
                     onClick={handleMarkPaid}
                     disabled={isSubmitting || loading}
