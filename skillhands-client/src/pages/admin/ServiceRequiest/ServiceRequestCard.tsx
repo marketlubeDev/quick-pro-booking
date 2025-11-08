@@ -79,7 +79,14 @@ function getPriorityColor(priority: string) {
 
 function getPaymentBadgeVariant(
   status?: string
-): "default" | "secondary" | "destructive" | "success" | "warning" | "info" | "outline" {
+):
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "success"
+  | "warning"
+  | "info"
+  | "outline" {
   switch (status) {
     case "paid":
       return "success";
@@ -152,19 +159,29 @@ export function ServiceRequestCard({
       <CardHeader className="pb-3 p-4 sm:p-6">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1 min-w-0 flex-1">
-            <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">{request.name}</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground truncate">#{request._id}</p>
+            <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">
+              {request.name}
+            </h3>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">
+              #{request._id}
+            </p>
           </div>
           <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
             {request.preferredTime?.toLowerCase().includes("emergency") &&
               request.preferredTime?.toLowerCase().includes("asap") && (
                 <AlertTriangle className="h-4 w-4 text-red-600" />
               )}
-            <Badge variant={getStatusBadgeVariant(request.status)} className="text-xs">
+            <Badge
+              variant={getStatusBadgeVariant(request.status)}
+              className="text-xs"
+            >
               {formatStatus(request.status)}
             </Badge>
             {request.paymentStatus && (
-              <Badge variant={getPaymentBadgeVariant(request.paymentStatus)} className="text-xs">
+              <Badge
+                variant={getPaymentBadgeVariant(request.paymentStatus)}
+                className="text-xs"
+              >
                 {formatStatus(request.paymentStatus)}
               </Badge>
             )}
@@ -197,7 +214,7 @@ export function ServiceRequestCard({
           </div>
         </div>
 
-        {/* Assigned Employee */}
+        {/* Assigned Pro */}
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground mb-1">Assigned Pro</p>
           {request.assignedEmployee ? (

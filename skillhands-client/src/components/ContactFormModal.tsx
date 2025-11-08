@@ -262,7 +262,7 @@ const PaymentStep: React.FC<{
           </div>
           {formData.assignedEmployee && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Employee:</span>
+              <span className="text-muted-foreground">Professional:</span>
               <span className="font-medium">
                 {(() => {
                   const assignedEmp = employees.find(
@@ -1397,7 +1397,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 )}
               </div>
               <div>
-                <Label htmlFor="assignedEmployee">Assign to Employee</Label>
+                <Label htmlFor="assignedEmployee">Assign to Pro</Label>
                 <Select
                   value={formData.assignedEmployee || undefined}
                   onValueChange={(value) =>
@@ -1589,7 +1589,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 )}
                 {formData.assignedEmployee && (
                   <li>
-                    <strong>Assigned Employee:</strong>{" "}
+                    <strong>Assigned Pro:</strong>{" "}
                     {(() => {
                       const assignedEmp = employees.find(
                         (emp) => emp._id === formData.assignedEmployee

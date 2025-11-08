@@ -1891,7 +1891,7 @@ const Request = () => {
                         </div>
                         <div>
                           <Label htmlFor="assignedEmployee">
-                            Assign to Employee
+                            Assign to Pro
                           </Label>
                           <Select
                             value={formData.assignedEmployee || undefined}
@@ -2117,7 +2117,7 @@ const Request = () => {
                           )}
                           {formData.assignedEmployee && (
                             <li>
-                              <strong>Assigned Employee:</strong>{" "}
+                              <strong>Assigned Pro:</strong>{" "}
                               {(() => {
                                 const assignedEmp = employees.find(
                                   (emp) => emp._id === formData.assignedEmployee
