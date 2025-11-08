@@ -100,7 +100,7 @@ export function EmployeeApplicationCard({
         .filter(Boolean)
     : [];
   return (
-    <Card className="hover:shadow-md transition-all duration-200 border-border/50">
+    <Card className="hover:shadow-md transition-all duration-200 border-border/50 flex flex-col h-full">
       <CardHeader className="pb-3 p-4 sm:p-6">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start space-x-2 sm:space-x-3 min-w-0 flex-1">
@@ -111,11 +111,17 @@ export function EmployeeApplicationCard({
               <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">
                 {application.name}
               </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">#{application.id}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                #{application.id}
+              </p>
               {designations.length > 0 && (
                 <div className="mt-1 flex flex-wrap gap-1">
                   {designations.map((designation) => (
-                    <Badge key={designation} variant="secondary" className="text-xs">
+                    <Badge
+                      key={designation}
+                      variant="secondary"
+                      className="text-xs"
+                    >
                       {designation}
                     </Badge>
                   ))}
@@ -132,139 +138,151 @@ export function EmployeeApplicationCard({
               </div>
             </div>
           </div>
-          <Badge variant={getStatusBadgeVariant(application.status)} className="text-xs shrink-0">
+          <Badge
+            variant={getStatusBadgeVariant(application.status)}
+            className="text-xs shrink-0"
+          >
             {application.status}
           </Badge>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
-        {/* Experience Level */}
-        <div className="flex items-center justify-between gap-2">
-          <Badge
-            variant={getExperienceBadgeVariant(application.experienceLevel)}
-            className="text-xs"
-          >
-            {application.experienceLevel}
-          </Badge>
-          <div className="flex items-center space-x-1 text-xs sm:text-sm text-muted-foreground min-w-0">
-            <MapPin className="h-3 w-3 shrink-0" />
-            <span className="truncate">{application.location}</span>
+      <CardContent className="p-4 sm:p-6 pt-0 flex flex-col flex-1 min-h-0">
+        <div className="space-y-3 sm:space-y-4 flex-1 min-h-0">
+          {/* Experience Level */}
+          <div className="flex items-center justify-between gap-2">
+            <Badge
+              variant={getExperienceBadgeVariant(application.experienceLevel)}
+              className="text-xs"
+            >
+              {application.experienceLevel}
+            </Badge>
+            <div className="flex items-center space-x-1 text-xs sm:text-sm text-muted-foreground min-w-0">
+              <MapPin className="h-3 w-3 shrink-0" />
+              <span className="truncate">{application.location}</span>
+            </div>
           </div>
-        </div>
 
-        {/* Skills */}
-        <div>
-          <p className="text-xs sm:text-sm font-medium text-foreground mb-2">Skills</p>
-          <div className="flex flex-wrap gap-1">
-            {application.skills.slice(0, 3).map((skill) => (
-              <Badge key={skill} variant="secondary" className="text-xs">
-                {skill}
-              </Badge>
-            ))}
-            {application.skills.length > 3 && (
-              <Badge variant="outline" className="text-xs">
-                +{application.skills.length - 3} more
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        {/* Working Areas */}
-        {(application.workingZipCodes?.length || application.workingCities?.length) && (
+          {/* Skills */}
           <div>
-            <p className="text-xs sm:text-sm font-medium text-foreground mb-2">Working Areas</p>
-            {application.workingZipCodes?.length ? (
-              <div className="mb-1">
-                <p className="text-xs text-muted-foreground mb-1">ZIP codes</p>
-                <div className="flex flex-wrap gap-1">
-                  {application.workingZipCodes.slice(0, 5).map((zip) => (
-                    <Badge key={zip} variant="outline" className="text-xs">
-                      {zip}
-                    </Badge>
-                  ))}
-                  {application.workingZipCodes.length > 5 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{application.workingZipCodes.length - 5} more
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            ) : null}
-            {application.workingCities?.length ? (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Cities</p>
-                <div className="flex flex-wrap gap-1">
-                  {application.workingCities.slice(0, 5).map((city) => (
-                    <Badge key={city} variant="secondary" className="text-xs">
-                      {city}
-                    </Badge>
-                  ))}
-                  {application.workingCities.length > 5 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{application.workingCities.length - 5} more
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        )}
-
-        {/* Certifications */}
-        {application.certifications.length > 0 && (
-          <div>
-            <p className="text-sm font-medium text-foreground mb-2">
-              Certifications
+            <p className="text-xs sm:text-sm font-medium text-foreground mb-2">
+              Skills
             </p>
             <div className="flex flex-wrap gap-1">
-              {application.certifications.slice(0, 2).map((cert) => (
-                <Badge key={cert} variant="outline" className="text-xs">
-                  <Award className="h-3 w-3 mr-1" />
-                  {cert}
+              {application.skills.slice(0, 3).map((skill) => (
+                <Badge key={skill} variant="secondary" className="text-xs">
+                  {skill}
                 </Badge>
               ))}
-              {application.certifications.length > 2 && (
+              {application.skills.length > 3 && (
                 <Badge variant="outline" className="text-xs">
-                  +{application.certifications.length - 2} more
+                  +{application.skills.length - 3} more
                 </Badge>
               )}
             </div>
           </div>
-        )}
 
-        {/* Contact Info */}
-        <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground">
-            <Phone className="h-3 w-3 shrink-0" />
-            <span className="truncate">{application.phone}</span>
-          </div>
-          <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground">
-            <Mail className="h-3 w-3 shrink-0" />
-            <span className="truncate">{application.email}</span>
-          </div>
-        </div>
+          {/* Working Areas */}
+          {(application.workingZipCodes?.length ||
+            application.workingCities?.length) && (
+            <div>
+              <p className="text-xs sm:text-sm font-medium text-foreground mb-2">
+                Working Areas
+              </p>
+              {application.workingZipCodes?.length ? (
+                <div className="mb-1">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    ZIP codes
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {application.workingZipCodes.slice(0, 5).map((zip) => (
+                      <Badge key={zip} variant="outline" className="text-xs">
+                        {zip}
+                      </Badge>
+                    ))}
+                    {application.workingZipCodes.length > 5 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{application.workingZipCodes.length - 5} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+              {application.workingCities?.length ? (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Cities</p>
+                  <div className="flex flex-wrap gap-1">
+                    {application.workingCities.slice(0, 5).map((city) => (
+                      <Badge key={city} variant="secondary" className="text-xs">
+                        {city}
+                      </Badge>
+                    ))}
+                    {application.workingCities.length > 5 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{application.workingCities.length - 5} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )}
 
-        {/* Application Details */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-2 border-t border-border/50">
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">
-              Expected Salary
-            </p>
-            <div className="flex items-center space-x-1 text-xs sm:text-sm">
-              <DollarSign className="h-3 w-3 text-muted-foreground shrink-0" />
-              <span className="font-medium text-foreground truncate">
-                {application.expectedSalary}
-              </span>
+          {/* Certifications */}
+          {application.certifications.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-foreground mb-2">
+                Certifications
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {application.certifications.slice(0, 2).map((cert) => (
+                  <Badge key={cert} variant="outline" className="text-xs">
+                    <Award className="h-3 w-3 mr-1" />
+                    {cert}
+                  </Badge>
+                ))}
+                {application.certifications.length > 2 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{application.certifications.length - 2} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Contact Info */}
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground">
+              <Phone className="h-3 w-3 shrink-0" />
+              <span className="truncate">{application.phone}</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground">
+              <Mail className="h-3 w-3 shrink-0" />
+              <span className="truncate">{application.email}</span>
             </div>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Applied</p>
-            <div className="flex items-center space-x-1 text-xs sm:text-sm">
-              <Calendar className="h-3 w-3 text-muted-foreground shrink-0" />
-              <span className="text-foreground truncate">
-                {formatDate(application.appliedDate)}
-              </span>
+
+          {/* Application Details */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-2 border-t border-border/50">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">
+                Expected Salary
+              </p>
+              <div className="flex items-center space-x-1 text-xs sm:text-sm">
+                <DollarSign className="h-3 w-3 text-muted-foreground shrink-0" />
+                <span className="font-medium text-foreground truncate">
+                  {application.expectedSalary}
+                </span>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Applied</p>
+              <div className="flex items-center space-x-1 text-xs sm:text-sm">
+                <Calendar className="h-3 w-3 text-muted-foreground shrink-0" />
+                <span className="text-foreground truncate">
+                  {formatDate(application.appliedDate)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
