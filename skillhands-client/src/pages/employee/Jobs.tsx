@@ -106,17 +106,40 @@ const EmployeeJobs = () => {
     setSelectedJob(null);
   };
 
+  // Sync selectedJob with updated jobs list when jobs are refetched
+  React.useEffect(() => {
+    if (selectedJob && allJobs.length > 0) {
+      const jobId = selectedJob.id || selectedJob._id;
+      const updatedJob = allJobs.find(
+        (job) => (job.id || job._id) === jobId
+      );
+      if (updatedJob) {
+        // Only update if the job data has actually changed
+        const hasChanged =
+          updatedJob.employeeAccepted !== selectedJob.employeeAccepted ||
+          updatedJob.status !== selectedJob.status ||
+          updatedJob.employeeRemarks !== selectedJob.employeeRemarks;
+
+        if (hasChanged) {
+          setSelectedJob(updatedJob);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allJobs]);
+
   const handleAcceptJob = async (jobId: string) => {
     try {
       await acceptJobAction(jobId);
+      await refetch();
       toast({
-        title: "Job Marked as Done",
-        description: "You have successfully marked this job as completed.",
+        title: "Job Accepted",
+        description: "You have successfully accepted this job.",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to mark job as done. Please try again.",
+        description: "Failed to accept job. Please try again.",
         variant: "destructive",
       });
     }

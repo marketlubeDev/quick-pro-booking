@@ -1204,8 +1204,10 @@ export const sendPaymentSuccessEmails = async ({
       from: process.env.EMAIL_FROM,
       to: email,
       cc: mergeEmails(adminRecipients, assignedEmployeeEmail),
-      subject: `Booking confirmed for ${serviceName || "your service"}`,
-      text: `Hello ${name || "Customer"},\n\nYour booking is confirmed for ${
+      subject: `Service request received for ${serviceName || "your service"}`,
+      text: `Hello ${
+        name || "Customer"
+      },\n\nYour service request has been received for ${
         serviceName || "your service"
       }.\n\nSchedule:\n- Date: ${preferredDate || "(not specified)"}\n- Time: ${
         preferredTime || "(not specified)"
@@ -1228,7 +1230,7 @@ export const sendPaymentSuccessEmails = async ({
                   <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" style="max-width:680px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 12px 28px rgba(2,6,23,0.08);">
                     <tr>
                       <td style="padding:24px;background:#6366f1;background-image:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;">
-                        <h1 style="margin:0;font-size:20px;font-weight:800;letter-spacing:.2px;">Booking confirmed</h1>
+                        <h1 style="margin:0;font-size:20px;font-weight:800;letter-spacing:.2px;">Service request received</h1>
                         <p style="margin:6px 0 0;font-size:13px;opacity:.95;">SkillHands · Quick Pro Booking</p>
                         <span style="display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:700;">Service booking</span>
                       </td>
@@ -1240,7 +1242,7 @@ export const sendPaymentSuccessEmails = async ({
                         },</p>
                         <p style="margin:0 0 16px;color:#374151;font-size:14px;">Your <span style="display:inline-block;background:#0ea5e9;color:#ffffff;font-weight:700;padding:8px 12px;border-radius:12px;">${
                           serviceName || "service"
-                        }</span> has been booked successfully.</p>
+                        }</span> service request has been received.</p>
                         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0 8px;">
                           <tr>
                             <td style="padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">

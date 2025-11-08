@@ -3,7 +3,6 @@ import { useAuth } from "./useAuth";
 import {
   fetchEmployeeJobs,
   acceptJob,
-  markJobAsDone,
   completeJob,
   addJobRemarks,
   type EmployeeJob,
@@ -61,16 +60,16 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
           employeeId: user._id,
         };
 
-        const response = await markJobAsDone(input);
+        const response = await acceptJob(input);
 
         if (response.success) {
           // Refetch jobs to get updated status from server
           await fetchJobs();
         } else {
-          throw new Error(response.message || "Failed to mark job as done");
+          throw new Error(response.message || "Failed to accept job");
         }
       } catch (err) {
-        console.error("Error marking job as done:", err);
+        console.error("Error accepting job:", err);
         throw err;
       }
     },

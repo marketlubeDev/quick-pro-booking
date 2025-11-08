@@ -124,7 +124,10 @@ export function JobDetailModal({
     }
   };
 
-  const canMarkAsDone = job.status === "in-process"; // Show "Mark as Done" only when admin has accepted (status is in-process)
+  // Show "Accept Job" when job is assigned but not yet accepted by the employee
+  const canAccept = (job.assignedEmployee || job.status === "in-process") && !job.employeeAccepted;
+  // Show "Mark as Done" only when job is accepted and status is in-process (this seems to be a legacy feature)
+  const canMarkAsDone = job.status === "in-process" && job.employeeAccepted;
   const canComplete = job.employeeAccepted && job.status === "in-progress";
   const isCompleted = job.status === "completed";
 
@@ -392,6 +395,15 @@ export function JobDetailModal({
 
           {/* Action Buttons */}
           <div className="flex gap-3">
+            {canAccept && (
+              <Button
+                onClick={handleAccept}
+                disabled={isSubmitting || loading}
+                className="flex-1"
+              >
+                {isSubmitting ? "Accepting..." : "Accept Job"}
+              </Button>
+            )}
             {canMarkAsDone && (
               <Button
                 onClick={handleAccept}
