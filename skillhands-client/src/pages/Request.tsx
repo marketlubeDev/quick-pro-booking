@@ -213,7 +213,9 @@ const PaymentStep: React.FC<{
   submitError,
   employees,
 }) => {
-  const totalAmount = formData.totalAmount || 0;
+  // Calculate the actual payment amount based on percentage
+  const paymentPercentage = formData.paymentPercentage === "50" ? 0.5 : 1;
+  const paymentAmount = (formData.totalAmount || 0) * paymentPercentage;
 
   const handleCashPayment = async () => {
     setProcessingPayment(true);
@@ -293,9 +295,33 @@ const PaymentStep: React.FC<{
               <span className="font-medium">${formData.amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-lg font-bold pt-2 border-t">
-              <span>Total:</span>
+              <span>Total Amount:</span>
               <span>${formData.totalAmount.toFixed(2)}</span>
             </div>
+            {formData.paymentMethod === "stripe" && (
+              <>
+                <div className="flex justify-between pt-2">
+                  <span className="text-muted-foreground">
+                    Payment Percentage:
+                  </span>
+                  <span className="font-medium">
+                    {formData.paymentPercentage}%
+                  </span>
+                </div>
+                <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                  <span>Amount to Pay:</span>
+                  <span>${paymentAmount.toFixed(2)}</span>
+                </div>
+                {formData.paymentPercentage === "50" && (
+                  <div className="flex justify-between pt-2 text-orange-600">
+                    <span className="text-sm">Remaining (due later):</span>
+                    <span className="text-sm font-medium">
+                      ${((formData.totalAmount || 0) * 0.5).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -348,7 +374,7 @@ const PaymentStep: React.FC<{
                 setProcessing={setProcessingPayment}
                 serviceRequestId={serviceRequestId}
                 paymentIntentId={paymentIntentId}
-                totalAmount={totalAmount}
+                totalAmount={paymentAmount}
               />
             </Elements>
           ) : (
@@ -418,9 +444,11 @@ const Request = () => {
     image: null as File | null,
     assignedEmployee: "",
     paymentMethod: "" as "cash" | "stripe" | "",
+    paymentPercentage: "100" as "50" | "100",
     amount: 0,
     tax: 0,
     totalAmount: 0,
+    paymentAmount: 0, // Actual amount to be paid based on percentage
   });
 
   const [zipError, setZipError] = useState("");
@@ -584,13 +612,18 @@ const Request = () => {
     const key = (formData.service || "").toLowerCase();
     const basePrice = servicePricing[key] ?? 100; // default upfront fee
     const tax = 0;
-    const total = basePrice;
+    const fullTotal = basePrice;
+
+    // Calculate payment amount based on selected percentage
+    const paymentPercentage = formData.paymentPercentage === "50" ? 0.5 : 1;
+    const paymentAmount = fullTotal * paymentPercentage;
 
     setFormData((prev) => ({
       ...prev,
       amount: basePrice,
       tax: tax,
-      totalAmount: total,
+      totalAmount: fullTotal, // Store full amount
+      paymentAmount: paymentAmount, // Store actual payment amount
     }));
   };
 
@@ -627,12 +660,12 @@ const Request = () => {
     };
   }, []);
 
-  // Effect to calculate pricing when service changes
+  // Effect to calculate pricing when service or payment percentage changes
   useEffect(() => {
     if (formData.service) {
       calculatePricing();
     }
-  }, [formData.service, servicePricing]);
+  }, [formData.service, formData.paymentPercentage, servicePricing]);
 
   // Effect to fetch employees on mount
   useEffect(() => {
@@ -1268,6 +1301,13 @@ const Request = () => {
       return;
     }
 
+    // Validate payment percentage for Stripe
+    if (formData.paymentMethod === "stripe" && !formData.paymentPercentage) {
+      setSubmitError("Please select a payment amount (50% or 100%).");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       // First, create the service request
       const result = await serviceRequestApi.submit({
@@ -1353,6 +1393,10 @@ const Request = () => {
     if (step === 3 && formData.paymentMethod === "stripe") {
       setProcessingPayment(true);
       try {
+        // Calculate payment amount based on percentage
+        const paymentPercentage = formData.paymentPercentage === "50" ? 0.5 : 1;
+        const paymentAmount = (formData.totalAmount || 0) * paymentPercentage;
+
         // First create service request to get ID
         const result = await serviceRequestApi.submit({
           service: formData.service,
@@ -1369,6 +1413,7 @@ const Request = () => {
           status: "pending",
           assignedEmployee: formData.assignedEmployee || undefined,
           paymentMethod: "stripe",
+          paymentPercentage: formData.paymentPercentage,
           amount: formData.amount,
           tax: formData.tax,
           totalAmount: formData.totalAmount,
@@ -1378,10 +1423,10 @@ const Request = () => {
           const requestId =
             (result.data as any)?._id || (result.data as any)?.id;
           setServiceRequestId(requestId);
-          // Create Stripe Checkout session and redirect
+          // Create Stripe Checkout session with the calculated payment amount
           const checkout = await paymentApi.createCheckoutSession({
             serviceRequestId: requestId,
-            amount: formData.totalAmount,
+            amount: paymentAmount, // Use calculated payment amount, not totalAmount
             returnUrl: window.location.origin,
           });
           if (checkout.success && checkout.data?.checkoutUrl) {
@@ -1983,6 +2028,69 @@ const Request = () => {
                         </div>
                       </div>
 
+                      {formData.paymentMethod === "stripe" && (
+                        <div>
+                          <Label htmlFor="paymentPercentage">
+                            Payment Amount *
+                          </Label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <div
+                              className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                                formData.paymentPercentage === "50"
+                                  ? "border-primary bg-primary/5"
+                                  : "border-muted hover:border-primary/50"
+                              }`}
+                              onClick={() =>
+                                handleInputChange("paymentPercentage", "50")
+                              }
+                            >
+                              <div>
+                                <h4 className="font-semibold">
+                                  50% Upfront Payment
+                                </h4>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Pay $
+                                  {((formData.totalAmount || 0) * 0.5).toFixed(
+                                    2
+                                  )}{" "}
+                                  now
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Remaining $
+                                  {((formData.totalAmount || 0) * 0.5).toFixed(
+                                    2
+                                  )}{" "}
+                                  due later
+                                </p>
+                              </div>
+                            </div>
+                            <div
+                              className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                                formData.paymentPercentage === "100"
+                                  ? "border-primary bg-primary/5"
+                                  : "border-muted hover:border-primary/50"
+                              }`}
+                              onClick={() =>
+                                handleInputChange("paymentPercentage", "100")
+                              }
+                            >
+                              <div>
+                                <h4 className="font-semibold">
+                                  100% Full Payment
+                                </h4>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Pay ${(formData.totalAmount || 0).toFixed(2)}{" "}
+                                  now
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Complete payment upfront
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="bg-muted/50 p-4 rounded-lg">
                         <h3 className="font-heading font-semibold mb-2">
                           Review Your Request
@@ -2026,18 +2134,43 @@ const Request = () => {
                             </li>
                           )}
                           <li className="pt-2 border-t">
-                            <strong>Upfront Fee:</strong> $
-                            {formData.amount.toFixed(2)}
-                          </li>
-                          <li>
-                            <strong>Total:</strong> $
+                            <strong>Total Amount:</strong> $
                             {formData.totalAmount.toFixed(2)}
                           </li>
+                          {formData.paymentMethod === "stripe" && (
+                            <>
+                              <li>
+                                <strong>Payment Percentage:</strong>{" "}
+                                {formData.paymentPercentage}%
+                              </li>
+                              <li>
+                                <strong>Amount to Pay Now:</strong> $
+                                {(
+                                  formData.paymentAmount ||
+                                  formData.totalAmount *
+                                    (formData.paymentPercentage === "50"
+                                      ? 0.5
+                                      : 1)
+                                ).toFixed(2)}
+                              </li>
+                              {formData.paymentPercentage === "50" && (
+                                <li className="text-orange-600">
+                                  <strong>Remaining Amount:</strong> $
+                                  {((formData.totalAmount || 0) * 0.5).toFixed(
+                                    2
+                                  )}{" "}
+                                  (due later)
+                                </li>
+                              )}
+                            </>
+                          )}
                         </ul>
                         <div className="mt-3 text-xs text-muted-foreground">
                           <p>
-                            Upfront fee covers the initial visit + company
-                            service charge.
+                            {formData.paymentMethod === "stripe" &&
+                            formData.paymentPercentage === "50"
+                              ? "50% upfront payment ensures commitment. Remaining 50% will be collected after service completion."
+                              : "Upfront fee covers the initial visit + company service charge."}
                           </p>
                           <p>
                             Additional on-site charges may apply for extra work
@@ -2116,6 +2249,8 @@ const Request = () => {
                             !formData.city ||
                             !formData.zip ||
                             !formData.paymentMethod ||
+                            (formData.paymentMethod === "stripe" &&
+                              !formData.paymentPercentage) ||
                             processingPayment
                           }
                         >
