@@ -149,22 +149,22 @@ export function ServiceRequestCard({
 
   return (
     <Card className="hover:shadow-md transition-all duration-200 border-border/50">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h3 className="font-semibold text-foreground">{request.name}</h3>
-            <p className="text-sm text-muted-foreground">#{request._id}</p>
+      <CardHeader className="pb-3 p-4 sm:p-6">
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-1 min-w-0 flex-1">
+            <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">{request.name}</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">#{request._id}</p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
             {request.preferredTime?.toLowerCase().includes("emergency") &&
               request.preferredTime?.toLowerCase().includes("asap") && (
                 <AlertTriangle className="h-4 w-4 text-red-600" />
               )}
-            <Badge variant={getStatusBadgeVariant(request.status)}>
+            <Badge variant={getStatusBadgeVariant(request.status)} className="text-xs">
               {formatStatus(request.status)}
             </Badge>
             {request.paymentStatus && (
-              <Badge variant={getPaymentBadgeVariant(request.paymentStatus)}>
+              <Badge variant={getPaymentBadgeVariant(request.paymentStatus)} className="text-xs">
                 {formatStatus(request.paymentStatus)}
               </Badge>
             )}
@@ -172,25 +172,25 @@ export function ServiceRequestCard({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
         {/* Service Details */}
         <div>
-          <h4 className="font-medium text-sm text-foreground mb-1">
+          <h4 className="font-medium text-xs sm:text-sm text-foreground mb-1">
             {request.service}
           </h4>
-          <p className="text-sm text-muted-foreground line-clamp-2">
+          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
             {request.description}
           </p>
         </div>
 
         {/* Customer Info */}
         <div className="space-y-2">
-          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <Phone className="h-4 w-4" />
-            <span>{request.phone}</span>
+          <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground">
+            <Phone className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+            <span className="truncate">{request.phone}</span>
           </div>
-          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <MapPin className="h-4 w-4" />
+          <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground">
+            <MapPin className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
             <span className="line-clamp-1">
               {request.address} {request.city} {request.state} {request.zip}
             </span>
@@ -201,10 +201,10 @@ export function ServiceRequestCard({
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground mb-1">Assigned Pro</p>
           {request.assignedEmployee ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-sm">
-                <UserCheck className="h-4 w-4 text-green-600" />
-                <span className="text-foreground">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center space-x-2 text-xs sm:text-sm min-w-0 flex-1">
+                <UserCheck className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 shrink-0" />
+                <span className="text-foreground truncate">
                   {typeof request.assignedEmployee === "object" &&
                   request.assignedEmployee?.fullName
                     ? request.assignedEmployee.fullName
@@ -224,7 +224,7 @@ export function ServiceRequestCard({
                   )
                 }
               >
-                <SelectTrigger className="w-32 h-7 text-xs">
+                <SelectTrigger className="w-28 sm:w-36 h-8 sm:h-9 text-xs sm:text-sm shrink-0 border-border/60 shadow-sm hover:shadow-md transition-all">
                   <SelectValue placeholder="Change" />
                 </SelectTrigger>
                 <SelectContent>
@@ -238,10 +238,10 @@ export function ServiceRequestCard({
               </Select>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <User className="h-4 w-4" />
-                <span className="italic">Not assigned</span>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground min-w-0 flex-1">
+                <User className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+                <span className="italic truncate">Not assigned</span>
               </div>
               <Select
                 value=""
@@ -252,7 +252,7 @@ export function ServiceRequestCard({
                   )
                 }
               >
-                <SelectTrigger className="w-32 h-7 text-xs">
+                <SelectTrigger className="w-28 sm:w-36 h-8 sm:h-9 text-xs sm:text-sm shrink-0 border-border/60 shadow-sm hover:shadow-md transition-all">
                   <SelectValue placeholder="Assign" />
                 </SelectTrigger>
                 <SelectContent>
@@ -268,12 +268,12 @@ export function ServiceRequestCard({
         </div>
 
         {/* Dates and Cost */}
-        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/50">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-2 border-t border-border/50">
           <div>
             <p className="text-xs text-muted-foreground mb-1">Preferred Date</p>
-            <div className="flex items-center space-x-1 text-sm">
-              <Calendar className="h-3 w-3 text-muted-foreground" />
-              <span className="text-foreground">
+            <div className="flex items-center space-x-1 text-xs sm:text-sm">
+              <Calendar className="h-3 w-3 text-muted-foreground shrink-0" />
+              <span className="text-foreground truncate">
                 {formatDateDMY(request.preferredDate)}, {request.preferredTime}
               </span>
             </div>
@@ -292,9 +292,9 @@ export function ServiceRequestCard({
         {request.scheduledDate ? (
           <div>
             <p className="text-xs text-muted-foreground mb-1">Scheduled</p>
-            <div className="flex items-center space-x-1 text-sm">
-              <Clock className="h-3 w-3 text-muted-foreground" />
-              <span className="text-foreground">
+            <div className="flex items-center space-x-1 text-xs sm:text-sm">
+              <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
+              <span className="text-foreground truncate">
                 {formatDate(request.scheduledDate)}
               </span>
             </div>
@@ -302,8 +302,8 @@ export function ServiceRequestCard({
         ) : (
           <div>
             <p className="text-xs text-muted-foreground mb-1">Scheduled</p>
-            <div className="flex items-center space-x-1 text-sm">
-              <Clock className="h-3 w-3 text-muted-foreground" />
+            <div className="flex items-center space-x-1 text-xs sm:text-sm">
+              <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
               <span className="text-muted-foreground italic">
                 Not scheduled
               </span>
@@ -312,45 +312,54 @@ export function ServiceRequestCard({
         )}
 
         {/* Actions */}
-        <div className="flex items-center space-x-2 pt-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3">
+          {/* Details button - always present */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => onViewDetails?.(request)}
-            className="flex-1"
+            className={cn(
+              "h-10 text-sm font-semibold border-2 border-primary/30 hover:border-primary bg-primary/5 hover:bg-primary/10 text-primary shadow-none hover:shadow-lg transition-all duration-200",
+              // When 3 buttons: smaller Details, larger action buttons
+              request.status === "pending"
+                ? "flex-1 sm:flex-[0.35]"
+                : "flex-1 sm:flex-[0.45]"
+            )}
           >
-            <Eye className="h-4 w-4 mr-1" />
+            <Eye className="h-4 w-4" />
             Details
           </Button>
 
           {request.status === "pending" && (
             <>
+              {/* Accept button - 3 buttons layout */}
               <Button
                 size="sm"
                 onClick={() =>
                   onAccept?.((request._id || request.id) as string)
                 }
-                className="flex-1"
+                className="flex-1 sm:flex-[0.325] h-10 text-sm font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:shadow-md transition-all"
                 disabled={isLoadingAccept || isLoadingReject}
               >
                 {isLoadingAccept ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <CheckCircle className="h-4 w-4 mr-1" />
+                  <CheckCircle className="h-4 w-4" />
                 )}
                 Accept
               </Button>
+              {/* Reject button - 3 buttons layout */}
               <Button
                 size="sm"
                 variant="destructive"
                 onClick={() => onReject?.(request)}
-                className="flex-1"
+                className="flex-1 sm:flex-[0.325] h-10 text-sm font-semibold shadow-sm hover:shadow-md transition-all"
                 disabled={isLoadingAccept || isLoadingReject}
               >
                 {isLoadingReject ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <XCircle className="h-4 w-4 mr-1" />
+                  <XCircle className="h-4 w-4" />
                 )}
                 Reject
               </Button>
@@ -363,13 +372,13 @@ export function ServiceRequestCard({
               onClick={() =>
                 onComplete?.((request._id || request.id) as string)
               }
-              className="flex-1 bg-success hover:bg-success/90"
+              className="flex-1 sm:flex-[0.55] h-10 text-sm font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 border-0"
               disabled={isLoadingComplete}
             >
               {isLoadingComplete ? (
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <CheckCircle className="h-4 w-4 mr-1" />
+                <CheckCircle className="h-4 w-4" />
               )}
               Complete
             </Button>

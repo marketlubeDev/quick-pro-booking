@@ -21,10 +21,10 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <div className={cn("stat-card", className)}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
+          <p className="text-xl sm:text-2xl font-bold text-foreground">{value}</p>
           {/* {trend && (
             <p
               className={cn(
@@ -37,8 +37,8 @@ export function StatCard({
             </p>
           )} */}
         </div>
-        <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-          <Icon className="h-6 w-6 text-primary" />
+        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+          <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
         </div>
       </div>
     </div>

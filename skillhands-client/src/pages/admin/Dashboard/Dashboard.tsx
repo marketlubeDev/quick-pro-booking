@@ -87,25 +87,26 @@ export function Dashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header with refresh button */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold"></h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl sm:text-2xl font-bold"></h1>
         <Button
           variant="outline"
           size="sm"
           onClick={refetch}
           disabled={loading}
+          className="shrink-0"
         >
           <RefreshCw
-            className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`}
+            className={`h-4 w-4 sm:mr-1 ${loading ? "animate-spin" : ""}`}
           />
-          Refresh
+          <span className="hidden sm:inline">Refresh</span>
         </Button>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <StatCard
           title="Total Service Requests"
           value={stats?.totalServiceRequests || 0}
@@ -140,59 +141,60 @@ export function Dashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Service Requests */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-lg font-semibold">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2">
+            <CardTitle className="text-base sm:text-lg font-semibold">
               Recent Service Requests
             </CardTitle>
             <Button
               variant="outline"
               size="sm"
               onClick={() => navigate("/admin/service-requests")}
+              className="shrink-0 text-xs sm:text-sm"
             >
               View All
             </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4">
             {recentRequests.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
                 No recent service requests
               </div>
             ) : (
               recentRequests.map((request) => (
                 <div
                   key={request.id}
-                  className="flex items-start space-x-4 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-start space-x-2 sm:space-x-4 p-3 sm:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-foreground">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="font-medium text-foreground text-sm sm:text-base truncate">
                         {request.customerName || request.name}
                       </h4>
                       <Badge
                         className={`status-badge ${getStatusBadgeClass(
                           request.status
-                        )} border-0`}
+                        )} border-0 shrink-0 text-xs`}
                       >
                         {request.status}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       {request.serviceType || request.service}
                     </p>
-                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
                       <div className="flex items-center space-x-1">
-                        <MapPin className="h-3 w-3" />
-                        <span>
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">
                           {request.address
                             ? request.address.split(",")[0]
                             : "N/A"}
                         </span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <Calendar className="h-3 w-3" />
+                        <Calendar className="h-3 w-3 shrink-0" />
                         <span>
                           {request.createdAt
                             ? formatDate(request.createdAt)
@@ -209,46 +211,47 @@ export function Dashboard() {
 
         {/* Recent Employee Applications */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-lg font-semibold">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2">
+            <CardTitle className="text-base sm:text-lg font-semibold">
               Recent Pro Applications
             </CardTitle>
             <Button
               variant="outline"
               size="sm"
               onClick={() => navigate("/admin/employee-applications")}
+              className="shrink-0 text-xs sm:text-sm"
             >
               View All
             </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4">
             {recentApplications.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
                 No recent pro applications
               </div>
             ) : (
               recentApplications.map((application) => (
                 <div
                   key={application.id}
-                  className="flex items-start space-x-4 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-start space-x-2 sm:space-x-4 p-3 sm:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                    <Users className="h-5 w-5 text-muted-foreground" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full flex items-center justify-center shrink-0">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                   </div>
                   <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-foreground">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="font-medium text-foreground text-sm sm:text-base truncate">
                         {application.name}
                       </h4>
                       <Badge
                         className={`status-badge ${getStatusBadgeClass(
                           application.status
-                        )} border-0`}
+                        )} border-0 shrink-0 text-xs`}
                       >
                         {application.status}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
                       {application.skills && application.skills.length > 0
                         ? `${application.skills.slice(0, 2).join(", ")}${
                             application.skills.length > 2
@@ -257,14 +260,14 @@ export function Dashboard() {
                           }`
                         : "No skills listed"}
                     </p>
-                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
                       <div className="flex items-center space-x-1">
-                        <TrendingUp className="h-3 w-3" />
+                        <TrendingUp className="h-3 w-3 shrink-0" />
                         <span>{application.rating || 0} rating</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <MapPin className="h-3 w-3" />
-                        <span>{application.location || "N/A"}</span>
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{application.location || "N/A"}</span>
                       </div>
                     </div>
                   </div>

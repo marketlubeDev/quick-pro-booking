@@ -243,10 +243,10 @@ export function EmployeeApplications() {
 
   if (isLoading && !data) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
+      <div className="p-4 sm:p-6 flex items-center justify-center min-h-[400px]">
         <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading pro applications...</span>
+          <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
+          <span className="text-sm sm:text-base">Loading pro applications...</span>
         </div>
       </div>
     );
@@ -254,7 +254,7 @@ export function EmployeeApplications() {
 
   if (isError) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <Alert variant="destructive">
           <AlertDescription>
             Error loading pro applications: {(error as Error)?.message}
@@ -265,24 +265,24 @@ export function EmployeeApplications() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by ID, name, skills, location, or zip code..."
+            placeholder="Search by ID, name, skills..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
               updateGlobalSearch(e.target.value);
             }}
-            className="pl-9"
+            className="pl-9 text-sm"
           />
         </div>
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-40">
+          <SelectTrigger className="w-full sm:w-40 h-9 sm:h-10 border-border/60 shadow-sm hover:shadow-md transition-all">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -294,7 +294,7 @@ export function EmployeeApplications() {
         </Select>
 
         <Select value={experienceFilter} onValueChange={setExperienceFilter}>
-          <SelectTrigger className="w-full sm:w-40">
+          <SelectTrigger className="w-full sm:w-40 h-9 sm:h-10 border-border/60 shadow-sm hover:shadow-md transition-all">
             <SelectValue placeholder="Experience" />
           </SelectTrigger>
           <SelectContent>
@@ -307,37 +307,37 @@ export function EmployeeApplications() {
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-foreground">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-foreground">
             {totalApplications}
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs sm:text-sm text-muted-foreground">
             Total Applications
           </div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-warning">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-warning">
             {visibleApplications.filter((a) => a.status === "pending").length}
           </div>
-          <div className="text-sm text-muted-foreground">Pending</div>
+          <div className="text-xs sm:text-sm text-muted-foreground">Pending</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-success">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-success">
             {visibleApplications.filter((a) => a.status === "approved").length}
           </div>
-          <div className="text-sm text-muted-foreground">Approved</div>
+          <div className="text-xs sm:text-sm text-muted-foreground">Approved</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-destructive">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-destructive">
             {visibleApplications.filter((a) => a.status === "rejected").length}
           </div>
-          <div className="text-sm text-muted-foreground">Rejected</div>
+          <div className="text-xs sm:text-sm text-muted-foreground">Rejected</div>
         </div>
       </div>
 
       {/* Applications Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {filteredApplications.map((application) => (
           <EmployeeApplicationCard
             key={application.id}
@@ -379,11 +379,11 @@ export function EmployeeApplications() {
       )}
 
       {filteredApplications.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-muted-foreground text-lg">
+        <div className="text-center py-8 sm:py-12">
+          <div className="text-muted-foreground text-base sm:text-lg">
             No applications found
           </div>
-          <div className="text-muted-foreground text-sm mt-1">
+          <div className="text-muted-foreground text-xs sm:text-sm mt-1">
             {searchQuery || statusFilter !== "all" || experienceFilter !== "all"
               ? "Try adjusting your search or filters"
               : "Pro applications will appear here when people apply for positions"}

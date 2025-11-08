@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useReports, useExportReports } from "@/hooks/useReports";
 import { ServiceRequest } from "@/types";
+import { cn } from "@/lib/utils";
 
 // Helper function to format date as "3 Oct 2025,"
 const formatDate = (dateString: string) => {
@@ -101,18 +102,18 @@ export function Reports() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Simple Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <div>
           {/* <h1 className="text-3xl font-bold">Reports</h1>
           <p className="text-muted-foreground">
             Service requests and employee performance
           </p> */}
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
           <Select value={timePeriod} onValueChange={setTimePeriod}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40 h-9 sm:h-10 border-border/60 shadow-sm hover:shadow-md transition-all">
               <Calendar className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
@@ -126,37 +127,39 @@ export function Reports() {
             variant="outline"
             onClick={handleExport}
             disabled={exporting || loading}
+            className="w-full sm:w-auto h-9 sm:h-10 border-border/60 shadow-sm hover:shadow-md transition-all"
           >
             {exporting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
             ) : (
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="h-4 w-4 sm:mr-2" />
             )}
-            {exporting ? "Exporting..." : "Export"}
+            <span className="hidden sm:inline">{exporting ? "Exporting..." : "Export"}</span>
+            <span className="sm:hidden">{exporting ? "..." : "Export"}</span>
           </Button>
         </div>
       </div>
 
       {/* Loading State */}
       {loading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin mr-2" />
-          <span>Loading reports...</span>
+        <div className="flex items-center justify-center py-8 sm:py-12">
+          <Loader2 className="h-5 w-5 sm:h-8 sm:w-8 animate-spin mr-2" />
+          <span className="text-sm sm:text-base">Loading reports...</span>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
           <div className="flex items-center">
-            <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-            <span className="text-red-700">Error loading reports: {error}</span>
+            <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 mr-2 shrink-0" />
+            <span className="text-red-700 text-xs sm:text-sm">Error loading reports: {error}</span>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={refetch}
-            className="mt-2"
+            className="mt-2 h-8 sm:h-9 text-xs sm:text-sm"
           >
             Try Again
           </Button>
@@ -167,14 +170,14 @@ export function Reports() {
       {!loading && !error && (
         <>
           {/* Simple Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <BarChart3 className="h-8 w-8 text-blue-600" />
-                  <div>
-                    <p className="text-2xl font-bold">{totalRequests}</p>
-                    <p className="text-sm text-muted-foreground">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xl sm:text-2xl font-bold">{totalRequests}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       Total Requests
                     </p>
                   </div>
@@ -183,36 +186,36 @@ export function Reports() {
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
-                  <div>
-                    <p className="text-2xl font-bold">{completedRequests}</p>
-                    <p className="text-sm text-muted-foreground">Completed</p>
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xl sm:text-2xl font-bold">{completedRequests}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Completed</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <Clock className="h-8 w-8 text-yellow-600" />
-                  <div>
-                    <p className="text-2xl font-bold">{inProgressRequests}</p>
-                    <p className="text-sm text-muted-foreground">In Progress</p>
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xl sm:text-2xl font-bold">{inProgressRequests}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">In Progress</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="h-8 w-8 text-orange-600" />
-                  <div>
-                    <p className="text-2xl font-bold">{pendingRequests}</p>
-                    <p className="text-sm text-muted-foreground">Pending</p>
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xl sm:text-2xl font-bold">{pendingRequests}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Pending</p>
                   </div>
                 </div>
               </CardContent>
@@ -220,55 +223,55 @@ export function Reports() {
           </div>
 
           {/* Service Requests */}
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           <Card className="w-full lg:w-1/2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
+            <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
                 Service Requests
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 Recent service requests and their status
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3 max-h-[520px] overflow-y-auto pr-2 no-scrollbar">
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="space-y-2 max-h-[400px] sm:max-h-[520px] overflow-y-auto pr-2 no-scrollbar">
                 {serviceRequests.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
                     No service requests found for the selected period.
                   </div>
                 ) : (
                   serviceRequests.map((request: ServiceRequest) => (
                     <div
                       key={request.id || request._id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2.5 sm:p-3 border rounded-lg"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-primary">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                          <span className="text-xs sm:text-sm font-medium text-primary">
                             {(request.id || request._id || "").slice(-3)}
                           </span>
                         </div>
-                        <div>
-                          <h4 className="font-medium">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-xs sm:text-sm truncate leading-tight">
                             {request.service || request.serviceType} -{" "}
                             {request.customerName || request.name}
                           </h4>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             {formatDate(request.createdAt)}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         <Badge
                           variant="outline"
-                          className={getPriorityBadgeVariant(request.priority)}
+                          className={cn("text-xs", getPriorityBadgeVariant(request.priority))}
                         >
                           {request.priority}
                         </Badge>
                         <Badge
                           variant="secondary"
-                          className={getStatusBadgeVariant(request.status)}
+                          className={cn("text-xs", getStatusBadgeVariant(request.status))}
                         >
                           {request.status}
                         </Badge>
@@ -282,17 +285,17 @@ export function Reports() {
 
           {/* Employee Performance */}
           <Card className="w-full lg:w-1/2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
+            <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                 Pro Performance
               </CardTitle>
-              <CardDescription>Pro performance metrics</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">Pro performance metrics</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4 max-h-[520px] overflow-y-auto pr-2 no-scrollbar">
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="space-y-2 max-h-[400px] sm:max-h-[520px] overflow-y-auto pr-2 no-scrollbar">
                 {employees.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
                     No pro performance data available for the selected
                     period.
                   </div>
@@ -300,46 +303,46 @@ export function Reports() {
                   employees.map((employee) => (
                     <div
                       key={employee._id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3 p-2.5 sm:p-3 border rounded-lg"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-primary">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                        <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                          <span className="text-xs sm:text-sm font-medium text-primary">
                             {employee.name
                               .split(" ")
                               .map((n) => n[0])
                               .join("")}
                           </span>
                         </div>
-                        <div>
-                          <h4 className="font-medium">{employee.name}</h4>
-                          <p className="text-sm text-muted-foreground">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-xs sm:text-sm truncate leading-tight">{employee.name}</h4>
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             {employee.completedJobs} completed jobs
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-6">
-                        <div className="text-center">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                            <span className="font-medium">
+                      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                        <div className="text-center min-w-[50px]">
+                          <div className="flex items-center gap-1 justify-center">
+                            <Star className="h-3 w-3 text-yellow-500 fill-current shrink-0" />
+                            <span className="font-medium text-xs">
                               {employee.rating.toFixed(1)}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
                             Rating
                           </p>
                         </div>
-                        <div className="text-center">
-                          <p className="font-medium">{employee.efficiency}%</p>
-                          <p className="text-xs text-muted-foreground">
+                        <div className="text-center min-w-[50px]">
+                          <p className="font-medium text-xs">{employee.efficiency}%</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
                             Efficiency
                           </p>
                         </div>
-                        <div className="text-center">
-                          <p className="font-medium">{employee.successRate}%</p>
-                          <p className="text-xs text-muted-foreground">
-                            Success Rate
+                        <div className="text-center min-w-[60px]">
+                          <p className="font-medium text-xs">{employee.successRate}%</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            Success
                           </p>
                         </div>
                       </div>

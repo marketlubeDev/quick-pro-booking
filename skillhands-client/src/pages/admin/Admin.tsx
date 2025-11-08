@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useLocation, Outlet } from "react-router-dom";
@@ -38,12 +39,44 @@ export function AdminLayout() {
     subtitle: "",
   };
 
+  // Sidebar state management
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    // Check if we're on mobile on initial render
+    if (typeof window !== "undefined") {
+      return window.innerWidth < 1024; // lg breakpoint
+    }
+    return true; // Default to collapsed on SSR
+  });
+
+  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
+
+  // Handle window resize - only collapse when switching from desktop to mobile
+  useEffect(() => {
+    let wasDesktop = window.innerWidth >= 1024;
+
+    const handleResize = () => {
+      const isNowMobile = window.innerWidth < 1024;
+      // Only collapse if we transitioned from desktop to mobile
+      if (wasDesktop && isNowMobile) {
+        setIsCollapsed(true);
+      }
+      wasDesktop = !isNowMobile;
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background flex w-full">
-      <Sidebar />
-      <div className="flex-1 flex flex-col lg:ml-0">
-        <Header title={currentPage.title} subtitle={currentPage.subtitle} />
-        <main className="flex-1 overflow-auto">
+      <Sidebar isCollapsed={isCollapsed} onToggle={toggleSidebar} />
+      <div className="flex-1 flex flex-col lg:ml-0 w-full min-w-0">
+        <Header
+          title={currentPage.title}
+          subtitle={currentPage.subtitle}
+          onToggleSidebar={toggleSidebar}
+        />
+        <main className="flex-1 overflow-auto w-full">
           <Outlet />
         </main>
       </div>

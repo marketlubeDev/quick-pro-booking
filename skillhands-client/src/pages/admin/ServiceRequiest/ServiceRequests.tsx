@@ -475,26 +475,26 @@ export function ServiceRequests() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Search and Filters */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 sm:gap-4">
         {/* First Row: Search and Status */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by ID, name, service, or location..."
+              placeholder="Search by ID, name, service..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 updateGlobalSearch(e.target.value);
               }}
-              className="pl-9"
+              className="pl-9 text-sm"
             />
           </div>
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-40">
+            <SelectTrigger className="w-full sm:w-40 h-9 sm:h-10 border-border/60 shadow-sm hover:shadow-md transition-all">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -508,7 +508,7 @@ export function ServiceRequests() {
         </div>
 
         {/* Second Row: Date and Location Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           {/* Date Range Filter */}
           <div className="flex items-center gap-2">
             <Popover>
@@ -516,7 +516,7 @@ export function ServiceRequests() {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full sm:w-[240px] justify-start text-left font-normal",
+                    "w-full sm:w-[240px] h-9 sm:h-10 justify-start text-left font-normal border-border/60 shadow-sm hover:shadow-md transition-all",
                     !dateFrom && !dateTo && "text-muted-foreground"
                   )}
                 >
@@ -567,7 +567,7 @@ export function ServiceRequests() {
                           e.preventDefault();
                           clearDateFilters();
                         }}
-                        className="w-full"
+                        className="w-full h-9 border-border/60 shadow-sm hover:shadow-md transition-all"
                       >
                         <X className="h-4 w-4 mr-2" />
                         Clear Date Filter
@@ -583,7 +583,7 @@ export function ServiceRequests() {
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <Select value={cityFilter} onValueChange={setCityFilter}>
-              <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectTrigger className="w-full sm:w-[200px] h-9 sm:h-10 border-border/60 shadow-sm hover:shadow-md transition-all">
                 <SelectValue placeholder="City" />
               </SelectTrigger>
               <SelectContent>
@@ -603,7 +603,7 @@ export function ServiceRequests() {
                 onClick={() => {
                   setCityFilter("all");
                 }}
-                className="h-9 px-2"
+                className="h-9 w-9 p-0 hover:bg-accent/50 transition-all"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -613,45 +613,45 @@ export function ServiceRequests() {
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-5 gap-4">
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-foreground">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-foreground">
             {Number(totalServiceRequests) || 0}
           </div>
-          <div className="text-sm text-muted-foreground">Total Requests</div>
+          <div className="text-xs sm:text-sm text-muted-foreground">Total Requests</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-warning">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-warning">
             {Number(countsByStatus.pending) || 0}
           </div>
-          <div className="text-sm text-muted-foreground">Pending</div>
+          <div className="text-xs sm:text-sm text-muted-foreground">Pending</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-info">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-info">
             {Number(countsByStatus.inProcess) || 0}
           </div>
-          <div className="text-sm text-muted-foreground">In Process</div>
+          <div className="text-xs sm:text-sm text-muted-foreground">In Process</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-success">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-success">
             {Number(countsByStatus.completed) || 0}
           </div>
-          <div className="text-sm text-muted-foreground">Completed</div>
+          <div className="text-xs sm:text-sm text-muted-foreground">Completed</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-destructive">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4 text-center col-span-2 sm:col-span-1">
+          <div className="text-xl sm:text-2xl font-bold text-destructive">
             {Number(countsByStatus.cancelled) || 0}
           </div>
-          <div className="text-sm text-muted-foreground">Cancelled</div>
+          <div className="text-xs sm:text-sm text-muted-foreground">Cancelled</div>
         </div>
       </div>
 
       {/* Loading / Error */}
       {isLoading && (
-        <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="p-4 sm:p-6 flex items-center justify-center min-h-[400px]">
           <div className="flex items-center space-x-2">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span>Loading service requests...</span>
+            <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
+            <span className="text-sm sm:text-base">Loading service requests...</span>
           </div>
         </div>
       )}
@@ -662,7 +662,7 @@ export function ServiceRequests() {
       )}
 
       {/* Service Requests Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {filteredRequests.map((request) => {
           const requestId = request._id || request.id;
           const isProcessing = processingRequestId === requestId;
@@ -709,11 +709,11 @@ export function ServiceRequests() {
       )}
 
       {filteredRequests.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-muted-foreground text-lg">
+        <div className="text-center py-8 sm:py-12">
+          <div className="text-muted-foreground text-base sm:text-lg">
             No service requests found
           </div>
-          <div className="text-muted-foreground text-sm mt-1">
+          <div className="text-muted-foreground text-xs sm:text-sm mt-1">
             {searchQuery ||
             statusFilter !== "all" ||
             priorityFilter !== "all" ||
