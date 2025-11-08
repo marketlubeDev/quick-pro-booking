@@ -2,26 +2,15 @@ import React, { useState, useEffect } from "react";
 import ContactFormModal from "../../../components/ContactFormModal";
 import { toast } from "sonner";
 import { MdKeyboardArrowDown } from "react-icons/md";
+import { serviceCategoriesApi } from "@/lib/api.serviceCategories";
 
 const EnhancedHeroSection = () => {
   const [selectedService, setSelectedService] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const services = [
-    { value: "plumbing", label: "Plumbing", icon: "🔧" },
-    { value: "electrical", label: "Electrical", icon: "⚡" },
-    { value: "cleaning", label: "House Cleaning", icon: "🧽" },
-    { value: "ac-repair", label: "AC Repair", icon: "❄️" },
-    { value: "appliance", label: "Appliance Repair", icon: "🔨" },
-    { value: "painting", label: "Painting", icon: "🎨" },
-    { value: "handyman", label: "Handyman", icon: "🛠️" },
-    { value: "pest-control", label: "Pest Control", icon: "🐜" },
-    { value: "lawn-care", label: "Lawn Care", icon: "🌿" },
-    { value: "moving", label: "Moving", icon: "📦" },
-    { value: "roofing", label: "Roofing", icon: "🏠" },
-  ];
+  const [services, setServices] = useState([]);
+  const [isLoadingServices, setIsLoadingServices] = useState(true);
 
   const features = [
     { icon: "🛡️", text: "Licensed & Insured", color: "#10b981" },
@@ -36,12 +25,95 @@ const EnhancedHeroSection = () => {
     { number: "24/7", label: "Support Available" },
   ];
 
+  // Function to get a random icon based on service name
+  const getServiceIcon = (serviceName) => {
+    const name = serviceName.toLowerCase();
+
+    // Icon mappings for different service categories
+    const iconMap = {
+      plumbing: ["🔧", "🚿", "💧", "🚰", "🛠️", "🔩"],
+      electrical: ["⚡", "💡", "🔌", "⚙️", "🔋", "📡"],
+      cleaning: ["🧽", "✨", "🧹", "🧼", "💨", "🌟"],
+      "ac-repair": ["❄️", "🌡️", "🌀", "💨", "❄️", "🌬️"],
+      "air conditioning": ["❄️", "🌡️", "🌀", "💨", "❄️", "🌬️"],
+      appliance: ["🔨", "⚙️", "🔧", "🛠️", "📱", "💻"],
+      painting: ["🎨", "🖌️", "🖼️", "🌈", "✨", "🖍️"],
+      handyman: ["🛠️", "🔧", "⚒️", "🔨", "📐", "🧰"],
+      "pest control": ["🐜", "🪰", "🕷️", "🐛", "🦟", "🧪"],
+      "lawn care": ["🌿", "🌱", "🌳", "🌲", "🍃", "🌾"],
+      moving: ["📦", "🚚", "📋", "🏠", "📱", "🚛"],
+      roofing: ["🏠", "🔨", "🛠️", "🏗️", "🧱", "⚒️"],
+      carpentry: ["🪵", "🔨", "🛠️", "📐", "⚒️", "🧰"],
+      hvac: ["❄️", "🌡️", "🌀", "💨", "❄️", "🌬️"],
+      general: ["🔧", "🛠️", "⚙️", "✨", "⭐", "💫"],
+    };
+
+    // Find matching category
+    for (const [category, icons] of Object.entries(iconMap)) {
+      if (name.includes(category)) {
+        // Use service name as seed for consistent random selection
+        let hash = 0;
+        for (let i = 0; i < serviceName.length; i++) {
+          hash = serviceName.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash) % icons.length;
+        return icons[index];
+      }
+    }
+
+    // Default icons if no match found
+    const defaultIcons = ["🔧", "🛠️", "⚙️", "✨", "⭐", "💫"];
+    let hash = 0;
+    for (let i = 0; i < serviceName.length; i++) {
+      hash = serviceName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % defaultIcons.length;
+    return defaultIcons[index];
+  };
+
   useEffect(() => {
     setIsVisible(true);
     const interval = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % features.length);
     }, 3000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Fetch services from API
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        setIsLoadingServices(true);
+        const res = await serviceCategoriesApi.list();
+        if (isMounted && res.success && res.data) {
+          const transformedServices = res.data
+            .filter((category) => category.isActive !== false)
+            .map((category) => ({
+              value:
+                category.slug ||
+                category.name.toLowerCase().replace(/\s+/g, "-"),
+              label: category.name,
+              icon: category.iconUrl || getServiceIcon(category.name), // Use random related icon if iconUrl is not available
+            }));
+          setServices(transformedServices);
+        }
+      } catch (error) {
+        console.error("Failed to fetch services:", error);
+        if (isMounted) {
+          toast.error("Failed to load services. Please try again later.");
+          // Set empty array on error
+          setServices([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingServices(false);
+        }
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleQuickBook = () => {
@@ -83,7 +155,9 @@ const EnhancedHeroSection = () => {
       <ContactFormModal
         isOpen={isModalOpen}
         onClose={() => handleModalClose(true)}
-        selectedService={services.find((s) => s.value === selectedService)?.label}
+        selectedService={
+          services.find((s) => s.value === selectedService)?.label
+        }
       />
 
       {/* Animated Background Elements */}
@@ -283,10 +357,14 @@ const EnhancedHeroSection = () => {
                   }}
                 >
                   {/* Service Selection and Request Button */}
-                  <div className="select-container" style={{ position: "relative", width: "58%" }}>
+                  <div
+                    className="select-container"
+                    style={{ position: "relative", width: "58%" }}
+                  >
                     <select
                       value={selectedService}
                       onChange={(e) => setSelectedService(e.target.value)}
+                      disabled={isLoadingServices}
                       style={{
                         width: "100%",
                         backgroundColor: "rgba(255, 255, 255, 0.1)",
@@ -296,17 +374,20 @@ const EnhancedHeroSection = () => {
                         color: "white",
                         fontSize: "1rem",
                         outline: "none",
-                        cursor: "pointer",
+                        cursor: isLoadingServices ? "not-allowed" : "pointer",
                         appearance: "none",
                         transition: "all 0.2s ease",
                         minHeight: "44px",
+                        opacity: isLoadingServices ? 0.6 : 1,
                       }}
                     >
                       <option
                         value=""
                         style={{ backgroundColor: "#374151", color: "white" }}
                       >
-                        Select Service
+                        {isLoadingServices
+                          ? "Loading services..."
+                          : "Select Service"}
                       </option>
                       {services.map((service) => (
                         <option
@@ -344,7 +425,8 @@ const EnhancedHeroSection = () => {
                     onClick={handleQuickBook}
                     style={{
                       width: "40%",
-                      background: "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)",
+                      background:
+                        "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)",
                       color: "white",
                       fontWeight: "600",
                       padding: "0.75rem 1.5rem",
@@ -692,7 +774,7 @@ const EnhancedHeroSection = () => {
               border-radius: 0.75rem !important;
             }
           }
-          
+
           /* iPad specific styling (768x1024) */
           @media screen and (min-width: 768px) and (max-width: 1023px) {
             .hero-image-container {
@@ -705,7 +787,7 @@ const EnhancedHeroSection = () => {
               border-radius: 0.75rem !important;
             }
           }
-          
+
           @media (max-width: 767px) {
             .hero-image-container img {
               height: 18rem !important;
@@ -716,7 +798,7 @@ const EnhancedHeroSection = () => {
               padding: 2rem 1rem !important;
             }
           }
-          
+
           @media (max-width: 600px) {
             .service-actions {
               display: flex !important;
@@ -740,13 +822,13 @@ const EnhancedHeroSection = () => {
               height: 16rem !important;
             }
           }
-          
+
           @media (max-width: 480px) {
             .hero-image-container img {
               height: 14rem !important;
             }
           }
-          
+
           /* Mobile responsive styles for service actions */
           @media (max-width: 768px) {
             .responsive-service-container {
@@ -754,11 +836,11 @@ const EnhancedHeroSection = () => {
               gap: 1rem !important;
               align-items: stretch !important;
             }
-            
+
             .select-container {
               width: 100% !important;
             }
-            
+
             .request-service-btn {
               width: 100% !important;
             }
