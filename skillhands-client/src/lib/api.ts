@@ -284,6 +284,12 @@ export interface CreateCheckoutSessionData {
   returnUrl?: string;
 }
 
+export interface ProcessRefundData {
+  serviceRequestId: string;
+  amount?: number; // Optional: if not provided, full refund
+  reason?: string;
+}
+
 export const paymentApi = {
   async createPaymentIntent(
     data: CreatePaymentIntentData
@@ -309,6 +315,12 @@ export const paymentApi = {
         sessionId
       )}`
     );
+  },
+
+  async processRefund(
+    data: ProcessRefundData
+  ): Promise<ApiResponse<{ refundId: string; amount: number; currency: string; status: string }>> {
+    return api.post("/api/payments/refund", data);
   },
 };
 

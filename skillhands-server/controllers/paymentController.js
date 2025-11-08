@@ -506,3 +506,161 @@ export const handleStripeWebhook = async (req, res) => {
   }
   return res.json({ received: true });
 };
+
+/**
+ * Process a refund for a service request payment
+ * Supports both full and partial refunds
+ */
+export const processRefund = async (req, res) => {
+  try {
+    if (!stripeClient) {
+      return res.status(500).json({
+        success: false,
+        message:
+          "Stripe is not configured on the server (missing STRIPE_SECRET_KEY)",
+      });
+    }
+
+    const { serviceRequestId, amount, reason } = req.body;
+
+    if (!serviceRequestId) {
+      return res.status(400).json({
+        success: false,
+        message: "Service request ID is required",
+      });
+    }
+
+    // Find the service request
+    const serviceRequest = await ServiceRequest.findById(serviceRequestId);
+    if (!serviceRequest) {
+      return res.status(404).json({
+        success: false,
+        message: "Service request not found",
+      });
+    }
+
+    // Check if payment was made via Stripe
+    if (!serviceRequest.stripePaymentIntentId) {
+      return res.status(400).json({
+        success: false,
+        message: "No Stripe payment found for this service request",
+      });
+    }
+
+    // Check if already refunded
+    if (serviceRequest.paymentStatus === "refunded") {
+      return res.status(400).json({
+        success: false,
+        message: "This payment has already been refunded",
+      });
+    }
+
+    // Check if payment was successful
+    if (
+      serviceRequest.paymentStatus !== "paid" &&
+      serviceRequest.paymentStatus !== "partially_paid"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot refund a payment that hasn't been completed",
+      });
+    }
+
+    // Retrieve the payment intent to get the charge ID
+    const paymentIntent = await stripeClient.paymentIntents.retrieve(
+      serviceRequest.stripePaymentIntentId
+    );
+
+    if (paymentIntent.status !== "succeeded") {
+      return res.status(400).json({
+        success: false,
+        message: "Payment intent was not successful",
+      });
+    }
+
+    // Get the charge ID from the payment intent
+    // latest_charge can be a string (charge ID) or an object (expanded charge)
+    const chargeId =
+      typeof paymentIntent.latest_charge === "string"
+        ? paymentIntent.latest_charge
+        : paymentIntent.latest_charge?.id;
+    if (!chargeId) {
+      return res.status(400).json({
+        success: false,
+        message: "No charge found for this payment",
+      });
+    }
+
+    // Determine refund amount
+    let refundAmount = null; // null means full refund
+    if (amount) {
+      // Convert amount to cents if provided in dollars
+      refundAmount = Math.round(Number(amount) * 100);
+
+      // Validate refund amount
+      const paidAmount = serviceRequest.amount || paymentIntent.amount;
+      if (refundAmount > paidAmount) {
+        return res.status(400).json({
+          success: false,
+          message: "Refund amount cannot exceed the paid amount",
+        });
+      }
+      if (refundAmount <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Refund amount must be greater than zero",
+        });
+      }
+    }
+
+    // Create the refund
+    const refundParams = {
+      charge: chargeId,
+      reason: reason || "requested_by_customer",
+    };
+
+    if (refundAmount) {
+      refundParams.amount = refundAmount;
+    }
+
+    const refund = await stripeClient.refunds.create(refundParams);
+
+    // Update service request
+    const updateData = {
+      paymentStatus: "refunded",
+    };
+
+    // If partial refund, keep track of refunded amount
+    if (
+      refundAmount &&
+      refundAmount < (serviceRequest.amount || paymentIntent.amount)
+    ) {
+      // For partial refunds, you might want to track this differently
+      // For now, we'll mark as refunded but you could add a refundedAmount field
+      updateData.paymentStatus = "refunded";
+    }
+
+    await ServiceRequest.findByIdAndUpdate(serviceRequestId, updateData);
+
+    return res.json({
+      success: true,
+      message: refundAmount
+        ? "Partial refund processed successfully"
+        : "Full refund processed successfully",
+      data: {
+        refundId: refund.id,
+        amount: refund.amount,
+        currency: refund.currency,
+        status: refund.status,
+        serviceRequestId,
+      },
+    });
+  } catch (error) {
+    console.error("Error processing refund:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to process refund",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};

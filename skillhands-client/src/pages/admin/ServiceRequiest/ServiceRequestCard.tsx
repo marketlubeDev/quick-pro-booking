@@ -11,6 +11,7 @@ import {
   User,
   UserCheck,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { ServiceRequest, Employee } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -32,10 +33,12 @@ interface ServiceRequestCardProps {
   onAccept?: (requestId: string) => void;
   onComplete?: (requestId: string) => void;
   onReject?: (request: ServiceRequest) => void;
+  onRefund?: (request: ServiceRequest) => void;
   onEmployeeChange?: (requestId: string, employeeId: string | null) => void;
   isLoadingAccept?: boolean;
   isLoadingComplete?: boolean;
   isLoadingReject?: boolean;
+  isLoadingRefund?: boolean;
 }
 
 function getStatusBadgeVariant(
@@ -140,10 +143,12 @@ export function ServiceRequestCard({
   onAccept,
   onComplete,
   onReject,
+  onRefund,
   onEmployeeChange,
   isLoadingAccept = false,
   isLoadingComplete = false,
   isLoadingReject = false,
+  isLoadingRefund = false,
 }: ServiceRequestCardProps) {
   console.log(request, "request");
 
@@ -372,6 +377,25 @@ export function ServiceRequestCard({
                 <CheckCircle className="h-4 w-4 mr-1" />
               )}
               Complete
+            </Button>
+          )}
+
+          {/* Refund button - show when payment is paid or partially_paid */}
+          {(request.paymentStatus === "paid" ||
+            request.paymentStatus === "partially_paid") && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onRefund?.(request)}
+              className="flex-1"
+              disabled={isLoadingRefund}
+            >
+              {isLoadingRefund ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-1" />
+              )}
+              Refund
             </Button>
           )}
         </div>

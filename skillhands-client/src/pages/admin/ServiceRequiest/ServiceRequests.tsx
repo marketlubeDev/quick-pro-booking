@@ -40,7 +40,9 @@ import {
 import { employeeApi } from "@/lib/api";
 import { ScheduleServiceDialog } from "./ScheduleServiceDialog";
 import { RejectServiceDialog } from "./RejectServiceDialog";
+import { RefundServiceDialog } from "./RefundServiceDialog";
 import { marylandZipCodes } from "@/data/marylandZipCodes";
+import { paymentApi } from "@/lib/api";
 
 export function ServiceRequests() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -56,6 +58,7 @@ export function ServiceRequests() {
   );
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
+  const [isRefundOpen, setIsRefundOpen] = useState(false);
 
   const {
     data,
@@ -236,6 +239,9 @@ export function ServiceRequests() {
 
   // Track which request is being processed for loading states
   const [processingRequestId, setProcessingRequestId] = useState<string | null>(
+    null
+  );
+  const [refundingRequestId, setRefundingRequestId] = useState<string | null>(
     null
   );
 
@@ -419,6 +425,45 @@ export function ServiceRequests() {
           },
         }
       );
+    }
+  };
+
+  const handleRefund = (request: ServiceRequest) => {
+    setSelectedRequest(request);
+    setIsRefundOpen(true);
+  };
+
+  const handleRefundConfirm = async (amount?: number, reason?: string) => {
+    if (!selectedRequest) return;
+
+    const requestId = selectedRequest._id || selectedRequest.id;
+    setRefundingRequestId(requestId);
+
+    try {
+      const response = await paymentApi.processRefund({
+        serviceRequestId: requestId,
+        amount: amount,
+        reason: reason,
+      });
+
+      if (response.success) {
+        // Invalidate queries to refresh the data
+        queryClient.invalidateQueries({
+          queryKey: ["service-requests-infinite"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["service-requests-summary"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["service-requests-all-counts"],
+        });
+        setIsRefundOpen(false);
+      }
+    } catch (error) {
+      console.error("Error processing refund:", error);
+      // Error handling could be improved with toast notifications
+    } finally {
+      setRefundingRequestId(null);
     }
   };
 
@@ -649,10 +694,12 @@ export function ServiceRequests() {
               onAccept={handleAccept}
               onComplete={handleComplete}
               onReject={handleReject}
+              onRefund={handleRefund}
               onEmployeeChange={handleEmployeeChange}
               isLoadingAccept={isProcessing && updateMutation.isPending}
               isLoadingComplete={isProcessing && updateMutation.isPending}
               isLoadingReject={isProcessing && updateMutation.isPending}
+              isLoadingRefund={refundingRequestId === requestId}
             />
           );
         })}
@@ -754,6 +801,18 @@ export function ServiceRequests() {
         serviceName={selectedRequest?.service}
         isSubmitting={updateMutation.isPending}
         onConfirm={handleRejectConfirm}
+      />
+
+      <RefundServiceDialog
+        open={isRefundOpen}
+        onOpenChange={setIsRefundOpen}
+        customerName={selectedRequest?.name || selectedRequest?.customerName}
+        serviceName={selectedRequest?.service}
+        paidAmount={selectedRequest?.amount}
+        isSubmitting={
+          refundingRequestId === (selectedRequest?._id || selectedRequest?.id)
+        }
+        onConfirm={handleRefundConfirm}
       />
     </div>
   );
