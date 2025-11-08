@@ -19,6 +19,7 @@ import {
   MapPin,
   Calendar,
   AlertCircle,
+  XCircle,
 } from "lucide-react";
 import type { EmployeeJob } from "@/lib/api.employeeJobs";
 import { markJobPaid as markJobPaidAction } from "@/lib/api.employeeJobs";
@@ -111,9 +112,7 @@ const EmployeeJobs = () => {
   React.useEffect(() => {
     if (selectedJob && allJobs.length > 0) {
       const jobId = selectedJob.id || selectedJob._id;
-      const updatedJob = allJobs.find(
-        (job) => (job.id || job._id) === jobId
-      );
+      const updatedJob = allJobs.find((job) => (job.id || job._id) === jobId);
       if (updatedJob) {
         // Only update if the job data has actually changed
         const hasChanged =
@@ -199,11 +198,18 @@ const EmployeeJobs = () => {
     try {
       if (!user?._id) throw new Error("Not authenticated");
       await markJobPaidAction({ jobId, employeeId: user._id });
-      toast({ title: "Payment Updated", description: "Payment marked as paid." });
+      toast({
+        title: "Payment Updated",
+        description: "Payment marked as paid.",
+      });
       await refetch();
       setIsModalOpen(false);
     } catch (error) {
-      toast({ title: "Error", description: "Failed to update payment.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to update payment.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -238,6 +244,20 @@ const EmployeeJobs = () => {
   const getJobStatusInfo = (job: EmployeeJob) => {
     if (job.status === "completed") {
       return { icon: CheckCircle, text: "Completed", color: "text-green-600" };
+    }
+    if (job.status === "rejected") {
+      return {
+        icon: XCircle,
+        text: "Rejected",
+        color: "text-red-600",
+      };
+    }
+    if (job.status === "cancelled") {
+      return {
+        icon: XCircle,
+        text: "Cancelled",
+        color: "text-red-600",
+      };
     }
     if (
       job.employeeAccepted &&
