@@ -506,3 +506,148 @@ export const handleStripeWebhook = async (req, res) => {
   }
   return res.json({ received: true });
 };
+
+/**
+ * Process a refund for a service request
+ * Only processes refunds for Stripe payments
+ */
+export const processRefund = async (req, res) => {
+  try {
+    if (!stripeClient) {
+      return res.status(500).json({
+        success: false,
+        message:
+          "Stripe is not configured on the server (missing STRIPE_SECRET_KEY)",
+      });
+    }
+
+    const { serviceRequestId, amount, reason } = req.body;
+
+    if (!serviceRequestId) {
+      return res.status(400).json({
+        success: false,
+        message: "Service request ID is required",
+      });
+    }
+
+    // Find the service request
+    const serviceRequest = await ServiceRequest.findById(serviceRequestId);
+    if (!serviceRequest) {
+      return res.status(404).json({
+        success: false,
+        message: "Service request not found",
+      });
+    }
+
+    // Check if payment was made via Stripe
+    if (!serviceRequest.stripePaymentIntentId) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This service request does not have a Stripe payment to refund",
+      });
+    }
+
+    // Check if already refunded
+    if (serviceRequest.paymentStatus === "refunded") {
+      return res.status(400).json({
+        success: false,
+        message: "This payment has already been refunded",
+      });
+    }
+
+    // Check if payment was successful
+    if (
+      serviceRequest.paymentStatus !== "paid" &&
+      serviceRequest.paymentStatus !== "partially_paid"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot refund a payment that hasn't been completed",
+      });
+    }
+
+    // Retrieve the payment intent to get charge ID
+    const paymentIntent = await stripeClient.paymentIntents.retrieve(
+      serviceRequest.stripePaymentIntentId
+    );
+
+    if (!paymentIntent.latest_charge) {
+      return res.status(400).json({
+        success: false,
+        message: "No charge found for this payment intent",
+      });
+    }
+
+    // Get the actual paid amount (use serviceRequest.amount if available, otherwise paymentIntent.amount)
+    const actualPaidAmount =
+      serviceRequest.amount > 0 ? serviceRequest.amount : paymentIntent.amount;
+
+    // Determine refund amount (full or partial)
+    const refundAmount = amount
+      ? Math.round(Number(amount) * 100) // Convert to cents if provided
+      : actualPaidAmount; // Full refund of actual paid amount if not specified
+
+    // Validate refund amount
+    if (refundAmount <= 0 || refundAmount > actualPaidAmount) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid refund amount. Maximum refundable: $${(
+          actualPaidAmount / 100
+        ).toFixed(2)}`,
+      });
+    }
+
+    // Create refund in Stripe
+    // Stripe only accepts: "duplicate", "fraudulent", or "requested_by_customer"
+    // We'll use "requested_by_customer" as default and store the custom reason in metadata
+    const stripeReason = "requested_by_customer";
+
+    const refund = await stripeClient.refunds.create({
+      charge: paymentIntent.latest_charge,
+      amount: refundAmount,
+      reason: stripeReason,
+      metadata: {
+        serviceRequestId: serviceRequestId.toString(),
+        service: serviceRequest.service,
+        customerName: serviceRequest.name,
+        customerEmail: serviceRequest.email,
+        customReason: reason || "Service request rejected", // Store custom reason in metadata
+      },
+    });
+
+    // Update service request payment status
+    const updateData = {
+      paymentStatus:
+        refundAmount >= actualPaidAmount ? "refunded" : "partially_paid",
+    };
+
+    // If full refund, update amount to 0
+    if (refundAmount >= actualPaidAmount) {
+      updateData.amount = 0;
+    } else {
+      // For partial refund, subtract refund amount from current amount
+      updateData.amount = Math.max(0, actualPaidAmount - refundAmount);
+    }
+
+    await ServiceRequest.findByIdAndUpdate(serviceRequestId, updateData);
+
+    return res.json({
+      success: true,
+      message: "Refund processed successfully",
+      data: {
+        refundId: refund.id,
+        amount: refund.amount,
+        status: refund.status,
+        paymentStatus: updateData.paymentStatus,
+      },
+    });
+  } catch (error) {
+    console.error("Error processing refund:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to process refund",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};

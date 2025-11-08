@@ -310,6 +310,14 @@ export const paymentApi = {
       )}`
     );
   },
+
+  async processRefund(data: {
+    serviceRequestId: string;
+    amount?: number;
+    reason?: string;
+  }): Promise<ApiResponse<{ refundId: string; amount: number; status: string; paymentStatus: string }>> {
+    return api.post("/api/payments/refund", data);
+  },
 };
 
 export interface Employee {

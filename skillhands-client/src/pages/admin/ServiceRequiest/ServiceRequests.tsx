@@ -37,7 +37,7 @@ import {
   fetchServiceRequests,
   UpdateServiceRequestInput,
 } from "@/lib/api.serviceRequests";
-import { employeeApi } from "@/lib/api";
+import { employeeApi, paymentApi } from "@/lib/api";
 import { ScheduleServiceDialog } from "./ScheduleServiceDialog";
 import { RejectServiceDialog } from "./RejectServiceDialog";
 import { marylandZipCodes } from "@/data/marylandZipCodes";
@@ -402,10 +402,33 @@ export function ServiceRequests() {
     setIsRejectOpen(true);
   };
 
-  const handleRejectConfirm = (reason: string) => {
-    if (selectedRequest) {
-      const requestId = selectedRequest._id || selectedRequest.id;
-      setProcessingRequestId(requestId);
+  const handleRejectConfirm = async (
+    reason: string,
+    sendRefund: boolean,
+    refundAmount?: number
+  ) => {
+    if (!selectedRequest) return;
+
+    const requestId = selectedRequest._id || selectedRequest.id;
+    setProcessingRequestId(requestId);
+
+    try {
+      // Process refund first if requested
+      if (sendRefund && selectedRequest.stripePaymentIntentId && refundAmount) {
+        try {
+          await paymentApi.processRefund({
+            serviceRequestId: requestId,
+            amount: refundAmount / 100, // Convert from cents to dollars for API
+            reason: `Service request rejected: ${reason}`,
+          });
+        } catch (refundError) {
+          console.error("Refund error:", refundError);
+          // Continue with rejection even if refund fails
+          // You might want to show an error message to the user here
+        }
+      }
+
+      // Then reject the service request
       updateMutation.mutate(
         {
           id: requestId,
@@ -419,6 +442,10 @@ export function ServiceRequests() {
           },
         }
       );
+    } catch (error) {
+      console.error("Error processing rejection:", error);
+      setProcessingRequestId(null);
+      setIsRejectOpen(false);
     }
   };
 
@@ -753,6 +780,16 @@ export function ServiceRequests() {
         customerName={selectedRequest?.name || selectedRequest?.customerName}
         serviceName={selectedRequest?.service}
         isSubmitting={updateMutation.isPending}
+        canRefund={
+          !!(
+            selectedRequest?.stripePaymentIntentId &&
+            (selectedRequest?.paymentStatus === "paid" ||
+              selectedRequest?.paymentStatus === "partially_paid") &&
+            selectedRequest?.paymentStatus !== "refunded"
+          )
+        }
+        paidAmount={selectedRequest?.amount || 0} // Amount actually paid (in cents)
+        totalAmount={selectedRequest?.totalAmount || 0} // Total service amount (in cents)
         onConfirm={handleRejectConfirm}
       />
     </div>
