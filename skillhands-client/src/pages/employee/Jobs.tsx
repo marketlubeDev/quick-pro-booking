@@ -55,6 +55,7 @@ const EmployeeJobs = () => {
     error,
     refetch,
     acceptJobAction,
+    markJobAsDoneAction,
     completeJobAction,
     addRemarksAction,
   } = useEmployeeJobs();
@@ -140,6 +141,23 @@ const EmployeeJobs = () => {
       toast({
         title: "Error",
         description: "Failed to accept job. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleMarkAsDone = async (jobId: string) => {
+    try {
+      await markJobAsDoneAction(jobId);
+      await refetch();
+      toast({
+        title: "Job Marked as Done",
+        description: "You have successfully marked this job as done.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark job as done. Please try again.",
         variant: "destructive",
       });
     }
@@ -663,6 +681,7 @@ const EmployeeJobs = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onAccept={handleAcceptJob}
+        onMarkAsDone={handleMarkAsDone}
         onComplete={handleCompleteJob}
         onAddRemarks={handleAddRemarks}
         onMarkPaid={handleMarkPaid}

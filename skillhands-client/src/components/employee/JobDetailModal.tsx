@@ -31,6 +31,7 @@ interface JobDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAccept: (jobId: string) => Promise<void>;
+  onMarkAsDone?: (jobId: string) => Promise<void>;
   onComplete: (jobId: string, completionNotes?: string) => Promise<void>;
   onAddRemarks: (jobId: string, remarks: string) => Promise<void>;
   onMarkPaid?: (jobId: string) => Promise<void>;
@@ -60,6 +61,7 @@ export function JobDetailModal({
   isOpen,
   onClose,
   onAccept,
+  onMarkAsDone,
   onComplete,
   onAddRemarks,
   onMarkPaid,
@@ -84,6 +86,18 @@ export function JobDetailModal({
       await onAccept(job.id || job._id || "");
     } catch (error) {
       console.error("Error accepting job:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleMarkAsDone = async () => {
+    if (!onMarkAsDone) return;
+    try {
+      setIsSubmitting(true);
+      await onMarkAsDone(job.id || job._id || "");
+    } catch (error) {
+      console.error("Error marking job as done:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -404,9 +418,9 @@ export function JobDetailModal({
                 {isSubmitting ? "Accepting..." : "Accept Job"}
               </Button>
             )}
-            {canMarkAsDone && (
+            {canMarkAsDone && onMarkAsDone && (
               <Button
-                onClick={handleAccept}
+                onClick={handleMarkAsDone}
                 disabled={isSubmitting || loading}
                 className="flex-1"
               >

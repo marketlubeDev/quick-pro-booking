@@ -5,6 +5,7 @@ import {
   acceptJob,
   completeJob,
   addJobRemarks,
+  markJobAsDone,
   type EmployeeJob,
   type AcceptJobInput,
   type CompleteJobInput,
@@ -17,6 +18,7 @@ export interface UseEmployeeJobsReturn {
   error: string | null;
   refetch: () => Promise<void>;
   acceptJobAction: (jobId: string) => Promise<void>;
+  markJobAsDoneAction: (jobId: string) => Promise<void>;
   completeJobAction: (jobId: string, completionNotes?: string) => Promise<void>;
   addRemarksAction: (jobId: string, remarks: string) => Promise<void>;
 }
@@ -116,6 +118,34 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
     [user?._id]
   );
 
+  const markJobAsDoneAction = useCallback(
+    async (jobId: string) => {
+      if (!user?._id) {
+        throw new Error("User not authenticated");
+      }
+
+      try {
+        const input: AcceptJobInput = {
+          jobId,
+          employeeId: user._id,
+        };
+
+        const response = await markJobAsDone(input);
+
+        if (response.success) {
+          // Refetch jobs to get updated status from server
+          await fetchJobs();
+        } else {
+          throw new Error(response.message || "Failed to mark job as done");
+        }
+      } catch (err) {
+        console.error("Error marking job as done:", err);
+        throw err;
+      }
+    },
+    [user?._id, fetchJobs]
+  );
+
   const addRemarksAction = useCallback(
     async (jobId: string, remarks: string) => {
       if (!user?._id) {
@@ -161,6 +191,7 @@ export function useEmployeeJobs(status?: string): UseEmployeeJobsReturn {
     error,
     refetch: fetchJobs,
     acceptJobAction,
+    markJobAsDoneAction,
     completeJobAction,
     addRemarksAction,
   };
