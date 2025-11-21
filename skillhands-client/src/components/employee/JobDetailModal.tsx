@@ -227,14 +227,14 @@ export function JobDetailModal({
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total</span>
                 <span className="font-medium">
-                  ${((job.totalAmount || 0) / 100).toFixed(2)}
+                  ${(job.totalAmount || 0).toFixed(2)}
                 </span>
               </div>
               {typeof job.amount === "number" && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Paid</span>
                   <span className="font-medium">
-                    ${((job.amount || 0) / 100).toFixed(2)}
+                    ${(job.amount || 0).toFixed(2)}
                   </span>
                 </div>
               )}
@@ -242,11 +242,7 @@ export function JobDetailModal({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Remaining</span>
                   <span className="font-medium">
-                    $
-                    {(
-                      ((job.totalAmount || 0) - (job.amount || 0)) /
-                      100
-                    ).toFixed(2)}
+                    ${((job.totalAmount || 0) - (job.amount || 0)).toFixed(2)}
                   </span>
                 </div>
               )}

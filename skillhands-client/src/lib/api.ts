@@ -126,7 +126,7 @@ export interface ServiceRequestData {
   status?: string;
   assignedEmployee?: string;
   paymentMethod?: string;
-  paymentPercentage?: "50" | "100";
+  paymentPercentage?: "33";
   amount?: number;
   tax?: number;
   totalAmount?: number;
@@ -315,7 +315,14 @@ export const paymentApi = {
     serviceRequestId: string;
     amount?: number;
     reason?: string;
-  }): Promise<ApiResponse<{ refundId: string; amount: number; status: string; paymentStatus: string }>> {
+  }): Promise<
+    ApiResponse<{
+      refundId: string;
+      amount: number;
+      status: string;
+      paymentStatus: string;
+    }>
+  > {
     return api.post("/api/payments/refund", data);
   },
 };

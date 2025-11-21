@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle, Upload, CreditCard, DollarSign } from "lucide-react";
+import { CheckCircle, Upload, CreditCard } from "lucide-react";
 import {
   Command,
   CommandInput,
@@ -213,42 +213,8 @@ const PaymentStep: React.FC<{
   submitError,
   employees,
 }) => {
-  // Calculate the actual payment amount based on percentage
-  const paymentPercentage = formData.paymentPercentage === "50" ? 0.5 : 1;
-  const paymentAmount = (formData.totalAmount || 0) * paymentPercentage;
-
-  const handleCashPayment = async () => {
-    setProcessingPayment(true);
-    try {
-      const result = await serviceRequestApi.submit({
-        service: formData.service,
-        description: formData.description,
-        preferredDate: formData.preferredDate,
-        preferredTime: formData.preferredTime,
-        name: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        address: formData.address,
-        city: formData.city,
-        state: "MD",
-        zip: formData.zip,
-        status: "pending",
-        assignedEmployee: formData.assignedEmployee || undefined,
-        paymentMethod: "cash",
-        amount: formData.amount,
-        tax: formData.tax,
-        totalAmount: formData.totalAmount,
-      });
-
-      if (result.success) {
-        onPaymentSuccess();
-      }
-    } catch (error) {
-      console.error("Error submitting cash payment:", error);
-    } finally {
-      setProcessingPayment(false);
-    }
-  };
+  // Calculate the actual payment amount based on flat 1/3 deposit
+  const paymentAmount = (formData.totalAmount || 0) / 3;
 
   return (
     <div className="space-y-6">
@@ -301,25 +267,21 @@ const PaymentStep: React.FC<{
             {formData.paymentMethod === "stripe" && (
               <>
                 <div className="flex justify-between pt-2">
-                  <span className="text-muted-foreground">
-                    Payment Percentage:
-                  </span>
+                  <span className="text-muted-foreground">Payment Plan:</span>
                   <span className="font-medium">
-                    {formData.paymentPercentage}%
+                    Flat deposit (1/3 upfront)
                   </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t">
                   <span>Amount to Pay:</span>
                   <span>${paymentAmount.toFixed(2)}</span>
                 </div>
-                {formData.paymentPercentage === "50" && (
-                  <div className="flex justify-between pt-2 text-orange-600">
-                    <span className="text-sm">Remaining (due later):</span>
-                    <span className="text-sm font-medium">
-                      ${((formData.totalAmount || 0) * 0.5).toFixed(2)}
-                    </span>
-                  </div>
-                )}
+                <div className="flex justify-between pt-2 text-orange-600">
+                  <span className="text-sm">Remaining (due later):</span>
+                  <span className="text-sm font-medium">
+                    ${((formData.totalAmount || 0) * (2 / 3)).toFixed(2)}
+                  </span>
+                </div>
               </>
             )}
           </div>
@@ -327,30 +289,7 @@ const PaymentStep: React.FC<{
       </div>
 
       {/* Payment Method */}
-      {formData.paymentMethod === "cash" ? (
-        <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold mb-2 flex items-center gap-2">
-              <DollarSign className="w-5 h-5" />
-              Cash Payment
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              Payment will be collected at the service location. Please have the
-              exact amount ready.
-            </p>
-          </div>
-          <PrimaryButton
-            type="button"
-            onClick={handleCashPayment}
-            disabled={processingPayment}
-            className="w-full"
-          >
-            {processingPayment
-              ? "Submitting..."
-              : "Complete Request (Pay at Location)"}
-          </PrimaryButton>
-        </div>
-      ) : formData.paymentMethod === "stripe" ? (
+      {formData.paymentMethod === "stripe" ? (
         <div className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="font-semibold mb-2 flex items-center gap-2">
@@ -443,8 +382,8 @@ const Request = () => {
     zip: searchParams.get("zip") || "",
     image: null as File | null,
     assignedEmployee: "",
-    paymentMethod: "" as "cash" | "stripe" | "",
-    paymentPercentage: "100" as "50" | "100",
+    paymentMethod: "stripe" as "" | "stripe",
+    paymentPercentage: "33" as "33",
     amount: 0,
     tax: 0,
     totalAmount: 0,
@@ -614,9 +553,8 @@ const Request = () => {
     const tax = 0;
     const fullTotal = basePrice;
 
-    // Calculate payment amount based on selected percentage
-    const paymentPercentage = formData.paymentPercentage === "50" ? 0.5 : 1;
-    const paymentAmount = fullTotal * paymentPercentage;
+    // Calculate payment amount based on flat 1/3 deposit
+    const paymentAmount = fullTotal / 3;
 
     setFormData((prev) => ({
       ...prev,
@@ -660,12 +598,12 @@ const Request = () => {
     };
   }, []);
 
-  // Effect to calculate pricing when service or payment percentage changes
+  // Effect to calculate pricing when service or pricing changes
   useEffect(() => {
     if (formData.service) {
       calculatePricing();
     }
-  }, [formData.service, formData.paymentPercentage, servicePricing]);
+  }, [formData.service, servicePricing]);
 
   // Effect to fetch employees on mount
   useEffect(() => {
@@ -1302,12 +1240,6 @@ const Request = () => {
     }
 
     // Validate payment percentage for Stripe
-    if (formData.paymentMethod === "stripe" && !formData.paymentPercentage) {
-      setSubmitError("Please select a payment amount (50% or 100%).");
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
       // First, create the service request
       const result = await serviceRequestApi.submit({
@@ -1393,9 +1325,8 @@ const Request = () => {
     if (step === 3 && formData.paymentMethod === "stripe") {
       setProcessingPayment(true);
       try {
-        // Calculate payment amount based on percentage
-        const paymentPercentage = formData.paymentPercentage === "50" ? 0.5 : 1;
-        const paymentAmount = (formData.totalAmount || 0) * paymentPercentage;
+        // Calculate payment amount based on flat deposit
+        const paymentAmount = (formData.totalAmount || 0) / 3;
 
         // First create service request to get ID
         const result = await serviceRequestApi.submit({
@@ -1983,44 +1914,19 @@ const Request = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor="paymentMethod">Payment Method *</Label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                          <div
-                            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                              formData.paymentMethod === "cash"
-                                ? "border-primary bg-primary/5"
-                                : "border-muted hover:border-primary/50"
-                            }`}
-                            onClick={() =>
-                              handleInputChange("paymentMethod", "cash")
-                            }
-                          >
-                            <div className="flex items-center gap-3">
-                              <DollarSign className="w-6 h-6 text-primary" />
-                              <div>
-                                <h4 className="font-semibold">Cash Payment</h4>
-                                <p className="text-sm text-muted-foreground">
-                                  Pay at service location
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div
-                            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                              formData.paymentMethod === "stripe"
-                                ? "border-primary bg-primary/5"
-                                : "border-muted hover:border-primary/50"
-                            }`}
-                            onClick={() =>
-                              handleInputChange("paymentMethod", "stripe")
-                            }
-                          >
+                        <Label htmlFor="paymentMethod">Payment Method</Label>
+                        <div className="grid grid-cols-1 gap-4 mt-2">
+                          <div className="border-2 border-primary bg-primary/5 rounded-lg p-4">
                             <div className="flex items-center gap-3">
                               <CreditCard className="w-6 h-6 text-primary" />
                               <div>
-                                <h4 className="font-semibold">Card Payment</h4>
+                                <h4 className="font-semibold">
+                                  Secure Card Deposit
+                                </h4>
                                 <p className="text-sm text-muted-foreground">
-                                  Pay securely with card
+                                  Pay 1/3 upfront to reserve your booking. The
+                                  remaining balance is collected outside the app
+                                  once work begins and after completion.
                                 </p>
                               </div>
                             </div>
@@ -2031,62 +1937,27 @@ const Request = () => {
                       {formData.paymentMethod === "stripe" && (
                         <div>
                           <Label htmlFor="paymentPercentage">
-                            Payment Amount *
+                            Deposit Details
                           </Label>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                            <div
-                              className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                                formData.paymentPercentage === "50"
-                                  ? "border-primary bg-primary/5"
-                                  : "border-muted hover:border-primary/50"
-                              }`}
-                              onClick={() =>
-                                handleInputChange("paymentPercentage", "50")
-                              }
-                            >
-                              <div>
-                                <h4 className="font-semibold">
-                                  50% Upfront Payment
-                                </h4>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  Pay $
-                                  {((formData.totalAmount || 0) * 0.5).toFixed(
-                                    2
-                                  )}{" "}
-                                  now
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Remaining $
-                                  {((formData.totalAmount || 0) * 0.5).toFixed(
-                                    2
-                                  )}{" "}
-                                  due later
-                                </p>
-                              </div>
+                          <div className="border-2 rounded-lg p-4 mt-2">
+                            <div className="flex justify-between text-lg font-semibold">
+                              <span>Amount Due Now</span>
+                              <span>
+                                $
+                                {(
+                                  formData.paymentAmount ||
+                                  (formData.totalAmount || 0) / 3
+                                ).toFixed(2)}
+                              </span>
                             </div>
-                            <div
-                              className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                                formData.paymentPercentage === "100"
-                                  ? "border-primary bg-primary/5"
-                                  : "border-muted hover:border-primary/50"
-                              }`}
-                              onClick={() =>
-                                handleInputChange("paymentPercentage", "100")
-                              }
-                            >
-                              <div>
-                                <h4 className="font-semibold">
-                                  100% Full Payment
-                                </h4>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  Pay ${(formData.totalAmount || 0).toFixed(2)}{" "}
-                                  now
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Complete payment upfront
-                                </p>
-                              </div>
-                            </div>
+                            <p className="text-sm text-muted-foreground mt-2">
+                              The remaining $
+                              {((formData.totalAmount || 0) * (2 / 3)).toFixed(
+                                2
+                              )}{" "}
+                              will be collected later (1/3 at job start, 1/3 at
+                              completion).
+                            </p>
                           </div>
                         </div>
                       )}
@@ -2140,37 +2011,31 @@ const Request = () => {
                           {formData.paymentMethod === "stripe" && (
                             <>
                               <li>
-                                <strong>Payment Percentage:</strong>{" "}
-                                {formData.paymentPercentage}%
+                                <strong>Payment Plan:</strong> Flat deposit (1/3
+                                upfront)
                               </li>
                               <li>
                                 <strong>Amount to Pay Now:</strong> $
                                 {(
                                   formData.paymentAmount ||
-                                  formData.totalAmount *
-                                    (formData.paymentPercentage === "50"
-                                      ? 0.5
-                                      : 1)
+                                  (formData.totalAmount || 0) / 3
                                 ).toFixed(2)}
                               </li>
-                              {formData.paymentPercentage === "50" && (
-                                <li className="text-orange-600">
-                                  <strong>Remaining Amount:</strong> $
-                                  {((formData.totalAmount || 0) * 0.5).toFixed(
-                                    2
-                                  )}{" "}
-                                  (due later)
-                                </li>
-                              )}
+                              <li className="text-orange-600">
+                                <strong>Remaining Amount:</strong> $
+                                {(
+                                  (formData.totalAmount || 0) *
+                                  (2 / 3)
+                                ).toFixed(2)}{" "}
+                                (due later)
+                              </li>
                             </>
                           )}
                         </ul>
                         <div className="mt-3 text-xs text-muted-foreground">
                           <p>
-                            {formData.paymentMethod === "stripe" &&
-                            formData.paymentPercentage === "50"
-                              ? "50% upfront payment ensures commitment. Remaining 50% will be collected after service completion."
-                              : "Upfront fee covers the initial visit + company service charge."}
+                            A 1/3 deposit locks in your booking. The remaining
+                            balance is collected after service completion.
                           </p>
                           <p>
                             Additional on-site charges may apply for extra work
@@ -2248,9 +2113,6 @@ const Request = () => {
                             !formData.address ||
                             !formData.city ||
                             !formData.zip ||
-                            !formData.paymentMethod ||
-                            (formData.paymentMethod === "stripe" &&
-                              !formData.paymentPercentage) ||
                             processingPayment
                           }
                         >

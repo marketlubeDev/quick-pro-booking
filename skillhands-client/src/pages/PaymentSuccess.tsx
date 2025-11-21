@@ -161,12 +161,12 @@ export default function PaymentSuccess() {
                   <div>
                     <div className="text-muted-foreground">Total Paid</div>
                     <div className="font-semibold text-green-700">
-                      ${((request.amount || 0) / 100).toFixed(2)}
+                      ${(request.amount || 0).toFixed(2)}
                     </div>
                     {request.paymentStatus === "partially_paid" && typeof request.totalAmount === "number" && (
                       <div className="text-xs text-muted-foreground mt-1">
-                        Total Amount: ${(request.totalAmount / 100).toFixed(2)} |
-                        Remaining: ${((request.totalAmount - (request.amount || 0)) / 100).toFixed(2)}
+                        Total Amount: ${request.totalAmount.toFixed(2)} |
+                        Remaining: ${(request.totalAmount - (request.amount || 0)).toFixed(2)}
                       </div>
                     )}
                   </div>

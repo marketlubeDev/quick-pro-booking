@@ -1,4 +1,5 @@
 import ServiceRequest from "../models/ServiceRequest.js";
+import { connectDatabase } from "../config/db.js";
 import {
   sendEmail,
   sendScheduleConfirmationEmail,
@@ -65,6 +66,8 @@ export const createServiceRequest = async (req, res) => {
       autoUrgency = "urgent";
     }
 
+    await connectDatabase();
+
     const doc = await ServiceRequest.create({
       service,
       description,
@@ -97,8 +100,8 @@ export const createServiceRequest = async (req, res) => {
         paymentMethod === "cash"
           ? "pending"
           : paymentMethod === "stripe"
-          ? "pending"
-          : "pending",
+            ? "pending"
+            : "pending",
     });
 
     // Fire-and-forget email notification; do not block response if email fails

@@ -45,7 +45,7 @@ export function RejectServiceDialog({
   // Initialize refund amount with paid amount when dialog opens or refund is enabled
   React.useEffect(() => {
     if (canRefund && paidAmount > 0) {
-      setRefundAmount((paidAmount / 100).toFixed(2));
+      setRefundAmount(paidAmount.toFixed(2));
     } else {
       setRefundAmount("");
     }
@@ -75,7 +75,7 @@ export function RejectServiceDialog({
     onOpenChange(false);
   };
 
-  const maxRefundAmount = paidAmount > 0 ? paidAmount / 100 : totalAmount / 100;
+  const maxRefundAmount = paidAmount > 0 ? paidAmount : totalAmount;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -149,7 +149,7 @@ export function RejectServiceDialog({
                       Maximum refundable: ${maxRefundAmount.toFixed(2)}
                       {paidAmount > 0 && paidAmount < totalAmount && (
                         <span className="block mt-1">
-                          (Customer paid ${(paidAmount / 100).toFixed(2)} of ${(totalAmount / 100).toFixed(2)})
+                          (Customer paid ${paidAmount.toFixed(2)} of ${totalAmount.toFixed(2)})
                         </span>
                       )}
                     </p>

@@ -92,12 +92,12 @@ function formatDateDMYWithComma(dateString: string) {
 
 function formatCurrency(amount?: number | null) {
   if (amount === undefined || amount === null) return "-";
-  const value = amount > 0 && amount % 1 === 0 ? amount / 100 : amount;
+  // Amounts are already in dollars from the API (converted via model toJSON transform)
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
-  }).format(Number(value));
+  }).format(Number(amount));
 }
 
 function formatStatus(status: string): string {

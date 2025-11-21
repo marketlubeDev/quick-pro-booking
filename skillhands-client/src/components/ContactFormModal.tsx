@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { Upload, CreditCard, DollarSign } from "lucide-react";
+import { Upload, CreditCard, ShieldCheck, Wallet } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Command,
@@ -188,9 +188,8 @@ const PaymentStep: React.FC<{
   submitError,
   employees,
 }) => {
-  // Calculate the actual payment amount based on percentage
-  const paymentPercentage = formData.paymentPercentage === "50" ? 0.5 : 1;
-  const paymentAmount = (formData.totalAmount || 0) * paymentPercentage;
+  // Calculate the actual payment amount based on plan selection
+  const paymentAmount = (formData.totalAmount || 0) / 3;
   const formatDateDMYNumeric = (dateString: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -199,39 +198,6 @@ const PaymentStep: React.FC<{
     const mm = String(date.getMonth() + 1).padStart(2, "0");
     const yyyy = date.getFullYear();
     return `${dd}/${mm}/${yyyy}`;
-  };
-
-  const handleCashPayment = async () => {
-    setProcessingPayment(true);
-    try {
-      const result = await serviceRequestApi.submit({
-        service: formData.service,
-        description: formData.description,
-        preferredDate: formData.preferredDate,
-        preferredTime: formData.preferredTime,
-        name: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        address: formData.address,
-        city: formData.city,
-        state: "MD",
-        zip: formData.zip,
-        status: "pending",
-        assignedEmployee: formData.assignedEmployee || undefined,
-        paymentMethod: "cash",
-        amount: formData.amount,
-        tax: formData.tax,
-        totalAmount: formData.totalAmount,
-      });
-
-      if (result.success) {
-        onPaymentSuccess();
-      }
-    } catch (error) {
-      console.error("Error submitting cash payment:", error);
-    } finally {
-      setProcessingPayment(false);
-    }
   };
 
   return (
@@ -285,25 +251,21 @@ const PaymentStep: React.FC<{
             {formData.paymentMethod === "stripe" && (
               <>
                 <div className="flex justify-between pt-2">
-                  <span className="text-muted-foreground">
-                    Payment Percentage:
-                  </span>
+                  <span className="text-muted-foreground">Payment Plan:</span>
                   <span className="font-medium">
-                    {formData.paymentPercentage}%
+                    Flat deposit (1/3 upfront)
                   </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t">
                   <span>Amount to Pay:</span>
                   <span>${paymentAmount.toFixed(2)}</span>
                 </div>
-                {formData.paymentPercentage === "50" && (
-                  <div className="flex justify-between pt-2 text-orange-600">
-                    <span className="text-sm">Remaining (due later):</span>
-                    <span className="text-sm font-medium">
-                      ${((formData.totalAmount || 0) * 0.5).toFixed(2)}
-                    </span>
-                  </div>
-                )}
+                <div className="flex justify-between pt-2 text-orange-600">
+                  <span className="text-sm">Remaining (due later):</span>
+                  <span className="text-sm font-medium">
+                    ${((formData.totalAmount || 0) * (2 / 3)).toFixed(2)}
+                  </span>
+                </div>
               </>
             )}
           </div>
@@ -311,30 +273,7 @@ const PaymentStep: React.FC<{
       </div>
 
       {/* Payment Method */}
-      {formData.paymentMethod === "cash" ? (
-        <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold mb-2 flex items-center gap-2">
-              <DollarSign className="w-5 h-5" />
-              Cash Payment
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              Payment will be collected at the service location. Please have the
-              exact amount ready.
-            </p>
-          </div>
-          <PrimaryButton
-            type="button"
-            onClick={handleCashPayment}
-            disabled={processingPayment}
-            className="w-full"
-          >
-            {processingPayment
-              ? "Submitting..."
-              : "Complete Request (Pay at Location)"}
-          </PrimaryButton>
-        </div>
-      ) : formData.paymentMethod === "stripe" ? (
+      {formData.paymentMethod === "stripe" ? (
         <div className="space-y-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="font-semibold mb-2 flex items-center gap-2">
@@ -399,8 +338,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     city: "",
     zip: "",
     assignedEmployee: "",
-    paymentMethod: "" as "cash" | "stripe" | "",
-    paymentPercentage: "100" as "50" | "100",
+    paymentMethod: "stripe" as "" | "stripe",
+    paymentPercentage: "33" as "33",
     amount: 0,
     tax: 0,
     totalAmount: 0,
@@ -425,6 +364,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const [servicePricing, setServicePricing] = useState<{
     [key: string]: number;
   }>({});
+
+  console.log(formData, "vshavjdvsjvajsv");
 
   // Function to filter employees based on ZIP code and service
   const filterEmployeesByZipAndService = (
@@ -595,9 +536,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     const tax = 0;
     const fullTotal = basePrice;
 
-    // Calculate payment amount based on selected percentage
-    const paymentPercentage = formData.paymentPercentage === "50" ? 0.5 : 1;
-    const paymentAmount = fullTotal * paymentPercentage;
+    // Calculate payment amount based on flat 1/3 deposit
+    const paymentAmount = fullTotal / 3;
 
     setFormData((prev) => ({
       ...prev,
@@ -608,12 +548,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     }));
   };
 
-  // Effect to calculate pricing when service or payment percentage changes
+  // Effect to calculate pricing when service or pricing data changes
   useEffect(() => {
     if (formData.service) {
       calculatePricing();
     }
-  }, [formData.service, formData.paymentPercentage]);
+  }, [formData.service, servicePricing]);
 
   // ZIP codes data imported from data module
 
@@ -688,8 +628,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         city: "",
         zip: "",
         assignedEmployee: "",
-        paymentMethod: "",
-        paymentPercentage: "100",
+        paymentMethod: "stripe",
+        paymentPercentage: "33",
         amount: 0,
         tax: 0,
         totalAmount: 0,
@@ -921,14 +861,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       setIsSubmitting(false);
       return;
     }
-
-    // Validate payment percentage for Stripe
-    if (formData.paymentMethod === "stripe" && !formData.paymentPercentage) {
-      setSubmitError("Please select a payment amount (50% or 100%).");
-      setIsSubmitting(false);
-      return;
-    }
-
+    console.log(formData, "formDataqwertytu");
     try {
       // First, create the service request
       const result = await serviceRequestApi.submit({
@@ -965,10 +898,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             "Service request submitted successfully! Payment will be processed."
           );
         } else {
-          // Cash payment - just show success
-          toast.success(
-            "Service request submitted successfully! Payment will be collected at the service location."
-          );
+          toast.success("Service request submitted successfully!");
         }
 
         // Close the modal and reset
@@ -987,8 +917,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           city: "",
           zip: "",
           assignedEmployee: "",
-          paymentMethod: "",
-          paymentPercentage: "100",
+          paymentMethod: "stripe",
+          paymentPercentage: "33",
           amount: 0,
           tax: 0,
           totalAmount: 0,
@@ -1033,9 +963,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     if (step === 3 && formData.paymentMethod === "stripe") {
       setProcessingPayment(true);
       try {
-        // Calculate payment amount based on percentage
-        const paymentPercentage = formData.paymentPercentage === "50" ? 0.5 : 1;
-        const paymentAmount = (formData.totalAmount || 0) * paymentPercentage;
+        // Calculate payment amount based on flat deposit
+        const paymentAmount = (formData.totalAmount || 0) / 3;
 
         // First create service request to get ID
         const result = await serviceRequestApi.submit({
@@ -1308,6 +1237,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         );
 
       case 3:
+        const depositAmount =
+          formData.paymentAmount || (formData.totalAmount || 0) / 3;
+        const remainingAmount = Math.max(
+          (formData.totalAmount || 0) - depositAmount,
+          0
+        );
         return (
           <div className="space-y-4">
             <div>
@@ -1322,16 +1257,6 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="city">City *</Label>
-                <Input
-                  id="city"
-                  required
-                  value={formData.city}
-                  onChange={(e) => handleInputChange("city", e.target.value)}
-                  placeholder="Your City, County"
-                />
-              </div>
               <div>
                 <Label htmlFor="state">State *</Label>
                 <Input
@@ -1396,6 +1321,17 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   </p>
                 )}
               </div>
+              <div>
+                <Label htmlFor="city">City *</Label>
+                <Input
+                  id="city"
+                  required
+                  value={formData.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                  placeholder="Your City, County"
+                />
+              </div>
+
               <div>
                 <Label htmlFor="assignedEmployee">Assign to Pro</Label>
                 <Select
@@ -1474,40 +1410,17 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             </div>
 
             <div>
-              <Label htmlFor="paymentMethod">Payment Method *</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                <div
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    formData.paymentMethod === "cash"
-                      ? "border-primary bg-primary/5"
-                      : "border-muted hover:border-primary/50"
-                  }`}
-                  onClick={() => handleInputChange("paymentMethod", "cash")}
-                >
-                  <div className="flex items-center gap-3">
-                    <DollarSign className="w-6 h-6 text-primary" />
-                    <div>
-                      <h4 className="font-semibold">Cash Payment</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Pay at service location
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    formData.paymentMethod === "stripe"
-                      ? "border-primary bg-primary/5"
-                      : "border-muted hover:border-primary/50"
-                  }`}
-                  onClick={() => handleInputChange("paymentMethod", "stripe")}
-                >
+              <Label htmlFor="paymentMethod">Payment Method</Label>
+              <div className="grid grid-cols-1 gap-4 mt-2">
+                <div className="border-2 border-primary bg-primary/5 rounded-lg p-4">
                   <div className="flex items-center gap-3">
                     <CreditCard className="w-6 h-6 text-primary" />
                     <div>
-                      <h4 className="font-semibold">Card Payment</h4>
+                      <h4 className="font-semibold">Secure Card Deposit</h4>
                       <p className="text-sm text-muted-foreground">
-                        Pay securely with card
+                        Pay 1/3 upfront to reserve your booking. The remaining
+                        balance is collected in two equal payments after service
+                        begins and once it is complete.
                       </p>
                     </div>
                   </div>
@@ -1516,130 +1429,165 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             </div>
 
             {formData.paymentMethod === "stripe" && (
-              <div>
-                <Label htmlFor="paymentPercentage">Payment Amount *</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                  <div
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                      formData.paymentPercentage === "50"
-                        ? "border-primary bg-primary/5"
-                        : "border-muted hover:border-primary/50"
-                    }`}
-                    onClick={() => handleInputChange("paymentPercentage", "50")}
-                  >
-                    <div>
-                      <h4 className="font-semibold">50% Upfront Payment</h4>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Pay ${((formData.totalAmount || 0) * 0.5).toFixed(2)}{" "}
-                        now
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Remaining $
-                        {((formData.totalAmount || 0) * 0.5).toFixed(2)} due
-                        later
-                      </p>
-                    </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="w-5 h-5 text-primary" />
+                  <div>
+                    <Label className="text-base leading-none">
+                      Deposit & Remaining Balance
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Transparent breakdown of what you pay now vs later.
+                    </p>
                   </div>
-                  <div
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                      formData.paymentPercentage === "100"
-                        ? "border-primary bg-primary/5"
-                        : "border-muted hover:border-primary/50"
-                    }`}
-                    onClick={() =>
-                      handleInputChange("paymentPercentage", "100")
-                    }
-                  >
-                    <div>
-                      <h4 className="font-semibold">100% Full Payment</h4>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Pay ${(formData.totalAmount || 0).toFixed(2)} now
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Complete payment upfront
-                      </p>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="border rounded-xl p-4 shadow-sm bg-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                          Amount Due Now
+                        </p>
+                        <p className="text-2xl font-semibold">
+                          ${depositAmount.toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Wallet className="w-5 h-5 text-primary" />
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-3">
+                      Charged securely through Stripe today to reserve the job.
+                    </p>
+                  </div>
+
+                  <div className="border rounded-xl p-4 bg-muted/30">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Remaining Balance
+                    </p>
+                    <p className="text-xl font-semibold">
+                      ${remainingAmount.toFixed(2)}
+                    </p>
+                    <div className="mt-3 text-sm text-muted-foreground space-y-1">
+                      <p>• 1/3 due on the day work begins (paid directly).</p>
+                      <p>• 1/3 due after the job is complete.</p>
+                      <p>• Collected outside the app with your pro.</p>
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="bg-muted/50 p-4 rounded-lg">
-              <h3 className="font-heading font-semibold mb-2">
-                Review Your Request
-              </h3>
-              <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>
-                  <strong>Service:</strong> {formData.service}
-                </li>
-                <li>
-                  <strong>Date:</strong>{" "}
-                  {formatDateDMYNumeric(formData.preferredDate)}
-                </li>
-                <li>
-                  <strong>Time:</strong> {formData.preferredTime}
-                </li>
-                <li>
-                  <strong>Contact:</strong> {formData.name} - {formData.phone}
-                </li>
-                {formData.email && (
-                  <li>
-                    <strong>Email:</strong> {formData.email}
-                  </li>
-                )}
-                {formData.assignedEmployee && (
-                  <li>
-                    <strong>Assigned Pro:</strong>{" "}
-                    {(() => {
-                      const assignedEmp = employees.find(
-                        (emp) => emp._id === formData.assignedEmployee
-                      );
-                      if (assignedEmp) {
-                        return `${assignedEmp.name}${
-                          assignedEmp.city ? ` (${assignedEmp.city})` : ""
-                        }`;
-                      }
-                      return "Unknown";
-                    })()}
-                  </li>
-                )}
-                <li className="pt-2 border-t">
-                  <strong>Total Amount:</strong> $
-                  {formData.totalAmount.toFixed(2)}
-                </li>
-                {formData.paymentMethod === "stripe" && (
-                  <>
-                    <li>
-                      <strong>Payment Percentage:</strong>{" "}
-                      {formData.paymentPercentage}%
-                    </li>
-                    <li>
-                      <strong>Amount to Pay Now:</strong> $
-                      {(
-                        formData.paymentAmount ||
-                        formData.totalAmount *
-                          (formData.paymentPercentage === "50" ? 0.5 : 1)
-                      ).toFixed(2)}
-                    </li>
-                    {formData.paymentPercentage === "50" && (
-                      <li className="text-orange-600">
-                        <strong>Remaining Amount:</strong> $
-                        {((formData.totalAmount || 0) * 0.5).toFixed(2)} (due
-                        later)
-                      </li>
+            <div className="border rounded-2xl p-4 md:p-5 bg-white shadow-sm space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <h3 className="font-heading font-semibold text-lg">
+                    Review & Confirm
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Double‑check the details below before continuing to payment.
+                  </p>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Step <span className="font-semibold">{step}</span> of 4
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="rounded-xl border bg-muted/30 p-4 space-y-2">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Service Overview
+                  </p>
+                  <p className="font-semibold text-lg capitalize">
+                    {formData.service || "—"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDateDMYNumeric(formData.preferredDate)} ·{" "}
+                    {formData.preferredTime || "Flexible time"}
+                  </p>
+                  {formData.assignedEmployee && (
+                    <p className="text-sm">
+                      Assigned Pro:{" "}
+                      <span className="font-medium">
+                        {(() => {
+                          const assignedEmp = employees.find(
+                            (emp) => emp._id === formData.assignedEmployee
+                          );
+                          if (assignedEmp) {
+                            return `${assignedEmp.name}${
+                              assignedEmp.city ? ` (${assignedEmp.city})` : ""
+                            }`;
+                          }
+                          return "Unknown";
+                        })()}
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="rounded-xl border p-4 space-y-2">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Contact Info
+                  </p>
+                  <p className="font-medium">{formData.name || "—"}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formData.phone || "Phone not provided"}
+                    {formData.email && (
+                      <>
+                        <br />
+                        {formData.email}
+                      </>
                     )}
-                  </>
-                )}
-              </ul>
-              <div className="mt-3 text-xs text-muted-foreground">
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formData.address
+                      ? `${formData.address}, ${formData.city || ""} ${
+                          formData.zip || ""
+                        }`
+                      : "Address pending"}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border bg-primary/5 p-4 space-y-3">
+                  <p className="text-xs uppercase tracking-wide text-primary">
+                    Payment Snapshot
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      Project Total
+                    </span>
+                    <span className="font-semibold">
+                      ${formData.totalAmount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      Deposit Today
+                    </span>
+                    <span className="text-lg font-semibold">
+                      ${depositAmount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-orange-600">
+                    <span className="text-sm">Remaining Later</span>
+                    <span className="font-semibold">
+                      ${remainingAmount.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground bg-muted/20">
                 <p>
-                  {formData.paymentMethod === "stripe" &&
-                  formData.paymentPercentage === "50"
-                    ? "50% upfront payment ensures commitment. Remaining 50% will be collected after service completion."
-                    : "Upfront fee covers the initial visit + company service charge."}
+                  • A 1/3 deposit is processed now via card. The next 1/3 is
+                  paid directly to your pro when they arrive, and the final 1/3
+                  once the job is complete.
                 </p>
-                <p>
-                  Additional on-site charges may apply for extra work or parts.
+                <p className="mt-2">
+                  • Additional on-site charges may apply for add-ons, specialty
+                  parts, or extended labor. Your pro will review any changes
+                  with you before work continues.
                 </p>
               </div>
             </div>
@@ -1759,9 +1707,6 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     !formData.address ||
                     !formData.city ||
                     !formData.zip ||
-                    !formData.paymentMethod ||
-                    (formData.paymentMethod === "stripe" &&
-                      !formData.paymentPercentage) ||
                     processingPayment
                   }
                   className="w-full h-12 text-base font-medium"
@@ -1811,9 +1756,6 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     !formData.address ||
                     !formData.city ||
                     !formData.zip ||
-                    !formData.paymentMethod ||
-                    (formData.paymentMethod === "stripe" &&
-                      !formData.paymentPercentage) ||
                     processingPayment
                   }
                 >

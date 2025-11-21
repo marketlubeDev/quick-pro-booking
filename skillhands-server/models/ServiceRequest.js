@@ -119,8 +119,8 @@ const ServiceRequestSchema = new mongoose.Schema(
     },
     paymentPercentage: {
       type: String,
-      enum: ["50", "100"],
-      default: "100",
+      enum: ["33", "50", "100"],
+      default: "33",
     },
     stripePaymentIntentId: { type: String, trim: true, default: null },
     amount: { type: Number, default: 0 }, // Total amount in cents
@@ -130,6 +130,23 @@ const ServiceRequestSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Transform function to convert amounts from cents to dollars when serializing to JSON
+ServiceRequestSchema.set("toJSON", {
+  transform: function (doc, ret) {
+    // Convert amounts from cents to dollars
+    if (ret.amount !== undefined) {
+      ret.amount = ret.amount / 100;
+    }
+    if (ret.tax !== undefined) {
+      ret.tax = ret.tax / 100;
+    }
+    if (ret.totalAmount !== undefined) {
+      ret.totalAmount = ret.totalAmount / 100;
+    }
+    return ret;
+  },
+});
 
 export default mongoose.models.ServiceRequest ||
   mongoose.model("ServiceRequest", ServiceRequestSchema);

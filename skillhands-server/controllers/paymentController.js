@@ -53,11 +53,11 @@ export const createPaymentIntent = async (req, res) => {
       },
     });
 
-    // Update service request with payment intent ID (store dollars)
+    // Update service request with payment intent ID (store in cents)
     await ServiceRequest.findByIdAndUpdate(serviceRequestId, {
       stripePaymentIntentId: paymentIntent.id,
       paymentMethod: "stripe",
-      amount: Number(amount),
+      amount: Math.round(Number(amount) * 100), // Convert to cents
     });
 
     return res.json({
@@ -115,13 +115,13 @@ export const confirmPayment = async (req, res) => {
     // Determine payment status based on payment percentage
     let paymentStatus = "failed";
     if (paymentIntent.status === "succeeded") {
-      // Check if this is a partial payment (50%)
+      // Check if this is a partial payment (33%)
       // Both amounts are in cents, so compare directly
       const paidAmount = paymentIntent.amount; // in cents
       const totalAmount = serviceRequest.totalAmount; // in cents
       const paymentPercentage = serviceRequest.paymentPercentage || "100";
 
-      if (paymentPercentage === "50" && paidAmount < totalAmount) {
+      if (paymentPercentage === "33" && paidAmount < totalAmount) {
         paymentStatus = "partially_paid";
       } else {
         paymentStatus = "paid";
@@ -251,10 +251,10 @@ export const createCheckoutSession = async (req, res) => {
       cancel_url: cancelUrl,
     });
 
-    // Mark intent to pay via Stripe/checkout (store dollars)
+    // Mark intent to pay via Stripe/checkout (store in cents)
     await ServiceRequest.findByIdAndUpdate(serviceRequestId, {
       paymentMethod: "stripe",
-      amount: Number(amount),
+      amount: Math.round(Number(amount) * 100), // Convert to cents
       paymentStatus: "pending",
     });
 
@@ -331,13 +331,13 @@ export const verifyCheckoutSession = async (req, res) => {
     // Determine payment status based on payment percentage
     let paymentStatus = "failed";
     if (isPaid) {
-      // Check if this is a partial payment (50%)
+      // Check if this is a partial payment (33%)
       // Both amounts are in cents, so compare directly
       const paidAmount = paymentIntent?.amount || 0; // in cents
       const totalAmount = serviceRequest.totalAmount; // in cents
       const paymentPercentage = serviceRequest.paymentPercentage || "100";
 
-      if (paymentPercentage === "50" && paidAmount < totalAmount) {
+      if (paymentPercentage === "33" && paidAmount < totalAmount) {
         paymentStatus = "partially_paid";
       } else {
         paymentStatus = "paid";
@@ -453,7 +453,7 @@ export const handleStripeWebhook = async (req, res) => {
       const totalAmount = serviceRequest.totalAmount; // in cents
       const paymentPercentage = serviceRequest.paymentPercentage || "100";
 
-      if (paymentPercentage === "50" && paidAmount < totalAmount) {
+      if (paymentPercentage === "33" && paidAmount < totalAmount) {
         paymentStatus = "partially_paid";
       }
     }
