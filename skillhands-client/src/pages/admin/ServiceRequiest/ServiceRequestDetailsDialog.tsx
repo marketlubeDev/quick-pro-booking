@@ -911,7 +911,8 @@ export function ServiceRequestDetailsDialog({
               <Button
                 size="sm"
                 onClick={() => setIsPaymentLinkDialogOpen(true)}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+                disabled={computedRemaining === 0}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LinkIcon className="h-4 w-4" />
                 Generate Payment Link
