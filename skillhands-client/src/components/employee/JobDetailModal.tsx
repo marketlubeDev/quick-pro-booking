@@ -202,7 +202,7 @@ export function JobDetailModal({
             </CardContent>
           </Card>
 
-          {/* Payment Information */}
+          {/* Payment Information
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -246,25 +246,8 @@ export function JobDetailModal({
                   </span>
                 </div>
               )}
-              {(job.paymentStatus === "partially_paid" ||
-                (job.paymentStatus !== "paid" &&
-                  job.paymentMethod === "cash")) &&
-                onMarkPaid &&
-                job.status !== "rejected" &&
-                job.status !== "cancelled" &&
-                job.status !== "completed" && (
-                  <Button
-                    onClick={handleMarkPaid}
-                    disabled={isSubmitting || loading}
-                    className="w-full mt-2"
-                  >
-                    {job.paymentStatus === "partially_paid"
-                      ? "Mark Remaining Paid (Cash)"
-                      : "Mark Fully Paid (Cash)"}
-                  </Button>
-                )}
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Customer Information */}
           <Card>
