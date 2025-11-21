@@ -624,8 +624,11 @@ export function ServiceRequestDetailsDialog({
             </div>
           </div>
 
+          <Separator />
+
           {/* Payment Information */}
           <div className="space-y-3">
+            <h3 className="text-lg font-semibold">Payment Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Payment Status</p>
@@ -660,21 +663,14 @@ export function ServiceRequestDetailsDialog({
                     {formatCurrency(request.amount || 0)}
                   </p>
                   {request.paymentStatus === "partially_paid" &&
-                   request.totalAmount !== undefined && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Remaining: {formatCurrency(
-                        (request.totalAmount || 0) - (request.amount || 0)
-                      )}
-                    </p>
-                  )}
-                </div>
-              )}
-              {request.tax !== undefined && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Tax</p>
-                  <p className="text-foreground">
-                    {formatCurrency(request.tax || 0)}
-                  </p>
+                    request.totalAmount !== undefined && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Remaining:{" "}
+                        {formatCurrency(
+                          (request.totalAmount || 0) - (request.amount || 0)
+                        )}
+                      </p>
+                    )}
                 </div>
               )}
               {request.paidAt && (
