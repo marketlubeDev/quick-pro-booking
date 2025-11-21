@@ -1,4 +1,6 @@
 import bcrypt from "bcryptjs";
+import { parse } from "csv-parse/sync";
+import * as XLSX from "xlsx";
 import User from "../models/User.js";
 import Profile from "../models/Profile.js";
 import ServiceRequest from "../models/ServiceRequest.js";
@@ -389,6 +391,9 @@ export const getAllEmployeeProfiles = async (req, res, next) => {
       bio: profile.bio,
       verified: profile.verified || false,
       verificationNotes: profile.verificationNotes,
+      regNumber: profile.regNumber,
+      category: profile.category,
+      expireDate: profile.expireDate ? profile.expireDate.toISOString() : undefined,
       user: profile.user,
     }));
 
@@ -1363,5 +1368,243 @@ export const deleteEmployeeQualification = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+// Bulk upload employees from CSV/XLSX (admin only)
+export const bulkUploadEmployees = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
+
+    let records = [];
+    const fileName = req.file.originalname.toLowerCase();
+    const isExcel = fileName.endsWith(".xlsx") || fileName.endsWith(".xls");
+
+    // Parse file based on type
+    if (isExcel) {
+      // Parse XLSX file
+      const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      records = XLSX.utils.sheet_to_json(worksheet, {
+        raw: false,
+        defval: "",
+      });
+    } else {
+      // Parse CSV file
+      const csvContent = req.file.buffer.toString("utf-8");
+      records = parse(csvContent, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+        relax_column_count: true,
+      });
+    }
+
+    if (!records || records.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "File is empty or invalid",
+      });
+    }
+
+    const results = {
+      total: records.length,
+      success: 0,
+      failed: 0,
+      errors: [],
+    };
+
+    // Process each record
+    for (let i = 0; i < records.length; i++) {
+      const row = records[i];
+      const rowNumber = i + 2; // +2 because row 1 is header, and arrays are 0-indexed
+
+      try {
+        // Extract and map fields (works for both CSV and XLSX)
+        const fname = String(row.FNAME || "").trim();
+        const lname = String(row.LNAME || "").trim();
+        const email = String(row.EMAIL_PUB || row.EMAIL || "").trim().toLowerCase();
+        const city = String(row.CITY || "").trim();
+        const state = String(row.STATE || "").trim();
+        const zip = String(row.ZIP || "").trim();
+        const regNumber = String(row["REG#"] || row.REG || row["REG#"] || "").trim();
+        const category = String(row.CAT || "").trim();
+        const expDate = String(row.EXP || "").trim();
+
+        // Validate required fields (name is required, email is optional)
+        if (!fname && !lname) {
+          results.failed++;
+          results.errors.push({
+            row: rowNumber,
+            email: email || "N/A",
+            error: "First name or last name is required",
+          });
+          continue;
+        }
+
+        // Generate email if not provided
+        let finalEmail = email;
+        if (!finalEmail) {
+          const baseEmail = `${fname.toLowerCase()}.${lname.toLowerCase()}@imported.local`.replace(/\s+/g, "");
+          finalEmail = baseEmail;
+          // Check if generated email already exists and append number if needed
+          let counter = 1;
+          while (await User.findOne({ email: finalEmail })) {
+            finalEmail = `${fname.toLowerCase()}.${lname.toLowerCase()}${counter}@imported.local`.replace(/\s+/g, "");
+            counter++;
+          }
+        }
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ email: finalEmail });
+        if (existingUser) {
+          // Update existing profile if user exists
+          const existingProfile = await Profile.findOne({ user: existingUser._id });
+          if (existingProfile) {
+            // Update profile fields
+            if (fname || lname) {
+              existingProfile.fullName = `${fname} ${lname}`.trim();
+            }
+            if (city) existingProfile.city = city;
+            if (state) existingProfile.state = state;
+            if (zip) existingProfile.postalCode = zip;
+            if (regNumber) existingProfile.regNumber = regNumber;
+            if (category) existingProfile.category = category;
+            if (expDate) {
+              // Parse date - handle formats like "0 2026-06-26" or "2026-06-26"
+              const dateStr = expDate.replace(/^0\s+/, ""); // Remove leading "0 "
+              const parsedDate = new Date(dateStr);
+              if (!isNaN(parsedDate.getTime())) {
+                existingProfile.expireDate = parsedDate;
+              }
+            }
+            existingProfile.lastUpdated = new Date();
+            await existingProfile.save();
+            results.success++;
+          } else {
+            // Create profile for existing user
+            await Profile.create({
+              user: existingUser._id,
+              fullName: `${fname} ${lname}`.trim(),
+              email,
+              city,
+              state,
+              postalCode: zip,
+              regNumber,
+              category,
+              expireDate: expDate ? (() => {
+                const dateStr = expDate.replace(/^0\s+/, "");
+                const parsedDate = new Date(dateStr);
+                return !isNaN(parsedDate.getTime()) ? parsedDate : undefined;
+              })() : undefined,
+              status: "pending",
+            });
+            results.success++;
+          }
+          continue;
+        }
+
+        // Create new user and profile
+        // Generate a random password (users will need to reset it)
+        const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
+        const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+        // Create user with email (or generated email if not provided)
+        let user;
+        try {
+          user = await User.create({
+            name: `${fname} ${lname}`.trim() || finalEmail,
+            email: finalEmail,
+            passwordHash,
+            role: "employee",
+          });
+        } catch (createError) {
+          // Handle duplicate email error (race condition)
+          if (createError?.code === 11000) {
+            // Email already exists, try to find and update existing user
+            const existingUser = await User.findOne({ email: finalEmail });
+            if (existingUser) {
+              const existingProfile = await Profile.findOne({ user: existingUser._id });
+              if (existingProfile) {
+                // Update existing profile
+                if (fname || lname) {
+                  existingProfile.fullName = `${fname} ${lname}`.trim();
+                }
+                if (city) existingProfile.city = city;
+                if (state) existingProfile.state = state;
+                if (zip) existingProfile.postalCode = zip;
+                if (regNumber) existingProfile.regNumber = regNumber;
+                if (category) existingProfile.category = category;
+                if (expDate) {
+                  const dateStr = expDate.replace(/^0\s+/, "");
+                  const parsedDate = new Date(dateStr);
+                  if (!isNaN(parsedDate.getTime())) {
+                    existingProfile.expireDate = parsedDate;
+                  }
+                }
+                existingProfile.lastUpdated = new Date();
+                await existingProfile.save();
+                results.success++;
+                continue;
+              }
+            }
+          }
+          throw createError;
+        }
+
+        // Parse expire date
+        let parsedExpireDate = undefined;
+        if (expDate) {
+          const dateStr = expDate.replace(/^0\s+/, ""); // Remove leading "0 "
+          const parsedDate = new Date(dateStr);
+          if (!isNaN(parsedDate.getTime())) {
+            parsedExpireDate = parsedDate;
+          }
+        }
+
+        await Profile.create({
+          user: user._id,
+          fullName: `${fname} ${lname}`.trim(),
+          email: finalEmail,
+          city,
+          state,
+          postalCode: zip,
+          regNumber,
+          category,
+          expireDate: parsedExpireDate,
+          status: "pending",
+        });
+
+        results.success++;
+      } catch (err) {
+        results.failed++;
+        const rowEmail = String(row.EMAIL_PUB || row.EMAIL || "").trim() || "N/A";
+        results.errors.push({
+          row: rowNumber,
+          email: rowEmail,
+          error: err.message || "Unknown error",
+        });
+        console.error(`Error processing row ${rowNumber}:`, err);
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: `Bulk upload completed. ${results.success} successful, ${results.failed} failed.`,
+      data: results,
+    });
+  } catch (err) {
+    console.error("Bulk upload error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to process CSV file",
+      error: err instanceof Error ? err.message : "Unknown error",
+    });
   }
 };

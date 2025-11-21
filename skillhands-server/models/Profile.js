@@ -94,6 +94,11 @@ const profileSchema = new mongoose.Schema(
     rating: { type: Number, min: 0, max: 5, default: 0 },
     totalJobs: { type: Number, min: 0, default: 0 },
     appliedDate: { type: Date, default: Date.now },
+
+    // Additional fields for bulk upload
+    regNumber: { type: String, trim: true },
+    category: { type: String, trim: true },
+    expireDate: { type: Date },
   },
   { timestamps: true }
 );

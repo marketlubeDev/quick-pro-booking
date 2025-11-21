@@ -173,6 +173,10 @@ export interface EmployeeApplication {
   verified?: boolean;
   verificationNotes?: string;
   workExperience?: WorkExperience[];
+  // Bulk upload fields
+  regNumber?: string;
+  category?: string;
+  expireDate?: string;
   user?: {
     _id: string;
     name: string;

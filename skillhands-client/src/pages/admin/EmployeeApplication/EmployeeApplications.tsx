@@ -1,8 +1,9 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
-import { Search, Filter, Plus, Users, Loader2 } from "lucide-react";
+import { Search, Filter, Plus, Users, Loader2, Upload } from "lucide-react";
 import { EmployeeApplicationCard } from "./EmployeeApplicationCard";
 import { EmployeeDetailModal } from "./EmployeeDetailModal";
 import { RejectApplicationDialog } from "./RejectApplicationDialog";
+import { BulkUploadDialog } from "./BulkUploadDialog";
 import { EmployeeApplication } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export function EmployeeApplications() {
   const [approvingApplicationId, setApprovingApplicationId] = useState<
     string | null
   >(null);
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
 
   const {
     data,
@@ -266,6 +268,18 @@ export function EmployeeApplications() {
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      {/* Header with Bulk Upload Button */}
+      <div className="flex justify-between items-center">
+        <div className="flex-1" />
+        <Button
+          onClick={() => setIsBulkUploadOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Upload className="h-4 w-4" />
+          Bulk Upload
+        </Button>
+      </div>
+
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <div className="relative flex-1">
@@ -406,6 +420,15 @@ export function EmployeeApplications() {
         onConfirm={handleConfirmReject}
         employeeName={applicationToReject?.name}
         loading={isRejecting}
+      />
+
+      {/* Bulk Upload Dialog */}
+      <BulkUploadDialog
+        isOpen={isBulkUploadOpen}
+        onClose={() => setIsBulkUploadOpen(false)}
+        onSuccess={async () => {
+          await refetch();
+        }}
       />
     </div>
   );

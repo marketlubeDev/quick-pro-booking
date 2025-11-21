@@ -640,6 +640,32 @@ export const adminApi = {
       }
     );
   },
+
+  async bulkUploadEmployees(
+    csvFile: File
+  ): Promise<ApiResponse<{ total: number; success: number; failed: number; errors: Array<{ row: number; email: string; error: string }> }>> {
+    const formData = new FormData();
+    formData.append("csvFile", csvFile);
+
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      throw new Error("Authentication required");
+    }
+
+    const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/profile/bulk-upload`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to upload CSV");
+    }
+    return data;
+  },
 };
 
 // Dashboard API

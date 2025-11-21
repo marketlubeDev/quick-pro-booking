@@ -24,6 +24,7 @@ import {
   addEmployeeQualification,
   updateEmployeeQualification,
   deleteEmployeeQualification,
+  bulkUploadEmployees,
 } from "../controllers/profileController.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { upload } from "../middleware/uploads.js";
@@ -73,5 +74,8 @@ router.delete("/:profileId/work-experience/:experienceId", requireRole("admin"),
 router.post("/:profileId/qualification", requireRole("admin"), addEmployeeQualification);
 router.patch("/:profileId/qualification/:qualificationId", requireRole("admin"), updateEmployeeQualification);
 router.delete("/:profileId/qualification/:qualificationId", requireRole("admin"), deleteEmployeeQualification);
+
+// Admin-only route for bulk upload
+router.post("/bulk-upload", requireRole("admin"), upload.single("csvFile"), bulkUploadEmployees);
 
 export default router;

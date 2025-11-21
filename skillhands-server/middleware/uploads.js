@@ -7,11 +7,18 @@ export const upload = multer({
     if (
       file.mimetype.startsWith("image/") ||
       file.mimetype.startsWith("video/") ||
-      file.mimetype === "application/pdf"
+      file.mimetype === "application/pdf" ||
+      file.mimetype === "text/csv" ||
+      file.mimetype === "application/vnd.ms-excel" ||
+      file.mimetype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+      file.mimetype === "text/plain" ||
+      file.originalname.endsWith(".csv") ||
+      file.originalname.endsWith(".xlsx") ||
+      file.originalname.endsWith(".xls")
     ) {
       cb(null, true);
     } else {
-      cb(new Error("Only image, video, and PDF files are allowed!"), false);
+      cb(new Error("Only image, video, PDF, CSV, and Excel files are allowed!"), false);
     }
   },
 });
