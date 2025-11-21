@@ -6,6 +6,7 @@ import {
   createCheckoutSession,
   verifyCheckoutSession,
   processRefund,
+  generatePaymentLink,
 } from "../controllers/paymentController.js";
 
 const router = express.Router();
@@ -22,6 +23,7 @@ router.post("/create-payment-intent", createPaymentIntent);
 router.post("/confirm-payment", confirmPayment);
 router.post("/create-checkout-session", createCheckoutSession);
 router.post("/refund", processRefund);
+router.post("/generate-link", generatePaymentLink);
 
 // Verify checkout completion without webhook
 router.get("/checkout-session/:sessionId", verifyCheckoutSession);

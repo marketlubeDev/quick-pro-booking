@@ -284,6 +284,14 @@ export interface CreateCheckoutSessionData {
   returnUrl?: string;
 }
 
+export interface GeneratePaymentLinkData {
+  serviceRequestId: string;
+  option: "second_third" | "full" | "custom";
+  customAmount?: number;
+  note?: string;
+  returnUrl?: string;
+}
+
 export const paymentApi = {
   async createPaymentIntent(
     data: CreatePaymentIntentData
@@ -301,9 +309,13 @@ export const paymentApi = {
     return api.post("/api/payments/create-checkout-session", data);
   },
 
-  async verifyCheckoutSession(
-    sessionId: string
-  ): Promise<ApiResponse<{ serviceRequestId: string; paymentStatus: string }>> {
+  async verifyCheckoutSession(sessionId: string): Promise<
+    ApiResponse<{
+      serviceRequestId: string;
+      paymentStatus: string;
+      serviceRequest?: any;
+    }>
+  > {
     return api.get(
       `/api/payments/checkout-session?session_id=${encodeURIComponent(
         sessionId
@@ -324,6 +336,16 @@ export const paymentApi = {
     }>
   > {
     return api.post("/api/payments/refund", data);
+  },
+
+  async generatePaymentLink(data: GeneratePaymentLinkData): Promise<
+    ApiResponse<{
+      checkoutUrl: string;
+      sessionId: string;
+      serviceRequest: ServiceRequest;
+    }>
+  > {
+    return api.post("/api/payments/generate-link", data);
   },
 };
 

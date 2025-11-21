@@ -5,12 +5,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -18,10 +20,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, useEffect } from "react";
-import { Edit2, Save, X, Loader2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Edit2,
+  Save,
+  X,
+  Loader2,
+  Link as LinkIcon,
+  Copy,
+  Share2,
+  Trash2,
+} from "lucide-react";
 import { updateServiceRequest } from "@/lib/api.serviceRequests";
-import { employeeApi } from "@/lib/api";
+import {
+  employeeApi,
+  paymentApi,
+  serviceRequestApi,
+  type GeneratePaymentLinkData,
+} from "@/lib/api";
 import { toast } from "sonner";
 
 type ServiceRequestDetailsDialogProps = {
@@ -107,6 +124,13 @@ function formatStatus(status: string): string {
     .join(" ");
 }
 
+function formatDateTime(value?: string | null) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return value;
+  return date.toLocaleString();
+}
+
 const getPriorityColor = (priority: string) => {
   switch (priority) {
     case "urgent":
@@ -134,6 +158,8 @@ const getUrgencyColor = (urgency: string) => {
       return "bg-gray-100 text-gray-800";
   }
 };
+
+type PaymentLinkOption = "second_third" | "full" | "custom";
 
 export function ServiceRequestDetailsDialog({
   open,
@@ -165,6 +191,28 @@ export function ServiceRequestDetailsDialog({
     assignedEmployee: "",
     selectedEmployee: null as any,
   });
+  const [isPaymentLinkDialogOpen, setIsPaymentLinkDialogOpen] = useState(false);
+  const [selectedPaymentOption, setSelectedPaymentOption] =
+    useState<PaymentLinkOption>("second_third");
+  const [customPaymentAmount, setCustomPaymentAmount] = useState("");
+  const [paymentLinkNote, setPaymentLinkNote] = useState("");
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [generatedLinkUrl, setGeneratedLinkUrl] = useState<string | null>(null);
+
+  // Refresh service request data when dialog opens and periodically
+  const refreshServiceRequest = useCallback(async () => {
+    if (!request?._id && !request?.id) return;
+
+    try {
+      const requestId = request._id || request.id;
+      const response = await serviceRequestApi.getById(requestId);
+      if (response.success && response.data && onUpdate) {
+        onUpdate(response.data as ServiceRequest);
+      }
+    } catch (error) {
+      console.error("Failed to refresh service request:", error);
+    }
+  }, [request, onUpdate]);
 
   // Fetch employees when dialog opens
   useEffect(() => {
@@ -181,8 +229,26 @@ export function ServiceRequestDetailsDialog({
 
     if (open) {
       fetchEmployees();
+      // Refresh service request data when dialog opens
+      refreshServiceRequest();
+
+      // Set up periodic refresh every 3 seconds while dialog is open (reduced from 5s for faster updates)
+      const refreshInterval = setInterval(() => {
+        refreshServiceRequest();
+      }, 3000);
+
+      // Also refresh when window regains focus (useful when payment is completed in another tab)
+      const handleFocus = () => {
+        refreshServiceRequest();
+      };
+      window.addEventListener("focus", handleFocus);
+
+      return () => {
+        clearInterval(refreshInterval);
+        window.removeEventListener("focus", handleFocus);
+      };
     }
-  }, [open]);
+  }, [open, refreshServiceRequest]);
 
   // Initialize form data when request changes
   useEffect(() => {
@@ -217,6 +283,75 @@ export function ServiceRequestDetailsDialog({
   }, [request]);
 
   if (!request) return null;
+
+  const totalAmount = request.totalAmount ?? 0;
+
+  // Deduplicate payment history by referenceId (same payment shouldn't appear twice)
+  const seenReferenceIds = new Set<string>();
+  const uniquePaymentHistory = (request.paymentHistory || []).filter(
+    (entry) => {
+      if (entry.referenceId) {
+        if (seenReferenceIds.has(entry.referenceId)) {
+          return false; // Skip duplicate
+        }
+        seenReferenceIds.add(entry.referenceId);
+      }
+      return true;
+    }
+  );
+
+  // Calculate amountPaid from successful payment history entries (for validation/display purposes)
+  // Only count actual payments (type === "payment") with succeeded status
+  const calculatedAmountPaid = uniquePaymentHistory
+    .filter(
+      (entry) =>
+        entry.type === "payment" && entry.status === "succeeded" && entry.amount
+    )
+    .reduce((sum, entry) => sum + (Number(entry.amount) || 0), 0);
+
+  // Prioritize backend amountPaid as the source of truth (it's always up-to-date)
+  // Only fall back to calculated value if backend value is missing or invalid
+  const amountPaid =
+    request.amountPaid !== undefined && request.amountPaid !== null
+      ? request.amountPaid
+      : calculatedAmountPaid > 0
+      ? calculatedAmountPaid
+      : request.paymentStatus === "paid"
+      ? totalAmount
+      : request.amount ?? 0;
+
+  // Always calculate remaining balance from totalAmount - amountPaid to ensure accuracy
+  const computedRemaining = Math.max(0, totalAmount - (amountPaid || 0));
+
+  const paymentHistory = uniquePaymentHistory.sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
+  });
+  const pendingPaymentLink = paymentHistory.find(
+    (entry) =>
+      entry.type === "link" &&
+      entry.status === "pending" &&
+      entry.metadata?.checkoutUrl
+  );
+  const latestGeneratedLink =
+    generatedLinkUrl || pendingPaymentLink?.metadata?.checkoutUrl || null;
+  const parsedCustomAmount = Number.parseFloat(customPaymentAmount || "0");
+  const plannedPaymentAmount = (() => {
+    switch (selectedPaymentOption) {
+      case "second_third": {
+        const third = totalAmount / 3 || 0;
+        return Math.max(0, Math.min(third, computedRemaining || third));
+      }
+      case "full":
+        return computedRemaining || totalAmount || 0;
+      case "custom":
+        return parsedCustomAmount > 0 ? parsedCustomAmount : 0;
+      default:
+        return computedRemaining || 0;
+    }
+  })();
+  const canGenerateLink = plannedPaymentAmount > 0;
 
   const handleEditCustomer = () => {
     setIsEditingCustomer(true);
@@ -501,6 +636,149 @@ export function ServiceRequestDetailsDialog({
     }
   };
 
+  const handleCopyLink = async (link: string) => {
+    if (!link) return;
+    try {
+      await navigator.clipboard?.writeText(link);
+      toast.success("Payment link copied to clipboard");
+    } catch (error) {
+      console.error("Failed to copy link:", error);
+      toast.error("Unable to copy the link. Please copy it manually.");
+    }
+  };
+
+  const truncateUrl = (url: string, maxLength: number = 50) => {
+    if (!url || url.length <= maxLength) return url;
+    return url.substring(0, maxLength) + "...";
+  };
+
+  const handleShareLink = async (link: string) => {
+    if (!link) return;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "Payment Link",
+          text: "Please use this link to complete your payment",
+          url: link,
+        });
+        toast.success("Payment link shared");
+      } else {
+        // Fallback to copy if share API is not available
+        await navigator.clipboard?.writeText(link);
+        toast.success("Payment link copied to clipboard");
+      }
+    } catch (error: any) {
+      // User cancelled share or error occurred
+      if (error.name !== "AbortError") {
+        console.error("Failed to share link:", error);
+        // Fallback to copy
+        try {
+          await navigator.clipboard?.writeText(link);
+          toast.success("Payment link copied to clipboard");
+        } catch (copyError) {
+          toast.error("Unable to share or copy the link");
+        }
+      }
+    }
+  };
+
+  const handleCancelLink = async () => {
+    if (!request?._id || !pendingPaymentLink?._id) return;
+
+    if (!confirm("Are you sure you want to cancel this payment link?")) {
+      return;
+    }
+
+    try {
+      // Update the payment history entry status to cancelled
+      const updatedHistory = (request.paymentHistory || []).map((entry) => {
+        if (entry._id === pendingPaymentLink._id) {
+          return {
+            ...entry,
+            status: "cancelled" as const,
+          };
+        }
+        return entry;
+      });
+
+      // Use updateServiceRequest with paymentHistory - backend should accept it
+      const updatedRequest = await updateServiceRequest({
+        id: request._id,
+        // @ts-ignore - paymentHistory is not in the type but backend accepts it
+        paymentHistory: updatedHistory,
+      } as any);
+
+      if (onUpdate) {
+        onUpdate(updatedRequest);
+      }
+
+      toast.success("Payment link cancelled");
+    } catch (error) {
+      console.error("Failed to cancel payment link:", error);
+      toast.error("Failed to cancel payment link. Please try again.");
+    }
+  };
+
+  const handleGeneratePaymentLink = async () => {
+    if (!request?._id) return;
+    if (!canGenerateLink) {
+      toast.error("Select a valid amount before generating a link.");
+      return;
+    }
+
+    setIsGeneratingLink(true);
+    try {
+      const payload: GeneratePaymentLinkData = {
+        serviceRequestId: request._id,
+        option: selectedPaymentOption,
+        note: paymentLinkNote || undefined,
+        returnUrl: window.location.origin,
+      };
+
+      if (selectedPaymentOption === "custom") {
+        payload.customAmount = Number(plannedPaymentAmount.toFixed(2));
+      }
+
+      const response = await paymentApi.generatePaymentLink(payload);
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to generate payment link");
+      }
+
+      const checkoutUrl = response.data?.checkoutUrl || "";
+
+      if (response.data?.serviceRequest && onUpdate) {
+        onUpdate(response.data.serviceRequest);
+      } else {
+        // Refresh service request data to get latest payment history
+        await refreshServiceRequest();
+      }
+
+      if (checkoutUrl) {
+        setGeneratedLinkUrl(checkoutUrl);
+        try {
+          await navigator.clipboard?.writeText(checkoutUrl);
+          toast.success("Payment link generated and copied to clipboard");
+        } catch {
+          toast.success("Payment link generated");
+        }
+      } else {
+        toast.success("Payment link generated");
+      }
+
+      setIsPaymentLinkDialogOpen(false);
+      setCustomPaymentAmount("");
+      setPaymentLinkNote("");
+    } catch (error: any) {
+      console.error("Failed to generate payment link:", error);
+      toast.error(
+        error?.message || "Failed to generate payment link. Please try again."
+      );
+    } finally {
+      setIsGeneratingLink(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -627,9 +905,19 @@ export function ServiceRequestDetailsDialog({
           <Separator />
 
           {/* Payment Information */}
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold">Payment Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-lg font-semibold">Payment Information</h3>
+              <Button
+                size="sm"
+                onClick={() => setIsPaymentLinkDialogOpen(true)}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <LinkIcon className="h-4 w-4" />
+                Generate Payment Link
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Payment Status</p>
                 <Badge
@@ -648,38 +936,145 @@ export function ServiceRequestDetailsDialog({
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Amount</p>
-                <p className="text-foreground">
-                  {formatCurrency(request.totalAmount)}
-                </p>
+                <p className="text-foreground">{formatCurrency(totalAmount)}</p>
               </div>
-              {request.amount !== undefined && (
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    {request.paymentStatus === "partially_paid"
-                      ? "Amount Paid"
-                      : "Subtotal"}
+              <div>
+                <p className="text-sm text-muted-foreground">Amount Paid</p>
+                <p className="text-foreground">
+                  {formatCurrency(amountPaid || 0)}
+                </p>
+                {request.paidAt && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Last paid at {formatDateTime(request.paidAt)}
                   </p>
-                  <p className="text-foreground">
-                    {formatCurrency(request.amount || 0)}
+                )}
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Remaining Balance
+                </p>
+                <p
+                  className={`text-foreground font-semibold ${
+                    computedRemaining === 0 ? "text-green-600" : ""
+                  }`}
+                >
+                  {formatCurrency(computedRemaining)}
+                </p>
+                {computedRemaining === 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This request is fully paid.
                   </p>
-                  {request.paymentStatus === "partially_paid" &&
-                    request.totalAmount !== undefined && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Remaining:{" "}
-                        {formatCurrency(
-                          (request.totalAmount || 0) - (request.amount || 0)
+                )}
+              </div>
+            </div>
+
+            {latestGeneratedLink && (
+              <div className="flex items-center gap-1.5 rounded-md border border-dashed border-primary/40 bg-primary/5 px-2.5 py-1.5">
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <p className="text-xs font-medium text-muted-foreground truncate break-all max-w-full">
+                    {truncateUrl(latestGeneratedLink, 45)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleCopyLink(latestGeneratedLink)}
+                    className="h-7 w-7 p-0"
+                    title="Copy full link"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleShareLink(latestGeneratedLink)}
+                    className="h-7 w-7 p-0"
+                    title="Share link"
+                  >
+                    <Share2 className="h-3.5 w-3.5" />
+                  </Button>
+                  {pendingPaymentLink && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleCancelLink}
+                      className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                      title="Cancel link"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-base font-semibold">Payment History</h4>
+                <span className="text-sm text-muted-foreground">
+                  {paymentHistory.length
+                    ? `${paymentHistory.length} entr${
+                        paymentHistory.length === 1 ? "y" : "ies"
+                      }`
+                    : "No history yet"}
+                </span>
+              </div>
+              {paymentHistory.length ? (
+                <div className="space-y-3">
+                  {paymentHistory.map((entry) => (
+                    <div
+                      key={
+                        entry._id || `${entry.referenceId}-${entry.createdAt}`
+                      }
+                      className="flex flex-wrap items-start justify-between gap-4 rounded-lg border bg-card p-3"
+                    >
+                      <div className="space-y-1">
+                        <p className="font-medium">
+                          {entry.label || formatStatus(entry.type)} ·{" "}
+                          {formatCurrency(entry.amount || 0)}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatStatus(entry.method || "stripe")} ·{" "}
+                          {formatDateTime(entry.createdAt)}
+                        </p>
+                        {entry.note && (
+                          <p className="text-sm text-muted-foreground">
+                            {entry.note}
+                          </p>
                         )}
-                      </p>
-                    )}
+                        {entry.metadata?.checkoutUrl &&
+                          entry.status === "pending" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="flex items-center gap-1 px-0"
+                              onClick={() =>
+                                handleCopyLink(entry.metadata.checkoutUrl)
+                              }
+                            >
+                              <Copy className="h-4 w-4" />
+                              Copy link
+                            </Button>
+                          )}
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <Badge variant="outline" className="capitalize">
+                          {formatStatus(entry.status || "pending")}
+                        </Badge>
+                        {entry.referenceId && (
+                          <span className="text-xs text-muted-foreground">
+                            Ref: {entry.referenceId}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-              {request.paidAt && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Paid At</p>
-                  <p className="text-foreground">
-                    {new Date(request.paidAt).toLocaleString()}
-                  </p>
-                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No payment activity recorded for this request yet.
+                </p>
               )}
             </div>
           </div>
@@ -1172,6 +1567,135 @@ export function ServiceRequestDetailsDialog({
           </div>
         </div>
       </DialogContent>
+      <Dialog
+        open={isPaymentLinkDialogOpen}
+        onOpenChange={(openState) => {
+          setIsPaymentLinkDialogOpen(openState);
+          if (!openState) {
+            setCustomPaymentAmount("");
+            setPaymentLinkNote("");
+            setIsGeneratingLink(false);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Generate Payment Link</DialogTitle>
+            <DialogDescription>
+              Choose how much you want to collect and we&rsquo;ll create a
+              Stripe Checkout link you can share with the customer.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm text-muted-foreground">
+                Payment option
+              </Label>
+              <RadioGroup
+                className="mt-3 space-y-3"
+                value={selectedPaymentOption}
+                onValueChange={(value) =>
+                  setSelectedPaymentOption(value as PaymentLinkOption)
+                }
+              >
+                <div className="flex items-start gap-3 rounded-lg border p-3">
+                  <RadioGroupItem value="second_third" id="option-second" />
+                  <div>
+                    <Label htmlFor="option-second" className="font-medium">
+                      Second 1/3 (33%)
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Charge the next installment of{" "}
+                      {formatCurrency(
+                        Math.min(
+                          totalAmount / 3 || 0,
+                          computedRemaining || totalAmount / 3 || 0
+                        )
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 rounded-lg border p-3">
+                  <RadioGroupItem value="full" id="option-full" />
+                  <div>
+                    <Label htmlFor="option-full" className="font-medium">
+                      Full remaining balance
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Collect the outstanding balance of{" "}
+                      {formatCurrency(computedRemaining || totalAmount)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 rounded-lg border p-3">
+                  <RadioGroupItem value="custom" id="option-custom" />
+                  <div className="w-full">
+                    <Label htmlFor="option-custom" className="font-medium">
+                      Custom amount
+                    </Label>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Set any amount if you need to collect something different.
+                    </p>
+                    {selectedPaymentOption === "custom" && (
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Enter amount e.g. 125.50"
+                        value={customPaymentAmount}
+                        onChange={(e) => setCustomPaymentAmount(e.target.value)}
+                      />
+                    )}
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div>
+              <Label className="text-sm text-muted-foreground">
+                Note (optional)
+              </Label>
+              <Textarea
+                className="mt-2"
+                placeholder="Add context for this payment request..."
+                value={paymentLinkNote}
+                onChange={(e) => setPaymentLinkNote(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg bg-muted p-3 text-sm">
+              <span className="text-muted-foreground">Link amount</span>
+              <span className="font-semibold">
+                {formatCurrency(plannedPaymentAmount)}
+              </span>
+            </div>
+          </div>
+
+          <DialogFooter className="mt-4 flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsPaymentLinkDialogOpen(false)}
+              disabled={isGeneratingLink}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleGeneratePaymentLink}
+              disabled={isGeneratingLink || !canGenerateLink}
+              className="flex items-center gap-2"
+            >
+              {isGeneratingLink ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <LinkIcon className="h-4 w-4" />
+              )}
+              {isGeneratingLink ? "Generating..." : "Generate link"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

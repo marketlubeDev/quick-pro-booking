@@ -36,19 +36,30 @@ export default function PaymentSuccess() {
     }
     (async () => {
       try {
+        let updatedRequest = null;
         if (sessionId) {
           try {
-            await paymentApi.verifyCheckoutSession(sessionId);
+            const verifyRes = await paymentApi.verifyCheckoutSession(sessionId);
+            // Use the updated service request from the verification response if available
+            if (verifyRes?.success && verifyRes?.data?.serviceRequest) {
+              updatedRequest = verifyRes.data.serviceRequest;
+            }
           } catch (_) {
             // ignore; we'll still fetch the request below
           }
         }
-        const res = await serviceRequestApi.getById(srid);
-        if (res?.success && res?.data) {
-          setRequest(res.data);
+        // If we got an updated request from verification, use it; otherwise fetch fresh
+        if (updatedRequest) {
+          setRequest(updatedRequest);
           setError("");
         } else {
-          setError(res?.message || "Could not load service details.");
+          const res = await serviceRequestApi.getById(srid);
+          if (res?.success && res?.data) {
+            setRequest(res.data);
+            setError("");
+          } else {
+            setError(res?.message || "Could not load service details.");
+          }
         }
       } catch (e: any) {
         setError(e?.message || "Failed to load service details.");
@@ -155,20 +166,25 @@ export default function PaymentSuccess() {
                   </div>
                 </div>
               )}
-              {(typeof request.amount === "number" || typeof request.totalAmount === "number") && (
+              {(typeof request.amountPaid === "number" ||
+                typeof request.totalAmount === "number") && (
                 <div className="flex items-start gap-2">
                   <BadgeDollarSign className="w-4 h-4 mt-0.5 text-muted-foreground" />
                   <div>
-                    <div className="text-muted-foreground">Total Paid</div>
+                    <div className="text-muted-foreground">Amount Paid</div>
                     <div className="font-semibold text-green-700">
-                      ${(request.amount || 0).toFixed(2)}
+                      ${(request.amountPaid || 0).toFixed(2)}
                     </div>
-                    {request.paymentStatus === "partially_paid" && typeof request.totalAmount === "number" && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Total Amount: ${request.totalAmount.toFixed(2)} |
-                        Remaining: ${(request.totalAmount - (request.amount || 0)).toFixed(2)}
-                      </div>
-                    )}
+                    {request.paymentStatus === "partially_paid" &&
+                      typeof request.totalAmount === "number" && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Total Amount: ${request.totalAmount.toFixed(2)} |
+                          Remaining: $
+                          {(
+                            request.totalAmount - (request.amountPaid || 0)
+                          ).toFixed(2)}
+                        </div>
+                      )}
                   </div>
                 </div>
               )}

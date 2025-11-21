@@ -1,5 +1,42 @@
 import mongoose from "mongoose";
 
+const paymentHistoryEntrySchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ["payment", "refund", "link", "adjustment"],
+      default: "payment",
+      trim: true,
+    },
+    method: {
+      type: String,
+      enum: ["stripe", "cash", "manual", "system"],
+      default: "stripe",
+      trim: true,
+    },
+    label: { type: String, trim: true },
+    note: { type: String, trim: true },
+    amount: { type: Number, required: true }, // stored in cents
+    status: {
+      type: String,
+      enum: ["pending", "succeeded", "failed", "cancelled", "expired"],
+      default: "pending",
+      trim: true,
+    },
+    referenceId: { type: String, trim: true },
+    sessionId: { type: String, trim: true },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    createdAt: { type: Date, default: Date.now },
+    completedAt: { type: Date, default: null },
+    metadata: { type: mongoose.Schema.Types.Mixed },
+  },
+  { _id: true }
+);
+
 const ServiceRequestSchema = new mongoose.Schema(
   {
     service: { type: String, required: true, trim: true },
@@ -127,22 +164,36 @@ const ServiceRequestSchema = new mongoose.Schema(
     tax: { type: Number, default: 0 }, // Tax amount in cents
     totalAmount: { type: Number, default: 0 }, // Total with tax in cents
     paidAt: { type: Date, default: null },
+    amountPaid: { type: Number, default: 0 }, // cumulative paid amount in cents
+    paymentHistory: { type: [paymentHistoryEntrySchema], default: [] },
   },
   { timestamps: true }
 );
 
+ServiceRequestSchema.virtual("remainingAmount").get(function () {
+  const total = this.totalAmount || 0;
+  const paid = this.amountPaid || 0;
+  return Math.max(0, total - paid);
+});
+
 // Transform function to convert amounts from cents to dollars when serializing to JSON
 ServiceRequestSchema.set("toJSON", {
+  virtuals: true,
   transform: function (doc, ret) {
-    // Convert amounts from cents to dollars
-    if (ret.amount !== undefined) {
-      ret.amount = ret.amount / 100;
-    }
-    if (ret.tax !== undefined) {
-      ret.tax = ret.tax / 100;
-    }
-    if (ret.totalAmount !== undefined) {
-      ret.totalAmount = ret.totalAmount / 100;
+    const toDollars = (value) =>
+      typeof value === "number" ? value / 100 : value;
+
+    ret.amount = toDollars(ret.amount);
+    ret.tax = toDollars(ret.tax);
+    ret.totalAmount = toDollars(ret.totalAmount);
+    ret.amountPaid = toDollars(ret.amountPaid);
+    ret.remainingAmount = toDollars(ret.remainingAmount);
+
+    if (Array.isArray(ret.paymentHistory)) {
+      ret.paymentHistory = ret.paymentHistory.map((entry) => ({
+        ...entry,
+        amount: toDollars(entry.amount),
+      }));
     }
     return ret;
   },

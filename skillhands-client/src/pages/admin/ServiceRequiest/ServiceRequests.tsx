@@ -732,8 +732,16 @@ export function ServiceRequests() {
         request={selectedRequest}
         onUpdate={(updatedRequest) => {
           setSelectedRequest(updatedRequest);
-          // Update the request in the list as well
-          // This will trigger a re-render with the updated data
+          // Invalidate queries to refresh the list with updated payment data
+          queryClient.invalidateQueries({
+            queryKey: ["service-requests-infinite"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["service-requests-summary"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["service-requests-all-counts"],
+          });
         }}
       />
 

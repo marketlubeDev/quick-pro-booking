@@ -6,6 +6,21 @@ export interface NavigationItem {
   icon: LucideIcon;
 }
 
+export interface PaymentHistoryEntry {
+  _id?: string;
+  type: "payment" | "refund" | "link" | "adjustment";
+  method?: "stripe" | "cash" | "manual" | "system";
+  label?: string;
+  note?: string;
+  amount: number;
+  status?: "pending" | "succeeded" | "failed" | "cancelled" | "expired";
+  referenceId?: string;
+  sessionId?: string;
+  metadata?: Record<string, any>;
+  createdAt?: string;
+  completedAt?: string;
+}
+
 export interface ServiceRequest {
   // Support both Mongo-style and app-local ids
   id: string;
@@ -40,7 +55,10 @@ export interface ServiceRequest {
   amount?: number; // base amount in cents or smallest currency unit
   tax?: number; // tax amount in cents
   totalAmount?: number; // total in cents
+  amountPaid?: number;
+  remainingAmount?: number;
   paidAt?: string | null;
+  paymentHistory?: PaymentHistoryEntry[];
 
   // Address variants
   address: string;
